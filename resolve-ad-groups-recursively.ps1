@@ -7,7 +7,7 @@ $SearchBase = "OU=Projektstruktur,OU=GRPMGMT,OU=ITMGMT,DC=mycorp,DC=local"
 # Limit to group names that contain the following string (* can be used as a wildcard)
 $GroupFilter = "*"
 
-$mygroups = Get-ADGroup -SearchBase $SearchBase -Filter {Name -like $GroupFilter} -SearchScope $SearchScope
+$mygroups = Get-ADGroup -SearchBase $SearchBase -Filter * -SearchScope $SearchScope | Where Name -like $GroupFilter
 
 function Get-ADGroupMembersRecursive {
     param (
@@ -59,3 +59,6 @@ $myUsers | where member -eq bde01 # see if a user and how a user obtained the pe
 $maxlevel = $myUsers.level | Sort-Object -Unique -Descending | Select-Object -First 1
 $myUsers | ogv
 Write-Host('Max Level: ' + $maxlevel) -ForegroundColor Red
+
+# # Caution: Takes a long time: Returns the number of authorizations for a user. Is an indication of too many useless authorizations 
+# $gesamtanzahl = $myUsers.member | Sort-Object -Unique | % { [pscustomobject]@{member=$_;Anzahl=($myUsers | Where member -eq $_ | Measure-Object).Count}}
