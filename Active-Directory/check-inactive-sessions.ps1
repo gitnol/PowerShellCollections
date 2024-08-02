@@ -1,4 +1,5 @@
 # I have added this script to reddit on 20240803
+# https://www.reddit.com/r/PowerShell/comments/8r56tr/getting_idle_time_for_logged_on_domain_users/
 
 function Get-SessionIDReadIOCounts {
     # Query Win32_Process to get all processes and their session IDs
