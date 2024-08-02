@@ -36,5 +36,5 @@ if ($user1auswahl -and $user2auswahl) {
     $comparision  | Out-GridView -Title ($user1auswahl.Name + " <-> " + $user2auswahl.Name)
 }
 
-# if (-not $PSScriptRoot) {Read-Host("Press enter")} # for < Powershell 7
+if ((-not $PSScriptRoot) -or ($PSVersionTable.PSVersion.Major -le 5)) {Read-Host("Press enter")} # for < Powershell 7
 
