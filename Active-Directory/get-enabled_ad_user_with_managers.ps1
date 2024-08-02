@@ -36,5 +36,5 @@ foreach ($user in $allUsers) {
 
 # Convert the results to a formatted table and output it
 # $results | Format-Table -Property SamAccountName, FullName, ManagerSamAccountName, ManagerFullName -AutoSize
-$results | ogv
+$results | Out-GridView
 

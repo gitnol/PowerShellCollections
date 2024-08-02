@@ -7,7 +7,7 @@ $SearchBase = "OU=Projektstruktur,OU=GRPMGMT,OU=ITMGMT,DC=mycorp,DC=local"
 # Limit to group names that contain the following string (* can be used as a wildcard)
 $GroupFilter = "*"
 
-$mygroups = Get-ADGroup -SearchBase $SearchBase -Filter * -SearchScope $SearchScope | Where Name -like $GroupFilter
+$mygroups = Get-ADGroup -SearchBase $SearchBase -Filter * -SearchScope $SearchScope | Where-Object Name -like $GroupFilter
 
 function Get-ADGroupMembersRecursive {
     param (
@@ -32,13 +32,14 @@ function Get-ADGroupMembersRecursive {
         foreach ($member in $members) {
             if ($member.objectClass -eq 'user') {
                 $userList += [pscustomobject]@{
-                    member = $member.SamAccountName
-                    inGroup = $GroupName
+                    member          = $member.SamAccountName
+                    inGroup         = $GroupName
                     SourceGroupName = $SourceGroupName
-                    level = $Level
-                    breadcrumb = ($Breadcrumb + "->[user]" + $member.SamAccountName)
+                    level           = $Level
+                    breadcrumb      = ($Breadcrumb + "->[user]" + $member.SamAccountName)
                 }
-            } elseif ($member.objectClass -eq 'group') {
+            }
+            elseif ($member.objectClass -eq 'group') {
                 $newLevel = $Level + 1
                 $newBreadcrumb = $Breadcrumb + "->" + $member.SamAccountName
                 $nestedGroupMembers = Get-Members -GroupName $member.SamAccountName -Level $newLevel -SourceGroupName $GroupName -Breadcrumb $newBreadcrumb
@@ -54,10 +55,10 @@ function Get-ADGroupMembersRecursive {
 }
 
 Write-Host('Warning: The following step can take a very long time, depending on the size of $mygroups and the recursion depth!') -ForegroundColor Red
-$myUsers = ($mygroups | % {Get-ADGroupMembersRecursive -GroupName $_.Name}) # Recursively resolve the groups
-$myUsers | where member -eq bde01 # see if a user and how a user obtained the permissions!
+$myUsers = ($mygroups | ForEach-Object { Get-ADGroupMembersRecursive -GroupName $_.SamAccountName }) # Recursively resolve the groups
+$myUsers | Where-Object member -eq bde01 # see if a user and how a user obtained the permissions!
 $maxlevel = $myUsers.level | Sort-Object -Unique -Descending | Select-Object -First 1
-$myUsers | ogv
+$myUsers | Out-GridView
 Write-Host('Max Level: ' + $maxlevel) -ForegroundColor Red
 
 # # Caution: Takes a long time: Returns the number of authorizations for a user. Is an indication of too many useless authorizations 
