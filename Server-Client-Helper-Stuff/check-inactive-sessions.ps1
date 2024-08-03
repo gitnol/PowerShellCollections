@@ -36,8 +36,8 @@ function Get-SessionIDReadIOCounts {
         }
     }
 }
-    
-    
+
+
 $timespan = 10
 $firstCheck = Get-SessionIDReadIOCounts
 Start-Sleep -Seconds $timespan
@@ -46,4 +46,6 @@ $comparision = Compare-Object -ReferenceObject $firstCheck -DifferenceObject $se
 if (-not $comparision) {
     Write-Host("No User Interaction in all Sessions for {0} seconds" -f $timespan) -foregroundcolor Red
     # now do your evil stuff and shut down or restart the computer.
+} else {
+    Write-Host("User Interaction in at least one Sessions detected") -foregroundcolor Green
 }
