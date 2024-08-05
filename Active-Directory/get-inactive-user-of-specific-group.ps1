@@ -6,7 +6,7 @@
 Import-Module ActiveDirectory
 
 $groupName = "Office 365"
-$groupDN = (Get-ADGroup -Identity "Office 365").DistinguishedName
+$groupDN = (Get-ADGroup -Identity $groupName).DistinguishedName
 
 $inactivityThreshold = 100
 # Calculate the date 100 days ago
