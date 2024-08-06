@@ -85,6 +85,48 @@ function Get-QueryUserSessions {
     return $allObj
 }
 
+function Get-QueryUserSessions2 {
+    param (
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
+        [string[]]$server,
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 1)]
+        [PSCredential]$credentials
+    )
+    $allObj = @()
+    $allObj += Invoke-Command -ComputerName $server -Credential $credentials -ScriptBlock {
+        $allSessions = (query user);
+        $myObj = @()
+        $allSessions | Select-Object -skip 1 |
+		# Where-Object { $_ -notlike "*SITZUNGSNAME*" -and $_ -like "*AKTIV*" } | 
+		ForEach-Object {
+            Write-Host(($_ -split "\s+").count) # TODO anhand der menge entscheiden ob verbunden ist oder getrennt!
+            $myObj += [PSCustomObject]@{
+                USERNAME = ($_ -split "\s+")[1]
+                SESSIONNAME = ($_ -split "\s+")[2]
+                ID           = ($_ -split "\s+")[3]
+                STATUS       = ($_ -split "\s+")[4]
+                IDLETIME     = ($_ -split "\s+")[5]
+                LOGONTIME  = (($_ -split "\s+")[6] + " " + ($_ -split "\s+")[7])
+            }
+        }
+        $allSessions | Select-Object -skip 1 |
+		# Where-Object { $_ -notlike "*SITZUNGSNAME*" -and $_ -like "*GETR*" } | 
+		ForEach-Object {
+            Write-Host(($_ -split "\s+").count)
+            $myObj += [PSCustomObject]@{
+                USERNAME = ($_ -split "\s+")[1]
+                SESSIONNAME = "" 
+                ID           = ($_ -split "\s+")[2]
+                STATUS       = ($_ -split "\s+")[3]
+                IDLETIME     = ($_ -split "\s+")[4]
+                LOGONTIME  = (($_ -split "\s+")[5] + " " + ($_ -split "\s+")[6])
+            }
+        }    
+        return $myObj
+    }
+    return $allObj
+}
+
 $server=@()
 $server+="SVRRDSH03"
 $server+="SVRRDSH04"
@@ -94,5 +136,6 @@ $cred = Get-Credential -Message "Please input adminstrative priviledges on the t
 
 if ($cred) {
     Get-QueryUserSessions -server $server -credentials $cred
+    Get-QueryUserSessions2 -server $server -credentials $cred
     Remove-UserSessions -server $server -credentials $cred #-all
 }
