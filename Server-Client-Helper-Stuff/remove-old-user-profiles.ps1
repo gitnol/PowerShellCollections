@@ -81,7 +81,7 @@ function Remove-UserProfiles {
 }
 
 Get-ProfileListInfos
-Remove-UserProfiles -server $server -credentials $cred -WhatIf
+# Remove-UserProfiles -server $server -credentials $cred -WhatIf
 
 # Holt einen Username anhand der SID
 # Resolve-SID S-1-5-21-123456789-1234567890-1234567890-500
