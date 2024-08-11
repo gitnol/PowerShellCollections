@@ -208,7 +208,6 @@ foreach ($function in ($myfunctions.function)) {
 				
                 switch ($NodeNamehistory) {
                     "p h3 table" {
-                        # Dies ist 
                         $myNewFunctionDefinition.ArgumentsTable += $table
                     }	
                     "p h3 table h3 h4 table" {
