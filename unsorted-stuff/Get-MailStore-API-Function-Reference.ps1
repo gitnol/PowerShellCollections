@@ -189,7 +189,8 @@ foreach ($function in ($myfunctions.function)) {
                         $spalte3 = $_.ChildNodes[2].InnerText.trim()
                         $nodeTableRow = [pscustomobject]@{
                             ArgumentName        = $spalte1
-                            ArgumentType        = $spalte2
+                            ArgumentTypeOriginal= $spalte2
+                            ArgumentType        = ($spalte2 -replace '\(optional\)','').trim()
                             ArgumentDescription = $spalte3
                             Mandatory           = (-not ($spalte2 -like "*(optional)*"))
                             ArgumentValuesTable = @() # Neu
@@ -244,3 +245,27 @@ foreach ($function in ($myfunctions.function)) {
 }
 
 $myNewFunctionDefinitions
+
+# 
+$overview = $myNewFunctionDefinitions | ForEach-Object {
+    $functionName = $_.Name
+    $ArgumentsTable=$_.ArgumentsTable
+    $ArgumentsValuesTable=$_.ArgumentsValuesTable
+    $ArgumentsTable.TableRows | ForEach-Object {
+        $ArgumentName = $_.ArgumentName
+        $ArgumentType = $_.ArgumentType
+        $Mandatory = $_.Mandatory
+        $validItems = ($ArgumentsValuesTable.TableRows | Where-Object ArgumentName -eq $ArgumentName).ArgumentNameValidItem -join ','
+        [pscustomobject]@{
+            function = $functionName
+            ArgumentName = $ArgumentName
+            ArgumentType = $ArgumentType
+            Mandatory = $mandatory 
+            ValidItems = $validItems
+        }
+    }
+}
+# Nice OverView over all functions with parameters, parametertypes, mandatory and validItemValues
+$overview | Out-GridView -Title "Nice OverView over all functions with parameters, parametertypes, mandatory and validItemValues"
+
+# ToDo ... Jetzt können die Funktionen automatisch erstellt werden.
