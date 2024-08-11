@@ -117,7 +117,8 @@ function Get-QueryUserSessions {
                     LOGONTIME  = (($_ -split "\s+")[5] + " " + ($_ -split "\s+")[6])
                 }
             } else {
-                Write-Error("The amount of columns is neither 7 nor 8 at this column:" + $_)
+                Write-Error("The amount of columns is neither 7 nor 8 at this column:")
+                Write-Error($_)
             }
         }
         return $myObj
@@ -134,5 +135,5 @@ $cred = Get-Credential -Message "Please input adminstrative priviledges on the t
 
 if ($cred) {
     Get-QueryUserSessions -server $server -credentials $cred
-    Remove-UserSessions -server $server -credentials $cred #-all
+    # Remove-UserSessions -server $server -credentials $cred #-all
 }
