@@ -174,7 +174,7 @@ foreach ($function in ($myfunctions.function)) {
 				}
 				$Zeilen = $node.tbody.tr
 				$anzahlSpalten = $Zeilen[0].ChildNodes.count
-				$Zeilen | Select -Skip 1 | % {
+				$Zeilen | Select-Object -Skip 1 | ForEach-Object {
 					$spalte1 = $_.ChildNodes[0].InnerText.trim()
 					$spalte2 = $_.ChildNodes[1].InnerText.trim()
 					if ($anzahlSpalten -ge 3){ # Arguments Table
@@ -204,27 +204,27 @@ foreach ($function in ($myfunctions.function)) {
 					"p h3 table h3 h4 table" {
 						$myNewFunctionDefinition.ArgumentsValuesTable += $table
 						# Zu jedem Argument die entsprechend erlaubten Werte als Tabelle mit abspeichern.
-						(($myNewFunctionDefinition | Where {$_.Name -eq $functionName}).ArgumentsTable.TableRows | Where {$_.ArgumentName -eq $ArgumentValueName}).ArgumentValuesTable += $table
+						(($myNewFunctionDefinition | Where-Object {$_.Name -eq $functionName}).ArgumentsTable.TableRows | Where-Object {$_.ArgumentName -eq $ArgumentValueName}).ArgumentValuesTable += $table
 					}
 					"p h3 table h3 h4 table h4 table" {
 						$myNewFunctionDefinition.ArgumentsValuesTable += $table
-						(($myNewFunctionDefinition | Where {$_.Name -eq $functionName}).ArgumentsTable.TableRows | Where {$_.ArgumentName -eq $ArgumentValueName}).ArgumentValuesTable += $table
+						(($myNewFunctionDefinition | Where-Object {$_.Name -eq $functionName}).ArgumentsTable.TableRows | Where-Object {$_.ArgumentName -eq $ArgumentValueName}).ArgumentValuesTable += $table
 					}
 					"p h3 table h3 h4 table p h4 table" {
 						$myNewFunctionDefinition.ArgumentsValuesTable += $table
-						(($myNewFunctionDefinition | Where {$_.Name -eq $functionName}).ArgumentsTable.TableRows | Where {$_.ArgumentName -eq $ArgumentValueName}).ArgumentValuesTable += $table
+						(($myNewFunctionDefinition | Where-Object {$_.Name -eq $functionName}).ArgumentsTable.TableRows | Where-Object {$_.ArgumentName -eq $ArgumentValueName}).ArgumentValuesTable += $table
 					}
 					"p h3 table p h3 h4 table" {
 						$myNewFunctionDefinition.ArgumentsValuesTable += $table
-						(($myNewFunctionDefinition | Where {$_.Name -eq $functionName}).ArgumentsTable.TableRows | Where {$_.ArgumentName -eq $ArgumentValueName}).ArgumentValuesTable += $table
+						(($myNewFunctionDefinition | Where-Object {$_.Name -eq $functionName}).ArgumentsTable.TableRows | Where-Object {$_.ArgumentName -eq $ArgumentValueName}).ArgumentValuesTable += $table
 					}
 					"p h3 table p h3 h4 table h4 table" {
 						$myNewFunctionDefinition.ArgumentsValuesTable += $table
-						(($myNewFunctionDefinition | Where {$_.Name -eq $functionName}).ArgumentsTable.TableRows | Where {$_.ArgumentName -eq $ArgumentValueName}).ArgumentValuesTable += $table
+						(($myNewFunctionDefinition | Where-Object {$_.Name -eq $functionName}).ArgumentsTable.TableRows | Where-Object {$_.ArgumentName -eq $ArgumentValueName}).ArgumentValuesTable += $table
 					}
 					"p h3 table p h3 h4 table h4 table h4 table" {
 						$myNewFunctionDefinition.ArgumentsValuesTable += $table
-						(($myNewFunctionDefinition | Where {$_.Name -eq $functionName}).ArgumentsTable.TableRows | Where {$_.ArgumentName -eq $ArgumentValueName}).ArgumentValuesTable += $table
+						(($myNewFunctionDefinition | Where-Object {$_.Name -eq $functionName}).ArgumentsTable.TableRows | Where-Object {$_.ArgumentName -eq $ArgumentValueName}).ArgumentValuesTable += $table
 					}
 				}
 				$ArgumentValueName = '' # Zurücksetzen.
