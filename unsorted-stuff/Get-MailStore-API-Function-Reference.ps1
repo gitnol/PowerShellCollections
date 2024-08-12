@@ -308,8 +308,8 @@ function New-PowershellFunctionFromDefinition {
     )
     $functionName = $functionDefinition.function
     $search = $functionName.Substring(1, $functionName.Length -2) # Start at position 1 and not 0
-    $firstUppercasePosition = ($search.ToCharArray() | ForEach-Object {$_} | Where-Object {$_ -cmatch "[A-Z]"} | Select-Object -skip 1 -First 1)
-    
+    $firstUppercasePosition = ($search.ToCharArray() | ForEach-Object {$_} | Where-Object {$_ -cmatch "[A-Z]"} | Select-Object -First 1)
+
     if ($firstUppercasePosition) {
         $index = $search.IndexOf($firstUppercasePosition) + 1 + 1 # Substract 1 because we skip the first character. it could be the same as the first: example RecreateRecoveryRecord
         $beforeUppercase = $functionName.Substring(0, $index - 1)

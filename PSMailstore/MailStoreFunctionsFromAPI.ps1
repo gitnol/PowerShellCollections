@@ -783,7 +783,7 @@ function Recover-MSStore {
         $RecoverStore
     }
 }
-function -MSRecreateRecoveryRecords {
+function Recreate-MSRecoveryRecords {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
@@ -951,7 +951,7 @@ function Select-MSAllStoreIndexesForRebuild {
         $SelectAllStoreIndexesForRebuild
     }
 }
-function -MSSendStatusReport {
+function Send-MSStatusReport {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
@@ -1089,7 +1089,7 @@ function Set-MSRetentionPolicies {
         $SetRetentionPolicies
     }
 }
-function -MSSetServiceCertificate {
+function Set-MSServiceCertificate {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
@@ -1103,7 +1103,7 @@ function -MSSetServiceCertificate {
         $SetServiceCertificate
     }
 }
-function -MSSetSmtpSettings {
+function Set-MSSmtpSettings {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
@@ -1117,7 +1117,7 @@ function -MSSetSmtpSettings {
         $SetSmtpSettings
     }
 }
-function -MSSetStoreAutoCreateConfiguration {
+function Set-MSStoreAutoCreateConfiguration {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
@@ -1131,7 +1131,7 @@ function -MSSetStoreAutoCreateConfiguration {
         $SetStoreAutoCreateConfiguration
     }
 }
-function -MSSetStoreProperties {
+function Set-MSStoreProperties {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
@@ -1170,7 +1170,7 @@ function -MSSetStoreProperties {
         $SetStoreProperties
     }
 }
-function -MSSetStoreRequestedState {
+function Set-MSStoreRequestedState {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
