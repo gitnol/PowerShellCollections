@@ -299,7 +299,7 @@ $overview | Out-GridView -Title "Nice OverView over all functions with parameter
 
 # ToDo ... Jetzt können die Funktionen automatisch erstellt werden.
 
-function bla {
+function New-PowershellFunctionFromDefinition {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
@@ -307,13 +307,12 @@ function bla {
         $functionDefinition
     )
     $functionName = $functionDefinition.function
-    $firstUppercasePosition = ($functionName.ToCharArray() | % {$_} | Where {$_ -cmatch "[A-Z]"} | select -skip 1 -First 1)
+    $firstUppercasePosition = ($functionName.ToCharArray() | ForEach-Object {$_} | Where-Object {$_ -cmatch "[A-Z]"} | Select-Object -skip 1 -First 1)
     if ($firstUppercasePosition) {
         $index = $functionName.IndexOf($firstUppercasePosition) + 1
 
         $beforeUppercase = $functionName.Substring(0, $index - 1)
         $afterUppercase = $functionName.Substring($index - 1)
-        
         # Write-Output "The first uppercase character is at position $index."
     } else {
         # Write-Output "No uppercase character found."
@@ -323,16 +322,24 @@ function bla {
     # Write-Host($functionNameModified)
     $parameters = $functionDefinition.parameters
     
+    $ParametersAvailable = $true
+    
     $paramStrings = @()
     $paramJsons = @()
     $parameters | ForEach-Object {
         $parameter = $_
         $parameter | ForEach-Object {
+            
             $parameterName = $_.ArgumentName
+            if (($null -eq $parameterName) -or ($parameterName -eq '')) {
+                $ParametersAvailable = $false
+            }
             $parameterArgumentType = $_.ArgumentType        
             $parameterMandatory = $_.Mandatory
             $parameterValidItems = $_.ValidItems
-
+            if ($parameterValidItems) {
+                $parameterValidItems = ((($parameterValidItems -split ',') | % {$element = $_.trim();"'$element'"}) -join ", ")
+            }
             $paramJson = '<<parameterName>> = "$<<parameterName>>"'
             $paramJson = ($paramJson -replace '<<parameterName>>',$parameterName)
             $paramJsons += $paramJson
@@ -367,7 +374,7 @@ function bla {
     $allparamStrings = $paramStrings -join "`r`n"
 
     # Write-Host($paramStrings)
-
+if ($ParametersAvailable -eq $true) {
     $functionstring = @'
 function <<functionNameModified>> {
     [CmdletBinding()]
@@ -382,7 +389,21 @@ function <<functionNameModified>> {
     }
 }
 '@
-
+} else {
+    $functionstring = @'
+function <<functionNameModified>> {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $<<functionName>> = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "<<functionName>>").result
+        $<<functionName>>
+    }
+}
+'@    
+}
 
 $functionstring = ($functionstring -replace '<<functionNameModified>>',$functionNameModified)
 $functionstring = ($functionstring -replace '<<allparamStrings>>',$allparamStrings)
