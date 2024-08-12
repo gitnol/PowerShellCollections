@@ -6,7 +6,7 @@ Import-Module "$myScriptpath\API-Wrapper\MS.PS.Lib.psd1"
 function Get-MailstoreAndExchangeUsers {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Mandatory = $true, ValueFromPipeline = $false, ValueFromPipelineByPropertyName = $false)]
         $allusers
     )
     # Ensure the Active Directory module is imported
@@ -21,7 +21,7 @@ function Get-MailstoreAndExchangeUsers {
         $groupmemberSamAccountName = $_.samAccountName
         $CheckMailStoreUser = $allusers | Where-Object distinguishedName -eq $groupmemberDN
         if ($CheckMailStoreUser) {
-            return [pscustomobject]@{
+            [pscustomobject]@{
                 MailstoreUserFound	= $true
                 distinguishedName  = $groupmemberDN
                 Name               = $groupmemberName
@@ -29,7 +29,7 @@ function Get-MailstoreAndExchangeUsers {
             }
         }
         else {
-            return [pscustomobject]@{
+            [pscustomobject]@{
                 MailstoreUserFound	= $false
                 distinguishedName  = $groupmemberDN
                 Name               = $groupmemberName
@@ -205,6 +205,9 @@ function Get-MSUsersPrivileges {
 
 
 # $servername = localhost
+if (-not $servername) {
+    $servername = Read-Host -Prompt "Please input the Servername:"
+}
 
 Try {
     $msapiclient = New-MSApiClient -Credentials (Get-Credential) -MailStoreServer $servername -Port 8463 -IgnoreInvalidSSLCerts
@@ -225,10 +228,10 @@ if ($msapiclient) {
     $targetfolder = 'sharedmailboxinvoice'
     $targetprivileges = 'read' # Valid settings: none,read,write,delete
     # Setzen von Berechtigungen
-    Set-MSUserPrivilegesOnFolder -userName $myusertest -folder $targetfolder -privileges $targetprivileges -msapiclient $msapiclient
+    # Set-MSUserPrivilegesOnFolder -userName $myusertest -folder $targetfolder -privileges $targetprivileges -msapiclient $msapiclient
     # Entfernen von Berechtigungen
-    $targetprivileges = 'none'
-    Set-MSUserPrivilegesOnFolder -userName 'm.arnoldi' -folder $targetfolder -privileges $targetprivileges -msapiclient $msapiclient
+    # $targetprivileges = 'none'
+    # Set-MSUserPrivilegesOnFolder -userName 'm.arnoldi' -folder $targetfolder -privileges $targetprivileges -msapiclient $msapiclient
 
     # Get-Specific UserINfo
     $allusers | Where-Object { ($_.userName -eq 'm.arnoldi') -or ($_.userName -eq 'm.kuehn') } | Get-MSUserInfo -msapiclient $msapiclient
@@ -236,7 +239,7 @@ if ($msapiclient) {
 
     # Get All Users from ActiveDirectory with an emailaddress and check if their DN is within $allusers
     # $result = Get-MailstoreAndExchangeUsers -allusers $allusers # Both lines generate the same output
-    $result = $allusers | Get-MailstoreAndExchangeUsers
+    $result = Get-MailstoreAndExchangeUsers -allusers $allusers
 
     $result | Where-Object MailstoreUserFound -eq $false | Out-GridView -Title "Exchange/Mail User WITHOUT Mailstore User"
     $result | Where-Object MailstoreUserFound -eq $true | Out-GridView -Title "Exchange/Mail User WITH Mailstore User"
