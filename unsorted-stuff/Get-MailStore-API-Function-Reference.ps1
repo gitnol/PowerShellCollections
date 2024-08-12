@@ -247,6 +247,35 @@ foreach ($function in ($myfunctions.function)) {
 $myNewFunctionDefinitions
 
 # 
+$functionDefinitions = @()
+$myNewFunctionDefinitions | ForEach-Object {
+    $functionName = $_.Name
+    $ArgumentsTable=$_.ArgumentsTable
+    $ArgumentsValuesTable=$_.ArgumentsValuesTable
+    $functionDefinition = [PSCustomObject]@{
+        function = $functionName
+        parameters = @()
+    }
+    $ArgumentsTable.TableRows | ForEach-Object {
+        $ArgumentName = $_.ArgumentName
+        $ArgumentType = $_.ArgumentType
+        $Mandatory = $_.Mandatory
+        $validItems = ($ArgumentsValuesTable.TableRows | Where-Object ArgumentName -eq $ArgumentName).ArgumentNameValidItem -join ','
+
+        $parameter = [pscustomobject]@{
+            # function = $functionName
+            ArgumentName = $ArgumentName
+            ArgumentType = $ArgumentType
+            Mandatory = $mandatory 
+            ValidItems = $validItems
+        }
+        $functionDefinition.parameters += $parameter
+    }
+    $functionDefinitions += $functionDefinition
+}
+# Nice OverView over all functions with parameters, parametertypes, mandatory and validItemValues
+$functionDefinitions | Out-GridView -Title "Nice structured OverView"
+
 $overview = $myNewFunctionDefinitions | ForEach-Object {
     $functionName = $_.Name
     $ArgumentsTable=$_.ArgumentsTable
@@ -269,3 +298,98 @@ $overview = $myNewFunctionDefinitions | ForEach-Object {
 $overview | Out-GridView -Title "Nice OverView over all functions with parameters, parametertypes, mandatory and validItemValues"
 
 # ToDo ... Jetzt können die Funktionen automatisch erstellt werden.
+
+function bla {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [PSCustomObject]
+        $functionDefinition
+    )
+    $functionName = $functionDefinition.function
+    $firstUppercasePosition = ($functionName.ToCharArray() | % {$_} | Where {$_ -cmatch "[A-Z]"} | select -skip 1 -First 1)
+    if ($firstUppercasePosition) {
+        $index = $functionName.IndexOf($firstUppercasePosition) + 1
+
+        $beforeUppercase = $functionName.Substring(0, $index - 1)
+        $afterUppercase = $functionName.Substring($index - 1)
+        
+        # Write-Output "The first uppercase character is at position $index."
+    } else {
+        # Write-Output "No uppercase character found."
+    }
+
+    $functionNameModified = $beforeUppercase + '-MS' + $afterUppercase
+    # Write-Host($functionNameModified)
+    $parameters = $functionDefinition.parameters
+    
+    $paramStrings = @()
+    $paramJsons = @()
+    $parameters | ForEach-Object {
+        $parameter = $_
+        $parameter | ForEach-Object {
+            $parameterName = $_.ArgumentName
+            $parameterArgumentType = $_.ArgumentType        
+            $parameterMandatory = $_.Mandatory
+            $parameterValidItems = $_.ValidItems
+
+            $paramJson = '<<parameterName>> = "$<<parameterName>>"'
+            $paramJson = ($paramJson -replace '<<parameterName>>',$parameterName)
+            $paramJsons += $paramJson
+
+            $paramString = @'
+[Parameter(Mandatory = $<<parameterMandatory>>, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]<<paramStringValidateSets>>
+[<<parameterArgumentType>>]$<<parameterName>>,
+
+'@
+            if ($parameterArgumentType -eq "bool"){$parameterArgumentType = "Boolean"}
+            if ($parameterArgumentType -eq "json"){$parameterArgumentType = "string"}
+            if ($parameterArgumentType -eq "number"){$parameterArgumentType = "int"}
+            if ($parameterValidItems -like "*1 to 31*") {
+                $parameterValidItems = ($parameterValidItems -replace '1 to 31','1,2,3,4,5,6,7,8,9,10,11,11,12,13,14,15,16,17,18,29,20,21,22,23,24,25,26,27,28,29,30,31')
+            }
+
+            $paramStringValidateSets = @"
+
+[ValidateSet(<<parameterValidItems>>)]
+"@
+
+            $paramStringValidateSets = ($paramStringValidateSets -replace '<<parameterValidItems>>',$parameterValidItems)
+            $paramString = ($paramString -replace '<<parameterMandatory>>',$parameterMandatory)
+            $paramString = ($paramString -replace '<<parameterArgumentType>>',$parameterArgumentType)
+            $paramString = ($paramString -replace '<<parameterName>>',$parameterName)
+            if(-not $parameterValidItems){$paramStringValidateSets = ''}
+            $paramString = ($paramString -replace '<<paramStringValidateSets>>',$paramStringValidateSets)
+            $paramStrings += $paramString
+        }
+    }
+
+    $allparamStrings = $paramStrings -join "`r`n"
+
+    # Write-Host($paramStrings)
+
+    $functionstring = @'
+function <<functionNameModified>> {
+    [CmdletBinding()]
+    param (
+        <<allparamStrings>>
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $<<functionName>> = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "<<functionName>>" -ApiFunctionParameters @{<<parameterJsons>>}).result
+        $<<functionName>>
+    }
+}
+'@
+
+
+$functionstring = ($functionstring -replace '<<functionNameModified>>',$functionNameModified)
+$functionstring = ($functionstring -replace '<<allparamStrings>>',$allparamStrings)
+$functionstring = ($functionstring -replace '<<functionName>>',$functionName)
+$parameterJsons = $paramJsons -join ";"
+$functionstring = ($functionstring -replace '<<parameterJsons>>',$parameterJsons)
+
+# Write-Host ($parameterJsons)
+$functionstring
+}

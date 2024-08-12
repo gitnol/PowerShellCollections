@@ -27,8 +27,7 @@ function Get-MailstoreAndExchangeUsers {
                 Name               = $groupmemberName
                 samAccountName     = $groupmemberSamAccountName
             }
-        }
-        else {
+        } else {
             [pscustomobject]@{
                 MailstoreUserFound	= $false
                 distinguishedName  = $groupmemberDN
@@ -42,16 +41,35 @@ function Get-MailstoreAndExchangeUsers {
 function Get-MSUserPriviledgesOnFolder {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
-        [string]$userName,
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$userName = "*",
         [Parameter(Mandatory = $false)] # Todo: ggf. , ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true in Betracht ziehen.
         [string]$folder = "*",
         [Parameter(Mandatory = $true)]
         $msapiclient
     )
     process {
-        $GetUserPriviledgesOnFolder = (Get-MSUserInfo -userName $userName -msapiclient $msapiclient).privilegesOnFolders | Where-Object folder -like $folder
-        $GetUserPriviledgesOnFolder
+        if($userName -eq '*'){
+            Get-MSUsers -msapiclient $msapiclient | ForEach-Object {
+                $userName = $_.userName
+                (Get-MSUserInfo -msapiclient $msapiclient -userName $userName).privilegesOnFolders | Where-Object folder -like $folder | ForEach-Object {
+                    [PSCustomObject]@{
+                        userName = $userName
+                        folder = $_.folder
+                        privileges = $_.privileges
+                    }
+                }
+            }
+        }
+        if($userName -ne '*'){
+            (Get-MSUserInfo -userName $userName -msapiclient $msapiclient).privilegesOnFolders | Where-Object folder -like $folder | ForEach-Object {
+                [PSCustomObject]@{
+                    userName = $userName
+                    folder = $_.folder
+                    privileges = $_.privileges
+                }
+            }
+        }
     }
 }
 
@@ -79,6 +97,162 @@ function Set-MSUserPrivilegesOnFolder {
     }
 }
 
+function Get-MSActiveSessions {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetActiveSessions = (Invoke-MSApiCall $msapiclient "GetActiveSessions").result
+        $GetActiveSessions
+    }
+}
+
+function Get-MSComplianceConfiguration {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetComplianceConfiguration = (Invoke-MSApiCall $msapiclient "GetComplianceConfiguration").result
+        $GetComplianceConfiguration
+    }
+}
+
+function Get-MSCredentials {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetCredentials = (Invoke-MSApiCall $msapiclient "GetCredentials").result
+        $GetCredentials
+    }
+}
+
+function Get-MSDirectoryServicesConfiguration {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetDirectoryServicesConfiguration = (Invoke-MSApiCall $msapiclient "GetDirectoryServicesConfiguration").result
+        $GetDirectoryServicesConfiguration
+    }
+}
+
+function Get-MSFolderStatistics { # IMPORTANT: This command will last very long. ToDo: Implement "Handling Asynchronous API Call" from here: https://help.mailstore.com/de/server/PowerShell_API-Wrapper_Tutorial
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetFolderStatistics = (Invoke-MSApiCall $msapiclient "GetFolderStatistics").result
+        $GetFolderStatistics
+    }
+}
+
+function Get-MSJobs {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetJobs = (Invoke-MSApiCall $msapiclient "GetJobs").result
+        $GetJobs
+    }
+}
+
+function Get-MSLicenseInformation {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetLicenseInformation = (Invoke-MSApiCall $msapiclient "GetLicenseInformation").result
+        $GetLicenseInformation
+    }
+}
+
+function Get-MSRetentionPolicies {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetRetentionPolicies = (Invoke-MSApiCall $msapiclient "GetRetentionPolicies").result
+        $GetRetentionPolicies
+    }
+}
+
+function Get-MSServerInfo {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetServerInfo = (Invoke-MSApiCall $msapiclient "GetServerInfo").result
+        $GetServerInfo
+    }
+}
+
+function Get-MSServiceConfiguration {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetServiceConfiguration = (Invoke-MSApiCall $msapiclient "GetServiceConfiguration").result
+        $GetServiceConfiguration
+    }
+}
+
+function Get-MSSmtpSettings {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetSmtpSettings = (Invoke-MSApiCall $msapiclient "GetSmtpSettings").result
+        $GetSmtpSettings
+    }
+}
+
+function Get-MSStoreAutoCreateConfiguration {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetStoreAutoCreateConfiguration = (Invoke-MSApiCall $msapiclient "GetStoreAutoCreateConfiguration").result
+        $GetStoreAutoCreateConfiguration
+    }
+}
+
+function Get-MSTimeZones {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetTimeZones = (Invoke-MSApiCall $msapiclient "GetTimeZones").result
+        $GetTimeZones
+    }
+}
+
 function Get-MSUsers {
     [CmdletBinding()]
     param (
@@ -100,7 +274,7 @@ function Get-MSUserInfo {
         $msapiclient
     )
     process {
-        $GetUserInfo = (Invoke-MSApiCall $msapiclient "GetUserInfo"  @{userName = $userName }).result
+        $GetUserInfo = (Invoke-MSApiCall $msapiclient "GetUserInfo"  @{userName = $userName}).result
         # Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "GetUserInfo" -ApiFunctionParameters @{userName = $userName}
         $GetUserInfo
     }
@@ -206,11 +380,15 @@ function Get-MSUsersPrivileges {
 
 # $servername = localhost
 if (-not $servername) {
-    $servername = Read-Host -Prompt "Please input the Servername:"
+    $servername = Read-Host -Prompt "Please input the Mailstore servername"
+}
+
+if (-not $credential) {
+    $credential = (Get-Credential -Message "Please input the Mailstore credentials with api access rights (admin)")
 }
 
 Try {
-    $msapiclient = New-MSApiClient -Credentials (Get-Credential) -MailStoreServer $servername -Port 8463 -IgnoreInvalidSSLCerts
+    $msapiclient = New-MSApiClient -Credentials $credential -MailStoreServer $servername -Port 8463 -IgnoreInvalidSSLCerts
 }
 catch {
     Write-Host "Exception Message: $($_.Exception.Message)"
@@ -223,25 +401,31 @@ if ($msapiclient) {
     $allusers = Get-MSUsers -msapiclient $msapiclient
     $allusers
     $users = $allusers | Where-Object UserName -like "sharedmailbox*" # Hier ist in distinguishedName der gruppenname, den man holen muss.
-
-    $myusertest = 'myusertest'
-    $targetfolder = 'sharedmailboxinvoice'
-    $targetprivileges = 'read' # Valid settings: none,read,write,delete
-    # Setzen von Berechtigungen
+    $users | Out-GridView -Title "All filtered user elements"
+    # $myusertest = 'myusertest'
+    # $targetfolder = 'sharedmailboxinvoice'
+    # $targetprivileges = 'read' # Valid settings: none,read,write,delete
+        # Set priviledges for user on a specific folder
     # Set-MSUserPrivilegesOnFolder -userName $myusertest -folder $targetfolder -privileges $targetprivileges -msapiclient $msapiclient
-    # Entfernen von Berechtigungen
+    
+    # Remove priviledges for user on a specific folder
     # $targetprivileges = 'none'
     # Set-MSUserPrivilegesOnFolder -userName 'm.arnoldi' -folder $targetfolder -privileges $targetprivileges -msapiclient $msapiclient
+    
+    # Get the priviledges of every user on the target folder with their priviledges
+    Get-MSUsersPrivileges -msapiclient $msapiclient | Out-GridView -Title "Get-MSUsersPrivileges"
 
-    # Get-Specific UserINfo
+    # Get specific priviledges of a user to a target folder
+    Get-MSUserPriviledgesOnFolder -userName 'myuser' -folder 'sharedmailboxinvoice'  -msapiclient $msapiclient
+    
+    # Get all users with their specific priviledges to a target folder
+    Get-MSUserPriviledgesOnFolder -folder 'sharedmailboxinvoice' -msapiclient $msapiclient
+
+    # Get-Specific UserInfo
     $allusers | Where-Object { ($_.userName -eq 'm.arnoldi') -or ($_.userName -eq 'm.kuehn') } | Get-MSUserInfo -msapiclient $msapiclient
 
-
     # Get All Users from ActiveDirectory with an emailaddress and check if their DN is within $allusers
-    # $result = Get-MailstoreAndExchangeUsers -allusers $allusers # Both lines generate the same output
     $result = Get-MailstoreAndExchangeUsers -allusers $allusers
-
     $result | Where-Object MailstoreUserFound -eq $false | Out-GridView -Title "Exchange/Mail User WITHOUT Mailstore User"
     $result | Where-Object MailstoreUserFound -eq $true | Out-GridView -Title "Exchange/Mail User WITH Mailstore User"
-
 }
