@@ -389,6 +389,8 @@ $functionstring = ($functionstring -replace '<<allparamStrings>>',$allparamStrin
 $functionstring = ($functionstring -replace '<<functionName>>',$functionName)
 $parameterJsons = $paramJsons -join ";"
 $functionstring = ($functionstring -replace '<<parameterJsons>>',$parameterJsons)
+$functionstring = ($functionstring -replace ' -ApiFunctionParameters @{ = "\$"}','')
+
 
 # Write-Host ($parameterJsons)
 $functionstring
