@@ -13,8 +13,8 @@ function Remove-UserSessions {
         $computer = $env:COMPUTERNAME
         $allSessions = (query user);
         $myObj = @()
-        if ($all) {
-            $allSessions | Where-Object { $_ -notlike "*STATUS*" -and $_ -like "*AKTIV*" } | ForEach-Object {
+        if ($using:all) {
+            $allSessions | Where-Object { $_ -notlike "*STATUS*" -and $_ -like "*Aktiv*" } | ForEach-Object {
                 $myObj += [PSCustomObject]@{
                     BENUTZERNAME = ($_ -split "\s+")[1]
                     SITZUNGSNAME = ($_ -split "\s+")[2]
