@@ -417,3 +417,5 @@ $functionstring = ($functionstring -replace ' -ApiFunctionParameters @{ = "\$"}'
 # Write-Host ($parameterJsons)
 $functionstring
 }
+
+$myNewFunctionDefinitions | Where-Object function -eq 'SetUserPrivileges' #| New-PowershellFunctionFromDefinition
