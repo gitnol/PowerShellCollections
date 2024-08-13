@@ -339,7 +339,7 @@ function New-PowershellFunctionFromDefinition {
             $parameterMandatory = $_.Mandatory
             $parameterValidItems = $_.ValidItems
             if ($parameterValidItems) {
-                $parameterValidItems = ((($parameterValidItems -split ',') | % {$element = $_.trim();"'$element'"}) -join ", ")
+                $parameterValidItems = ((($parameterValidItems -split ',') | ForEach-Object {$element = $_.trim();"'$element'"}) -join ", ")
             }
             $paramJson = '<<parameterName>> = "$<<parameterName>>"'
             $paramJson = ($paramJson -replace '<<parameterName>>',$parameterName)
