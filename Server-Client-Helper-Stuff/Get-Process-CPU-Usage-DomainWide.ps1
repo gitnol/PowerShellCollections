@@ -22,6 +22,7 @@ $topN = 10
 $mycomputers = Get-ADComputer -Filter {OperatingSystem -notlike '*Server*' -and operatingSystem -like '*Windows*' -and Enabled -eq 'True'} -Property OperatingSystem, IPv4Address,Name | Select-Object -ExpandProperty Name
 # Server
 $mycomputers = Get-ADComputer -Filter {OperatingSystem -like '*Server*'} -Property OperatingSystem, IPv4Address
+# $mycomputers  = $mycomputers | Where {($_.Name -like "SVRCXVAD0*") -or ($_.Name -like "SVR*XEN*")}
 
 # # Get all AD computers with a server operating system
 # $servers = Get-ADComputer -Filter {OperatingSystem -like '*Server*'} -Property OperatingSystem, IPv4Address
@@ -54,13 +55,18 @@ $onlineServers = @()
 # # Define the list of remote servers
 # $remoteServers = $onlineServers.DNSHostName
 
+# $mycomputersOnline = $mycomputers | ForEach-Object -Parallel {
+# [pscustomobject]@{Name=$_;Online=Test-Connection -ComputerName $_ -Count 1 -Quiet -TimeoutSeconds 1 -ErrorAction SilentlyContinue}
+# } #-ThrottleLimit 10
+
+# # Get DNSHostNames from the AD
+# $onlineServers = (($mycomputersOnline | Where-Object Online -eq $True).Name | Get-ADComputer)
 $mycomputersOnline = $mycomputers | ForEach-Object -Parallel {
-[pscustomobject]@{Name=$_;Online=Test-Connection -ComputerName $_ -Count 1 -Quiet -TimeoutSeconds 1 -ErrorAction SilentlyContinue}
+	[pscustomobject]@{Name=$_;Online=Test-Connection -ComputerName $_.DNSHostName -Count 1 -Quiet -TimeoutSeconds 1}
 } #-ThrottleLimit 10
-
+	
 # Get DNSHostNames from the AD
-$onlineServers = (($mycomputersOnline | Where-Object Online -eq $True).Name | Get-ADComputer)
-
+$onlineServers = (($mycomputersOnline | Where-Object Online -eq $True).Name).DistinguishedName | Get-ADComputer
 
 if ($PSVersionTable.PSVersion.Major -ne 7) {
 	Write-Error("Bitte Powershell Version 7 nutzen")
