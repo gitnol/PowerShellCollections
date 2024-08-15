@@ -1094,47 +1094,361 @@ function Delete-MSProfile {
 # # Folders                                                          #
 # # ---------------------------------------------------------------- #
 # GetFolderStatistics
+function Get-MSFolderStatistics {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetFolderStatistics = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "GetFolderStatistics").result
+        $GetFolderStatistics
+    }
+}
 # GetChildFolders
+function Get-MSChildFolders {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $False, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$folder,
+
+        [Parameter(Mandatory = $False, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [int]$maxLevels,
+
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetChildFolders = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "GetChildFolders" -ApiFunctionParameters @{folder = "$folder"; maxLevels = "$maxLevels" }).result
+        $GetChildFolders
+    }
+}
 # MoveFolder
+function Move-MSFolder {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$fromFolder,
+
+        [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$toFolder,
+
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $MoveFolder = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "MoveFolder" -ApiFunctionParameters @{fromFolder = "$fromFolder"; toFolder = "$toFolder" }).result
+        $MoveFolder
+    }
+}
 # DeleteEmptyFolders
+function Delete-MSEmptyFolders {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $False, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$folder,
+
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $DeleteEmptyFolders = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "DeleteEmptyFolders" -ApiFunctionParameters @{folder = "$folder" }).result
+        $DeleteEmptyFolders
+    }
+}
 #endregion
 
+#region Miscellaneous
 # # ---------------------------------------------------------------- #
 # # Miscellaneous                                                    #
 # # ---------------------------------------------------------------- #
 # SendStatusReport
+function Send-MSStatusReport {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateSet('today', 'yesterday', 'thisweek', 'lastweek', 'thismonth', 'lastmonth')]
+        [string]$timespan,
+
+        [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$timeZoneId,
+
+        [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$recipients,
+
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $SendStatusReport = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "SendStatusReport" -ApiFunctionParameters @{timespan = "$timespan"; timeZoneId = "$timeZoneId"; recipients = "$recipients" }).result
+        $SendStatusReport
+    }
+}
 # GetTimeZones
+function Get-MSTimeZones {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetTimeZones = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "GetTimeZones").result
+        $GetTimeZones
+    }
+}
 # auth_test
+function auth_test {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        # von $GetServerInfo
+        return (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "GetServerInfo").statusCode
+    }
+}
+#endregion
+
 # # ---------------------------------------------------------------- #
 # # MailStore Server specific API methods                            #
 # # ---------------------------------------------------------------- #
+#region Storage
 # # ---------------------------------------------------------------- #
 # # Storage                                                          #
 # # ---------------------------------------------------------------- #
 # CreateBackup
+function Create-MSBackup {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$path,
+
+        [Parameter(Mandatory = $False, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [Boolean]$excludeSearchIndexes,
+
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $CreateBackup = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "CreateBackup" -ApiFunctionParameters @{path = "$path"; excludeSearchIndexes = "$excludeSearchIndexes" }).result
+        $CreateBackup
+    }
+}
 # CompactMasterDatabase
+function Compact-MSMasterDatabase {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $CompactMasterDatabase = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "CompactMasterDatabase").result
+        $CompactMasterDatabase
+    }
+}
 # RenewMasterKey
+function Renew-MSMasterKey {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $RenewMasterKey = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "RenewMasterKey").result
+        $RenewMasterKey
+    }
+}
+#endregion
+
+
 # # ---------------------------------------------------------------- #
 # # Archive Stores                                                   #
 # # ---------------------------------------------------------------- #
+# SetStoreProperties
+function Set-MSStoreProperties {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [int]$id,
+
+        [Parameter(Mandatory = $False, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateSet('FileSystemInternal', 'SQLServer', 'PostgreSQL')]
+        [string]$type,
+
+        [Parameter(Mandatory = $False, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$databaseName,
+
+        [Parameter(Mandatory = $False, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$databasePath,
+
+        [Parameter(Mandatory = $False, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$contentPath,
+
+        [Parameter(Mandatory = $False, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$indexPath,
+
+        [Parameter(Mandatory = $False, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$serverName,
+
+        [Parameter(Mandatory = $False, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$userName,
+
+        [Parameter(Mandatory = $False, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$password,
+
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $SetStoreProperties = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "SetStoreProperties" -ApiFunctionParameters @{id = "$id"; type = "$type"; databaseName = "$databaseName"; databasePath = "$databasePath"; contentPath = "$contentPath"; indexPath = "$indexPath"; serverName = "$serverName"; userName = "$userName"; password = "$password" }).result
+        $SetStoreProperties
+    }
+}
+
+#region Search Indexes
 # # ---------------------------------------------------------------- #
 # # Search Indexes                                                   #
 # # ---------------------------------------------------------------- #
 # GetStoreIndexes
+function Get-MSStoreIndexes {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $False, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [int]$id,
+
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetStoreIndexes = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "GetStoreIndexes" -ApiFunctionParameters @{id = "$id" }).result
+        $GetStoreIndexes
+    }
+}
 # RebuildStoreIndex
+function Rebuild-MSStoreIndex {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [int]$id,
+
+        [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$folder,
+
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $RebuildStoreIndex = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "RebuildStoreIndex" -ApiFunctionParameters @{id = "$id"; folder = "$folder" }).result
+        $RebuildStoreIndex
+    }
+}
+
+#endregion
+
+#region Messages
 # # ---------------------------------------------------------------- #
 # # Messages                                                         #
 # # ---------------------------------------------------------------- #
 # GetMessages
+function Get-MSMessages {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $False, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$folder,
+
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetMessages = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "GetMessages" -ApiFunctionParameters @{folder = "$folder" }).result
+        $GetMessages
+    }
+}
 # DeleteMessage
+function Delete-MSMessage {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$id,
+
+        [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$reason,
+
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $DeleteMessage = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "DeleteMessage" -ApiFunctionParameters @{id = "$id"; reason = "$reason" }).result
+        $DeleteMessage
+    }
+}
 # # ---------------------------------------------------------------- #
 # # Miscellaneous                                                    #
 # # ---------------------------------------------------------------- #
 # GetServerInfo
+function Get-MSServerInfo {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetServerInfo = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "GetServerInfo").result
+        $GetServerInfo
+    }
+}
 # GetServiceConfiguration
+function Get-MSServiceConfiguration {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetServiceConfiguration = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "GetServiceConfiguration").result
+        $GetServiceConfiguration
+    }
+}
 # SetServiceCertificate
+function Set-MSServiceCertificate {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $True, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$thumbprint,
+
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $SetServiceCertificate = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "SetServiceCertificate" -ApiFunctionParameters @{thumbprint = "$thumbprint" }).result
+        $SetServiceCertificate
+    }
+}
 # GetActiveSessions
+function Get-MSActiveSessions {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetActiveSessions = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "GetActiveSessions").result
+        $GetActiveSessions
+    }
+}
 # GetLicenseInformation
+function Get-MSLicenseInformation {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        $GetLicenseInformation = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "GetLicenseInformation").result
+        $GetLicenseInformation
+    }
+}
 # # ---------------------------------------------------------------- #
 # # MailStore SPE specific API methods                               #
 # # ---------------------------------------------------------------- #
@@ -1220,3 +1534,198 @@ function Delete-MSProfile {
 # CreateLicenseRequest
 # Ping
 # ReloadBranding
+
+#region Additional "higher-level" optional functions  
+
+function Get-MSUserPriviledgesOnFolder { 
+    # Get-UserPriviledgesOnFolder uses Get-MSUsers and Get-MSUserInfo to return the priviledges 
+    # of all or a specific user on all folders or a specific folder
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$userName = "*",
+        [Parameter(Mandatory = $false)] # Todo: ggf. , ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true in Betracht ziehen.
+        [string]$folder = "*",
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        if($userName -eq '*'){
+            Get-MSUsers -msapiclient $msapiclient | ForEach-Object {
+                $userName = $_.userName
+                (Get-MSUserInfo -msapiclient $msapiclient -userName $userName).privilegesOnFolders | Where-Object folder -like $folder | ForEach-Object {
+                    [PSCustomObject]@{
+                        userName = $userName
+                        folder = $_.folder
+                        privileges = $_.privileges
+                    }
+                }
+            }
+        }
+        if($userName -ne '*'){
+            (Get-MSUserInfo -userName $userName -msapiclient $msapiclient).privilegesOnFolders | Where-Object folder -like $folder | ForEach-Object {
+                [PSCustomObject]@{
+                    userName = $userName
+                    folder = $_.folder
+                    privileges = $_.privileges
+                }
+            }
+        }
+    }
+}
+
+
+function New-MSUser {
+    # Example: New-MSUser -userName 'testuser' -privileges export,archive,changePassword -authentication integrated -loginPrivileges none,api,imap
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$userName,
+
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
+        [ValidateSet('none', 'admin', 'login', 'changePassword', 'archive', 'modifyArchiveProfiles', 'export', 'modifyExportProfiles', 'delete')]
+        [string[]]$privileges,
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
+        [string]$fullName,
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$distinguishedName,
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateSet("integrated", "directoryServices")]
+        [string]$authentication = "integrated",
+
+        [Parameter(Mandatory = $false, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$password,
+
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [ValidateNotNullOrEmpty()]
+        [ValidateSet('none', 'windows', 'web', 'outlook', 'windowsCmd', 'imap', 'api')]
+        [string[]]$loginPrivileges
+    )
+    process {
+
+        $validPrivileges = @('none', 'admin', 'login', 'changePassword', 'archive', 'modifyArchiveProfiles', 'export', 'modifyExportProfiles', 'delete')
+        $privileges | ForEach-Object {
+            if ($_ -cnotin $validPrivileges) {
+                throw "priviledges MUST contain only 'none', 'admin', 'login', 'changePassword', 'archive', 'modifyArchiveProfiles', 'export', 'modifyExportProfiles', 'delete'"
+            }
+        }
+
+        $validLoginPrivileges = @('none', 'windows', 'web', 'outlook', 'windowsCmd', 'imap', 'api')
+        $loginPrivileges | ForEach-Object {
+            if ($_ -cnotin $validLoginPrivileges) {
+                throw "loginPrivileges MUST contain only 'none', 'windows', 'web', 'outlook', 'windowsCmd', 'imap', 'api'"
+            }
+        }
+            
+        # Prepare the parameters
+        $params = @{
+            userName          = $userName
+            privileges        = $privileges -join ','
+            fullName          = $fullName
+            distinguishedName = $distinguishedName
+            authentication    = $authentication
+            password          = $password
+            loginPrivileges   = $loginPrivileges -join ','
+        }
+        
+        # $params
+        return (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "CreateUser" -ApiFunctionParameters $params)
+        # error           : wenn statusCode = failed, dann stehen hier weitere Infos drin.
+        # token           :
+        # statusVersion   : 2
+        # statusCode      : succeeded  oder failed
+        # percentProgress :
+        # statusText      :
+        # result          :
+        # logOutput       :
+    }
+}
+
+function Get-MSUsersPrivileges { # Get-MSUsersPrivileges uses Get-MSUsers and Get-MSUserInfo to return ALL User priviledges on all folders
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        $msapiclient
+    )
+    process {
+        # Privilegien aller Users auf andere Ordner
+        Get-MSUsers -msapiclient $msapiclient | Get-MSUserInfo -msapiclient $msapiclient | ForEach-Object {
+            $userName = $_.userName
+            $privilegesOnFolders = $_.privilegesOnFolders
+            $privilegesOnFolders | ForEach-Object {
+                $folder = $_.folder
+                $privilegesOnFolder = $_.privileges
+                [PSCustomObject]@{
+                    userName           = $userName
+                    folder             = $folder
+                    privilegesOnFolder = $privilegesOnFolder
+                }
+            }
+        }
+    }
+}
+
+#endregion
+
+#region Main Program and Examples
+
+# $servername = localhost
+if (-not $servername) {
+    $servername = Read-Host -Prompt "Please input the Mailstore servername"
+}
+
+if (-not $credential) {
+    $credential = (Get-Credential -Message "Please input the Mailstore credentials with api access rights (admin)")
+}
+
+Try {
+    $msapiclient = New-MSApiClient -Credentials $credential -MailStoreServer $servername -Port 8463 -IgnoreInvalidSSLCerts
+    
+    if ($msapiclient) {
+        # Das hier sind alle SharedMailbox User innerhalb von Mailstore
+        $allusers = Get-MSUsers -msapiclient $msapiclient
+        $allusers
+        $users = $allusers | Where-Object UserName -like "sharedmailbox*" # Hier ist in distinguishedName der gruppenname, den man holen muss.
+        $users | Out-GridView -Title "All filtered user elements"
+        # $myusertest = 'myusertest'
+        # $targetfolder = 'sharedmailboxinvoice'
+        # $targetprivileges = 'read' # Valid settings: none,read,write,delete
+            # Set priviledges for user on a specific folder
+        # Set-MSUserPrivilegesOnFolder -userName $myusertest -folder $targetfolder -privileges $targetprivileges -msapiclient $msapiclient
+        
+        # Remove priviledges for user on a specific folder
+        # $targetprivileges = 'none'
+        # Set-MSUserPrivilegesOnFolder -userName 'm.arnoldi' -folder $targetfolder -privileges $targetprivileges -msapiclient $msapiclient
+        
+        # Get the priviledges of every user on the target folder with their priviledges
+        Get-MSUsersPrivileges -msapiclient $msapiclient | Out-GridView -Title "Get-MSUsersPrivileges"
+
+        # Get specific priviledges of a user to a target folder
+        Get-MSUserPriviledgesOnFolder -userName 'myuser' -folder 'sharedmailboxinvoice'  -msapiclient $msapiclient
+        
+        # Get all users with their specific priviledges to a target folder
+        Get-MSUserPriviledgesOnFolder -folder 'sharedmailboxinvoice' -msapiclient $msapiclient
+
+        # Get-Specific UserInfo
+        $allusers | Where-Object { ($_.userName -eq 'm.arnoldi') -or ($_.userName -eq 'm.kuehn') } | Get-MSUserInfo -msapiclient $msapiclient
+
+        # Get All Users from ActiveDirectory with an emailaddress and check if their DN is within $allusers
+        $result = Get-MailstoreAndExchangeUsers -allusers $allusers
+        $result | Where-Object MailstoreUserFound -eq $false | Out-GridView -Title "Exchange/Mail User WITHOUT Mailstore User"
+        $result | Where-Object MailstoreUserFound -eq $true | Out-GridView -Title "Exchange/Mail User WITH Mailstore User"
+    }
+
+}
+catch {
+    Write-Host "Exception Message: $($_.Exception.Message)"
+    Write-Host "Inner Exception: $($_.Exception.InnerException)"
+    Write-Host "Inner Exception Message: $($_.Exception.InnerException.Message)"
+}
+
+#endregion

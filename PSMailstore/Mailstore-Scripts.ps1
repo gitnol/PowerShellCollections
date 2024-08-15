@@ -389,43 +389,44 @@ if (-not $credential) {
 
 Try {
     $msapiclient = New-MSApiClient -Credentials $credential -MailStoreServer $servername -Port 8463 -IgnoreInvalidSSLCerts
+    
+    if ($msapiclient) {
+        # Das hier sind alle SharedMailbox User innerhalb von Mailstore
+        $allusers = Get-MSUsers -msapiclient $msapiclient
+        $allusers
+        $users = $allusers | Where-Object UserName -like "sharedmailbox*" # Hier ist in distinguishedName der gruppenname, den man holen muss.
+        $users | Out-GridView -Title "All filtered user elements"
+        # $myusertest = 'myusertest'
+        # $targetfolder = 'sharedmailboxinvoice'
+        # $targetprivileges = 'read' # Valid settings: none,read,write,delete
+            # Set priviledges for user on a specific folder
+        # Set-MSUserPrivilegesOnFolder -userName $myusertest -folder $targetfolder -privileges $targetprivileges -msapiclient $msapiclient
+        
+        # Remove priviledges for user on a specific folder
+        # $targetprivileges = 'none'
+        # Set-MSUserPrivilegesOnFolder -userName 'm.arnoldi' -folder $targetfolder -privileges $targetprivileges -msapiclient $msapiclient
+        
+        # Get the priviledges of every user on the target folder with their priviledges
+        Get-MSUsersPrivileges -msapiclient $msapiclient | Out-GridView -Title "Get-MSUsersPrivileges"
+
+        # Get specific priviledges of a user to a target folder
+        Get-MSUserPriviledgesOnFolder -userName 'myuser' -folder 'sharedmailboxinvoice'  -msapiclient $msapiclient
+        
+        # Get all users with their specific priviledges to a target folder
+        Get-MSUserPriviledgesOnFolder -folder 'sharedmailboxinvoice' -msapiclient $msapiclient
+
+        # Get-Specific UserInfo
+        $allusers | Where-Object { ($_.userName -eq 'm.arnoldi') -or ($_.userName -eq 'm.kuehn') } | Get-MSUserInfo -msapiclient $msapiclient
+
+        # Get All Users from ActiveDirectory with an emailaddress and check if their DN is within $allusers
+        $result = Get-MailstoreAndExchangeUsers -allusers $allusers
+        $result | Where-Object MailstoreUserFound -eq $false | Out-GridView -Title "Exchange/Mail User WITHOUT Mailstore User"
+        $result | Where-Object MailstoreUserFound -eq $true | Out-GridView -Title "Exchange/Mail User WITH Mailstore User"
+    }
+
 }
 catch {
     Write-Host "Exception Message: $($_.Exception.Message)"
     Write-Host "Inner Exception: $($_.Exception.InnerException)"
     Write-Host "Inner Exception Message: $($_.Exception.InnerException.Message)"
-}
-
-if ($msapiclient) {
-    # Das hier sind alle SharedMailbox User innerhalb von Mailstore
-    $allusers = Get-MSUsers -msapiclient $msapiclient
-    $allusers
-    $users = $allusers | Where-Object UserName -like "sharedmailbox*" # Hier ist in distinguishedName der gruppenname, den man holen muss.
-    $users | Out-GridView -Title "All filtered user elements"
-    # $myusertest = 'myusertest'
-    # $targetfolder = 'sharedmailboxinvoice'
-    # $targetprivileges = 'read' # Valid settings: none,read,write,delete
-        # Set priviledges for user on a specific folder
-    # Set-MSUserPrivilegesOnFolder -userName $myusertest -folder $targetfolder -privileges $targetprivileges -msapiclient $msapiclient
-    
-    # Remove priviledges for user on a specific folder
-    # $targetprivileges = 'none'
-    # Set-MSUserPrivilegesOnFolder -userName 'm.arnoldi' -folder $targetfolder -privileges $targetprivileges -msapiclient $msapiclient
-    
-    # Get the priviledges of every user on the target folder with their priviledges
-    Get-MSUsersPrivileges -msapiclient $msapiclient | Out-GridView -Title "Get-MSUsersPrivileges"
-
-    # Get specific priviledges of a user to a target folder
-    Get-MSUserPriviledgesOnFolder -userName 'myuser' -folder 'sharedmailboxinvoice'  -msapiclient $msapiclient
-    
-    # Get all users with their specific priviledges to a target folder
-    Get-MSUserPriviledgesOnFolder -folder 'sharedmailboxinvoice' -msapiclient $msapiclient
-
-    # Get-Specific UserInfo
-    $allusers | Where-Object { ($_.userName -eq 'm.arnoldi') -or ($_.userName -eq 'm.kuehn') } | Get-MSUserInfo -msapiclient $msapiclient
-
-    # Get All Users from ActiveDirectory with an emailaddress and check if their DN is within $allusers
-    $result = Get-MailstoreAndExchangeUsers -allusers $allusers
-    $result | Where-Object MailstoreUserFound -eq $false | Out-GridView -Title "Exchange/Mail User WITHOUT Mailstore User"
-    $result | Where-Object MailstoreUserFound -eq $true | Out-GridView -Title "Exchange/Mail User WITH Mailstore User"
 }

@@ -422,17 +422,17 @@ function Get-MSDirectoryServicesConfiguration {
         $GetDirectoryServicesConfiguration
     }
 }
-function Get-MSFolderStatistics {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true)]
-        $msapiclient
-    )
-    process {
-        $GetFolderStatistics = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "GetFolderStatistics").result
-        $GetFolderStatistics
+    function Get-MSFolderStatistics {
+        [CmdletBinding()]
+        param (
+            [Parameter(Mandatory = $true)]
+            $msapiclient
+        )
+        process {
+            $GetFolderStatistics = (Invoke-MSApiCall -MSApiClient $msapiclient -ApiFunction "GetFolderStatistics").result
+            $GetFolderStatistics
+        }
     }
-}
 function Get-MSJobResults {
     [CmdletBinding()]
     param (
