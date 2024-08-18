@@ -1,5 +1,5 @@
 # # This is also functioning for powershell 5 where "foreach-object -parallel" is missing
-# this function 
+
 
 function Get-ComputerOnlineStatus {
     [CmdletBinding()]
@@ -16,6 +16,8 @@ function Get-ComputerOnlineStatus {
 
     # Initialize an array to hold jobs
     $jobs = @()
+    $totalComputers = $Computers.Count
+    $jobsStarted = 0
 
     # Loop through each computer and create a job to check the online status
     foreach ($computer in $Computers) {
@@ -43,6 +45,14 @@ function Get-ComputerOnlineStatus {
                 Online   = Test-Connection -ComputerName $using:computer -Count $using:pingCounts -Quiet
             }
         }
+
+        # Increment the jobsStarted counter
+        $jobsStarted++
+
+        # Update progress
+        Write-Progress -Activity "Checking computer online status" `
+            -Status "Starting job $jobsStarted of $totalComputers" `
+            -PercentComplete (($jobsStarted / $totalComputers) * 100)
     }
 
     # Monitor the remaining jobs until they complete
@@ -70,7 +80,7 @@ function Get-ComputerOnlineStatus {
     $jobs | Remove-Job
 
     # Return the results
-    return $results | Select-Object Computer,Online
+    return $results | Select-Object Computer, Online
 }
 
 # Example usage:
@@ -78,8 +88,20 @@ function Get-ComputerOnlineStatus {
 # $onlineStatus = Get-ComputerOnlineStatus -Computers $computers
 # $computers = (Get-ADComputer -Filter { OperatingSystem -like '*Windows*' -and Enabled -eq 'True' } -Property DNSHostName).DNSHostName
 
-$computers = (Get-ADComputer -Filter { OperatingSystem -like '*Windows*' -and OperatingSystem -like '*Server*' -and Enabled -eq 'True' } -Property DNSHostName).DNSHostName
-# $onlineStatus = Get-ComputerOnlineStatus -Computers ($computers | Select-Object -first 10) -numberConcurrentJobs 10 -pingCounts 1
-$onlineStatus = Get-ComputerOnlineStatus -Computers ($computers) -numberConcurrentJobs 10 -pingCounts 1
-$onlineStatus
 
+$onlyServers = (Get-ADComputer -Filter { OperatingSystem -like '*Windows*' -and OperatingSystem -like '*Server*' -and Enabled -eq 'True' } -Property DNSHostName).DNSHostName
+$onlyServersonlineStatus = Get-ComputerOnlineStatus -Computers ($onlyServers) -numberConcurrentJobs 10 -pingCounts 1
+$onlyServersonlineStatus | Where-Object Online -eq $true |  Out-GridView
+
+$onlyClients = (Get-ADComputer -Filter { OperatingSystem -like '*Windows*' -and OperatingSystem -notlike '*Server*' -and Enabled -eq 'True' } -Property DNSHostName).DNSHostName
+$onlyClientsonlineStatus = Get-ComputerOnlineStatus -Computers ($onlyClients) -numberConcurrentJobs 10 -pingCounts 1
+# $onlineStatus = Get-ComputerOnlineStatus -Computers ($computers | Select-Object -first 10) -numberConcurrentJobs 10 -pingCounts 1
+$onlyClientsonlineStatus | Where-Object Online -eq $true |  Out-GridView
+
+# this function is a huge win against this here:
+# $onlyClients | ForEach-Object {
+#         $a = Test-Connection -ComputerName $_ -Count 1 -TimeoutSeconds 1 -IPv4 -ErrorAction SilentlyContinue; 
+#         if ($a.Status -eq "Success") {
+#             $a | Select-Object -Property Source, Destination, Address, Status
+#         }
+#     }
