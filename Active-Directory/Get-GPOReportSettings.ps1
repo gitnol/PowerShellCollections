@@ -1,4 +1,4 @@
-Import-Module GroupPolicy
+Import-Module GroupPolicy # If this does not work with Powershell 7, try it as admin / elevated
 # This function gets all settings from a GPO. together with "Get-GPO -All"  it is possible to search for settings within the whole domain
 # When you have plenty of GPOs and have no clue which setting is set within which GPO. (without generating an GPResultset for a Computer or user on demand)
 
@@ -10,7 +10,6 @@ function Get-GPOReportSettings {
     )
     $sourceNode += $mynode.LocalName
 
-    $mynodeName = $mynode.LocalName
     $mynode | Get-Member -MemberType Properties |  ForEach-Object {
         if ($_.Definition.StartsWith("string")) {
             $mynodePropertyName = $_.Name
@@ -18,7 +17,7 @@ function Get-GPOReportSettings {
             # Nodeinfos zurückgeben
             [pscustomobject]@{
                 GPOName             = $gpoName
-                Name                = $mynodeName
+                Name                = $mynode.LocalName
                 mynodePropertyName  = $mynodePropertyName
                 mynodePropertyValue = $mynodePropertyValue 
                 sourceNodeRevert    = ($sourceNode[($sourceNode.count - 1)..0] -join "<-") # Breadcumbs
@@ -49,4 +48,3 @@ $GPOReport = Get-GPO -All | Where-Object DisplayName -like $LimitToGPOName  | Fo
 
 # Analyse und Ausgabe der GPOs mit den Suchbegriffen
 $GPOReport | Where-Object { $_.GPO.Name -like $LimitToGPOName } | ForEach-Object { Get-GPOReportSettings  -mynode $_.GPO -gpoName $_.GPO.name } | Where-Object { $_ -like $suchbegriffSettings } | Out-GridView
-
