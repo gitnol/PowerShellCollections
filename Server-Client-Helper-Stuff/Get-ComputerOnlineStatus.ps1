@@ -1,4 +1,5 @@
 # # This is also functioning for powershell 5 where "foreach-object -parallel" is missing
+# this function 
 
 function Get-ComputerOnlineStatus {
     [CmdletBinding()]
