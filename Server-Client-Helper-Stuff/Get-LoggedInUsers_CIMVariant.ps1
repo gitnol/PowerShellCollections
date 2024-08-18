@@ -1,3 +1,4 @@
+# Bug in Powershell for Version 7 (checked on Version 7.4.4) : https://github.com/PowerShell/PowerShell/issues/20829
 # This function returns the logged in users on multiple remote computers and uses the process information of the explorer.exe
 # It can differentiate between Console and RDP Sessions.
 # Perhaps it would be better to do this with Invoke-Command
