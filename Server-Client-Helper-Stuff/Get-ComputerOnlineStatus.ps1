@@ -85,8 +85,9 @@ function Get-ComputerOnlineStatus {
 
 # Example usage:
 # $computers = @('Computer1', 'Computer2', 'Computer3', 'Computer4', 'Computer5', 'Computer6', 'Computer7', 'Computer8')
-# $onlineStatus = Get-ComputerOnlineStatus -Computers $computers
+
 # $computers = (Get-ADComputer -Filter { OperatingSystem -like '*Windows*' -and Enabled -eq 'True' } -Property DNSHostName).DNSHostName
+# $onlineStatus = Get-ComputerOnlineStatus -Computers $computers
 
 
 $onlyServers = (Get-ADComputer -Filter { OperatingSystem -like '*Windows*' -and OperatingSystem -like '*Server*' -and Enabled -eq 'True' } -Property DNSHostName).DNSHostName
