@@ -39,8 +39,10 @@ function Get-GPOReportSettings {
 # Suchbegriff festlegen (Vorsicht bei nur *... das gibt Probleme mit der Datenmenge)
 $suchbegriffSettings = "*Benutzer*"
 
+# Begrenze es auf eine GPO mit dem folgendem Namen. "*" als Wildcard nutzbar"
 $LimitToGPOName = "*lauf*"
 
+# Ab brauch nichts mehr verändert werden:
 # Alle GPOs laden (dauert etwas)
 $GPOReport = Get-GPO -All | Where-Object DisplayName -like $LimitToGPOName  | ForEach-Object {
     [xml](Get-GPOReport -Guid $_.Id -ReportType Xml)
