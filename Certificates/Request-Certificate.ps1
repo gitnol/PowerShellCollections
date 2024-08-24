@@ -271,7 +271,7 @@ PROCESS {
     Write-Verbose "Generating request inf file"
     $file = @"
 [NewRequest]
-Subject = "CN=$CN,c=$Country, s=$State, l=$City, o=$Organisation, ou=$Department"
+Subject = "CN=$CN,C=$Country, S=$State, L=$City, O=$Organisation, OU=$Department"
 MachineKeySet = TRUE
 Hashalgorithm = SHA256
 KeyLength = $KeyLength
@@ -295,12 +295,11 @@ CertificateTemplate = "$TemplateName"
     }
 
     if ($AddCNinSAN) {
-        $SAN = @("DNS=$CN") + $SAN #Add CN as first SAN entry
+        $SAN = @("dns=$CN") + $SAN #Add CN as first SAN entry
     }
 
     # Remove Potential duplicates (if CN was already provided in SAN list)
-    $SAN = $SAN | Select-Object -Unique
-
+    $SAN = ($SAN | ForEach-Object {$_.tolower()} | Select-Object -Unique)
 
     if ($SAN.Count -gt 0) {
 
@@ -363,7 +362,7 @@ CertificateTemplate = "$TemplateName"
             $CAs = [System.DirectoryServices.DirectorySearcher]::new($searchBase, 'objectClass=pKIEnrollmentService').FindAll()
 
             if($CAs.Count -ge 1){
-                $newestCA = $CAs | Sort-Object -Property {$_.Properties.whenchanged} -Descending | Select -First 1
+                $newestCA = $CAs | Sort-Object -Property {$_.Properties.whenchanged} -Descending | Select-Object -First 1
                 $CAName = "$($newestCA.Properties.dnshostname)\$($newestCA.Properties.cn)"
             }
             else {
@@ -420,7 +419,9 @@ CertificateTemplate = "$TemplateName"
             }            else {
                 $pfxPath = ".\$filename.pfx"
             }
-            $certbytes | Set-Content -Encoding Byte -Path $pfxPath -ea Stop
+            # $certbytes | Set-Content -Encoding Byte -Path $pfxPath -ea Stop#
+            [System.IO.File]::WriteAllBytes($pfxPath, $certbytes)
+            
             Write-Host "Certificate successfully exported to `"$pfxPath`"!" -ForegroundColor Green
 
             Write-Verbose "deleting exported certificate from computer store"
