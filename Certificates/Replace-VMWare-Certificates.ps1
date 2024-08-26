@@ -79,19 +79,41 @@ $configfilepath = $myScriptpath.Path + "\config.json" # Just implement your own 
 #     ]
 #   }
 # ]
-if (Test-Path -LiteralPath $configfilepath){
-    $myconfig = Get-Content -LiteralPath $configfilepath | ConvertFrom-Json
-} else {
-    Write-Host("No config.json File Found") -ForegroundColor Red
-    Exit(0)
+
+$hostnameFQDN = "a220.mycorp.local"
+$ExportPassword = "test123" # Just a Password if you  do not want to use the config.json
+
+if ($hostnameFQDN.Trim() -eq "") {
+    if (Test-Path -LiteralPath $configfilepath){
+        $myconfig = Get-Content -LiteralPath $configfilepath | ConvertFrom-Json
+    } else {
+        Write-Host("No config.json File Found") -ForegroundColor Red
+        Exit(0)
+    }
+
+    # From here... the certificates are being generated. You must3 have priviledge
+    $hostnameFQDN = $myconfig.Hostname | Select-Object -first 1
+    if (!$hostnameFQDN) {
+        Write-Host("No Hostname in Config.json File Found") -ForegroundColor Red
+        Exit(0)
+    }
+}
+if ($hostnameFQDN.Trim() -eq "") {
+    Exit(1)
 }
 
-# From here... the certificates are being generated. You must3 have priviledge
-$hostnameFQDN = $myconfig.Hostname | Select-Object -first 1
-if (!$hostnameFQDN) {
-    Write-Host("No Hostname in Config.json File Found") -ForegroundColor Red
-    Exit(0)
+if ($ExportPassword.Trim() -eq "") {
+    $ExportPassword = ($myconfig | Where-Object Hostname -eq $($hostnameFQDN)).detail.password
+    if ($ExportPassword.Trim() -eq "") {
+        $ExportPassword = Read-Host -Prompt "Please Input Export Password for PFX File"
+    }
 }
+
+if ($ExportPassword.Trim() -eq "") {
+    Write-Error("ExportPassword is empty")
+    Exit(1)
+}
+
 
 # $hostnameFQDN = "replicavcsa.$($mycorp).local"
 # $hostnameFQDN = "vcsa.$($mycorp).local"
@@ -176,7 +198,7 @@ if ($cred_replicavcsa){
     # Set the certificate. IMPORTANT: The Root CA and SUB Ca public certificate MUST be present beforehand
     Set-VIMachineCertificate -VMHost $targetEsxHost  -PemCertificate $esx20certpem -PemKey $esx20certpemkey -Server $conn_replicavcsa
     # Maintenance Mode OFF
-    VMware.VimAutomation.Core\Set-VMHost -VMhost $vmhost -state Maintenance
+    VMware.VimAutomation.Core\Set-VMHost -VMhost $vmhost -state
 }
 
 
