@@ -1,5 +1,19 @@
 # # This is also functioning for powershell 5 where "foreach-object -parallel" is missing
 
+# In Powershell > 6 this function makes it easier
+function Test-ConnectionInParallel { # Only Powershell 6 and above (because of ForEach-Object -Parallel)
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $false, Position=0)]
+        [string[]]$computers,
+        [Parameter(Mandatory=$false)]
+        [int]$throttlelimit = 10
+    )
+    $computers | ForEach-Object -Parallel {
+        [pscustomobject]@{Name=$_;Online=Test-Connection -ComputerName $_ -Count 1 -Quiet -TimeoutSeconds 1}
+    } -ThrottleLimit $throttlelimit
+}
+
 
 function Get-ComputerOnlineStatus {
     [CmdletBinding()]
