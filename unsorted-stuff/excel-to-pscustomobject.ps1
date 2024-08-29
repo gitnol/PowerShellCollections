@@ -43,3 +43,4 @@ $a = ($erg | Where-Object {$_.Hostname -eq "" -or $_.Name -eq ""} | Select-Objec
 Test-ConnectionInParallel -computers $a
 
 $erg | ConvertTo-Json
+$erg | ConvertTo-Json | Out-File -LiteralPath c:\temp\mytest.json -Encoding utf8
