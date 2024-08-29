@@ -1,7 +1,9 @@
+# This function enables you to copy information from Excel to a pscustomobject
 # In Excel CTRL+A CTRL+C, then in powershell type e2p, return is a pscustomobject which can then be used in powershell afterwards
 function e2p {
-    $clip = Get-Clipboard
-    
+    [CmdletBinding()]
+
+    $cli    
     $spaltennamen = $clip | Select-Object -First 1 | Where-Object { $_ } | ForEach-Object {
         $_ -split "`t"
     }
@@ -33,8 +35,11 @@ function e2p {
     
     
     return $excelSheet
-}
+}p = Get-Clipboard
+
     
 $erg = e2p
 $a = ($erg | Where-Object {$_.Hostname -eq "" -or $_.Name -eq ""} | Select-Object Hostname).Hostname
 Test-ConnectionInParallel -computers $a
+
+$erg | ConvertTo-Json

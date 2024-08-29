@@ -1,3 +1,4 @@
+# obsolete.... should be removed and instead take generate-certificate
 Install-Module -Name PSPKI
 # Check if the PSPKI module is installed
 $moduleName = "PSPKI"
