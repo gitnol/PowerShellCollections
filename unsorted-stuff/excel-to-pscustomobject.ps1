@@ -3,7 +3,7 @@
 function e2p {
     [CmdletBinding()]
 
-    $cli    
+    $clip = Get-Clipboard
     $spaltennamen = $clip | Select-Object -First 1 | Where-Object { $_ } | ForEach-Object {
         $_ -split "`t"
     }
@@ -35,7 +35,7 @@ function e2p {
     
     
     return $excelSheet
-}p = Get-Clipboard
+}
 
     
 $erg = e2p
