@@ -10,7 +10,7 @@ function Test-ConnectionInParallel { # Only Powershell 6 and above (because of F
         [int]$throttlelimit = 10
     )
     $ComputerNames | ForEach-Object -Parallel {
-        [pscustomobject]@{Name=$_;Online=Test-Connection -ComputerName $_ -Count 1 -Quiet -TimeoutSeconds 1}
+        [pscustomobject]@{ComputerName=$_;Online=Test-Connection -ComputerName $_ -Count 1 -Quiet -TimeoutSeconds 1}
     } -ThrottleLimit $throttlelimit
 }
 
