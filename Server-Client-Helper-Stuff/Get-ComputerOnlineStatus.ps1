@@ -5,11 +5,11 @@ function Test-ConnectionInParallel { # Only Powershell 6 and above (because of F
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $false, Position=0)]
-        [string[]]$computers,
+        [string[]]$ComputerNames,
         [Parameter(Mandatory=$false)]
         [int]$throttlelimit = 10
     )
-    $computers | ForEach-Object -Parallel {
+    $ComputerNames | ForEach-Object -Parallel {
         [pscustomobject]@{Name=$_;Online=Test-Connection -ComputerName $_ -Count 1 -Quiet -TimeoutSeconds 1}
     } -ThrottleLimit $throttlelimit
 }

@@ -34,10 +34,11 @@ function e2p {
 # get the clipboard content and add it to a variable
 $erg = e2p
 # use the $erg where the column Hostname and the column are set and then use the column Hostname to...
-$a = ($erg | Where-Object {$_.Hostname -eq "" -or $_.Name -eq ""} | Select-Object Hostname).Hostname
+$a = ($erg | Where-Object {$_.Hostname -ne ""} | Select-Object Hostname).Hostname
+$a = ($erg | Where-Object {$_.Hostname -ne "" -and $_.TeamViewerID -eq ""} | Select-Object Hostname).Hostname
 # ... check the online status of the Hosts --> Search this repo for "Get-CompuerOnlineStatus.ps1"
-Test-ConnectionInParallel -computers $a
-
+$online = Test-ConnectionInParallel -ComputerNames $a | Where-Object Online -eq $True
+$online.ComputerName | Set-Clipboard
 # This example is a quick an easy way to convert excel sheet contents into json
 $erg | ConvertTo-Json
 # This example is a quick an easy way to convert excel sheet contents into json and the save it directly to a mytest.json file
