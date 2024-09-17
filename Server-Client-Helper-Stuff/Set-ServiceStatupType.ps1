@@ -26,8 +26,8 @@ function Set-ServiceStartupType {
 }
 
 # Usage examples:
-$exitCode = Set-ServiceStartupType -ServiceName "wuauserv" -StartupType "m"
-Write-Output "Exit Code: $exitCode"
+# $exitCode = Set-ServiceStartupType -ServiceName "wuauserv" -StartupType "m"
+# Write-Output "Exit Code: $exitCode"
 
 # # Usage examples:
 # Set-ServiceStartupType -ServiceName "wuauserv" -StartupType "m"       # Set to Manual
