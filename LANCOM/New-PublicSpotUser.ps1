@@ -27,6 +27,8 @@ function Invoke-CmdPbSpotUser {
 
     # Construct the URI
     $uri = "https://$ServerIP/cmdpbspotuser/?action=$Action&comment=$Comment&unit=$Unit+runtime=$Runtime&multilogin&print&printcomment&casesensitive=0&nbGuests=$NbGuests&expirytype=$ExpiryType+validper=$ValidPer&ssid=$SSID&maxconclogins=$MaxConcLogins&bandwidthprofile=$BandwidthProfile&timebudget=$TimeBudget&volumebudget=$VolumeBudget&active=$Active"
+    # regarding to  https://www.lancom-forum.de/alles-zum-lancom-wlc-4100-wlc-4025-wlc-4025-und-wl-f32/web-api-lcos-9-20-login-t15426.html adding oldauth could work, too, if used in a brower: 
+    # example: cmdpbspotuser&oldauth
 
     # Invoke the REST method
     return Invoke-RestMethod -Uri $uri `
