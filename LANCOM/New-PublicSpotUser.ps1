@@ -29,14 +29,25 @@ function Invoke-CmdPbSpotUser {
     $uri = "https://$ServerIP/cmdpbspotuser/?action=$Action&comment=$Comment&unit=$Unit+runtime=$Runtime&multilogin&print&printcomment&casesensitive=0&nbGuests=$NbGuests&expirytype=$ExpiryType+validper=$ValidPer&ssid=$SSID&maxconclogins=$MaxConcLogins&bandwidthprofile=$BandwidthProfile&timebudget=$TimeBudget&volumebudget=$VolumeBudget&active=$Active"
 
     # Invoke the REST method
-    Invoke-RestMethod -Uri $uri `
+    return Invoke-RestMethod -Uri $uri `
         -Method Get `
-        -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)} `
+        -Headers @{Authorization = ("Basic {0}" -f $base64AuthInfo) } `
         -SkipCertificateCheck
 }
 
 # Beispielaufruf der Funktion
-Invoke-CmdPbSpotUser -ServerIP "10.0.8.240" -Action "addpbspotuser" -Comment "TESTKOMMENTAR" -Unit "Minute" `
+$result = Invoke-CmdPbSpotUser -ServerIP "10.0.8.240" -Action "addpbspotuser" -Comment "TESTKOMMENTAR" -Unit "Minute" `
     -Runtime 7200 -NbGuests 1 -ExpiryType "absolute" -ValidPer 1 -SSID "LVISITOR" `
     -MaxConcLogins 0 -BandwidthProfile 1 -TimeBudget 0 -VolumeBudget 0 -Active 1 `
     -Username "myuser" -Password "mypass"
+
+$pattern = '{ SSID:.*}'
+
+if ($match.Success) {
+    $userdata = $match.Value | ConvertFrom-Json
+    $userdata
+}
+else {
+    Write-Output "No Match found. Please Check result variable"
+}
+
