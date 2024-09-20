@@ -2,7 +2,9 @@
 # Tested with LANCOM WLC vRouter 10.80.xxxx
 # Keep in mind of "-SkipCertificateCheck" and that not every option in the documentation (search for MA_LCOS-1080-Public-Spot_DE.pdf) has been adapted. 
 # Feel free to change everything to your needs.
-<#
+function Invoke-CmdPbSpotUser {
+    
+    <#
 .SYNOPSIS
 Registers a new Public Spot user via a REST API call to a specified server.
 
@@ -62,7 +64,6 @@ Invoke-CmdPbSpotUser -ServerIP '192.168.0.1' -Action 'addpbspotuser' -Comment 'G
 
 # Adds a Public Spot user on the server with specific parameters.
 #>
-function Invoke-CmdPbSpotUser {
     param (
         [string]$ServerIP,
         [string]$Action,
