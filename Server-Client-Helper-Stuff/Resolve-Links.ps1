@@ -18,7 +18,7 @@ function Resolve-Links {
     }
 
     # Durchsuche alle Dateien und Ordner rekursiv
-    Get-ChildItem -Path $Path -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
+    Get-ChildItem -LiteralPath $Path -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
         $linkType = ''  # Typ des Links (symbolisch oder Hardlink)
         $attributes = $_.Attributes  # Attribute der Datei
         $target = $null  # Ziel des Links
@@ -27,10 +27,10 @@ function Resolve-Links {
         if ($attributes -band [System.IO.FileAttributes]::ReparsePoint) {
             $linkType = 'Symbolic Link'  # Setze den Linktyp
             # Hole das Ziel des symbolischen Links
-            $target = (Get-Item $_.FullName -Force -ErrorAction SilentlyContinue).Target
+            $target = (Get-Item -LiteralPath $_.FullName -Force -ErrorAction SilentlyContinue).Target
         } 
         # Überprüfen, ob es sich um einen Hardlink handelt
-        elseif ((Get-Item $_.FullName -Force -ErrorAction SilentlyContinue).Attributes -band [System.IO.FileAttributes]::Archive) {
+        elseif ((Get-Item -LiteralPath $_.FullName -Force -ErrorAction SilentlyContinue).Attributes -band [System.IO.FileAttributes]::Archive) {
             $linkType = 'Hard Link'  # Setze den Linktyp
             # Hole die Hardlink-Ziele mit fsutil
             $fsutilOutput = & fsutil hardlink list $_.FullName 2>$null
@@ -51,4 +51,5 @@ function Resolve-Links {
 }
 
 # Beispielaufruf: Resolve-Links -Path "C:\install"
+# $result = Resolve-Links -Path "C:\"
 Resolve-Links -Path "C:\"
