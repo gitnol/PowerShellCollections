@@ -18,35 +18,8 @@ function Resolve-Links {
     }
 
     # Durchsuche alle Dateien und Ordner rekursiv
-    Get-ChildItem -LiteralPath $Path -Recurse -Force -ErrorAction SilentlyContinue | ForEach-Object {
-        $linkType = ''  # Typ des Links (symbolisch oder Hardlink)
-        $attributes = $_.Attributes  # Attribute der Datei
-        $target = $null  # Ziel des Links
-
-        # Überprüfen, ob es sich um einen symbolischen Link handelt
-        if ($attributes -band [System.IO.FileAttributes]::ReparsePoint) {
-            $linkType = 'Symbolic Link'  # Setze den Linktyp
-            # Hole das Ziel des symbolischen Links
-            $target = (Get-Item -LiteralPath $_.FullName -Force -ErrorAction SilentlyContinue).Target
-        } 
-        # Überprüfen, ob es sich um einen Hardlink handelt
-        elseif ((Get-Item -LiteralPath $_.FullName -Force -ErrorAction SilentlyContinue).Attributes -band [System.IO.FileAttributes]::Archive) {
-            $linkType = 'Hard Link'  # Setze den Linktyp
-            # Hole die Hardlink-Ziele mit fsutil
-            $fsutilOutput = & fsutil hardlink list $_.FullName 2>$null
-            # Filtere die Ausgabe, um nur die Hardlink-Pfade zu erhalten
-            $target = $fsutilOutput | Where-Object { $_ -ne $_.FullName }
-        }
-
-        # Wenn ein Linktyp gefunden wurde, erstelle ein PSCustomObject
-        if ($linkType) {
-            [PSCustomObject]@{
-                Name     = $_.Name           # Name der Datei
-                FullName = $_.FullName       # Vollständiger Pfad
-                LinkType = $linkType         # Typ des Links
-                Target   = $target           # Ziel des Links
-            }
-        }
+    Get-ChildItem -LiteralPath c:\ -Force -Recurse -ErrorAction SilentlyContinue -Attributes reparsepoint | ForEach-Object {
+        (Get-Item -LiteralPath $_.FullName -Force -ErrorAction SilentlyContinue) | Select-Object Name,FullName,LinkType,LinkTarget
     }
 }
 
