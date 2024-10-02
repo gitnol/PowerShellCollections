@@ -18,11 +18,11 @@ function Resolve-Links {
     }
 
     # Durchsuche alle Dateien und Ordner rekursiv
-    Get-ChildItem -LiteralPath c:\ -Force -Recurse -ErrorAction SilentlyContinue -Attributes reparsepoint | ForEach-Object {
+    Get-ChildItem -LiteralPath $Path -Force -Recurse -ErrorAction SilentlyContinue -Attributes reparsepoint | ForEach-Object {
         (Get-Item -LiteralPath $_.FullName -Force -ErrorAction SilentlyContinue) | Select-Object Name,FullName,LinkType,LinkTarget
     }
 }
 
 # Beispielaufruf: Resolve-Links -Path "C:\install"
 # $result = Resolve-Links -Path "C:\"
-Resolve-Links -Path "C:\"
+Resolve-Links -Path "C:\" | Out-GridView
