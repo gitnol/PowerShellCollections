@@ -29,7 +29,7 @@ function Test-Port {
 
 # Server und Ports definieren
 $server = "myhost.mydomain.local"
-$server = Read-Host -Prompt "IP or Host"
+$server = Read-Host -Prompt "IP or Host"citrix wagener volprecht... 
 
 $ports = @(8888,80,443,9090, 9080,9081, 9091, 8080) # Weitere Ports hinzufügen
 
