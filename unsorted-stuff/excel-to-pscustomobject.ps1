@@ -10,13 +10,13 @@ function e2p {
     $clip = Get-Clipboard 
 
     # get the columnheaders
-    $spaltennamen = $clip | Select-Object -First 1 | Where-Object { $_ } | ForEach-Object {
-        $_ -split "`t"
+    $spaltennamen = $clip | Select-Object -First 1 | Where-Object { $_ -and $_.Length -ge 1 } | ForEach-Object {
+        $_.Trim() -split "`t"
     }
     
     # Get the content from line 2 onwards
-    $clip | Select-Object -Skip 1 | Where-Object { $_ } | ForEach-Object {
-        $zeile = $_ -split "`t"
+    $clip | Select-Object -Skip 1 | Where-Object { $_ -and $_.Length -ge 1 } | ForEach-Object {
+        $zeile = $_.Trim() -split "`t"
         $myline = [pscustomobject]@{}
         $j = 0
         foreach ($spaltenname in $spaltennamen) {
