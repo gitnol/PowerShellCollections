@@ -2,6 +2,9 @@ Import-Module ActiveDirectory
 # make sure, that you have sufficient rights on the target machine
 $credentials = Get-Credential -Message "Input Credentials with administrative priviledges on all PCs"
 
+# used to filter the output to users from this domain
+$domainname = "*mycorp.local*"
+
 # max number for invoking commands to remote PCs.
 $throttleLimit = 20
 
@@ -71,13 +74,23 @@ $alledienste_exportfile = 'C:\install\alle_dienste_aller_rechner.txt'
 # Examples
 # $computers = (Get-ADComputer -SearchBase 'DC=mycorp,dc=local' -Filter '*' | select -First 70) # Zum Testen
 # $computers = (Get-ADComputer -Filter '*' | Select-Object -First 10) # Bitte Domänenstring anpassen
-# All enabled AD Windows Computers
-$computers = Get-ADComputer -Filter '*' | Where-Object {$_.Enabled -eq $True -and $_.OperatingSystem -like "*Windows*"} | Select-Object -First $limitToHowManyDomainComputers | Where-Object {Test-Connection -ComputerName $_.DNSHostName -Count 1 -Quiet -TimeoutSeconds 1}
+
+# Get all enabled AD Windows Computers, which are currently online
+$computers = Get-ADComputer -Filter '*' -Properties DNSHostName,Enabled,OperatingSystem | Where-Object {$_.Enabled -eq $True -and $_.OperatingSystem -like "*Windows*"} | Select-Object -First $limitToHowManyDomainComputers | ForEach-Object -Parallel {
+    Write-Progress -Activity "Checking computer online status: " -Status $_.DNSHostName
+    if(Test-Connection -ComputerName $_.DNSHostName -Count 1 -Quiet -TimeoutSeconds 1){$_.DNSHostName}
+}
 
 # Query all tasks on all machines
-$alletasks += Invoke-Command -ComputerName ($computers.DNSHostName | Where-Object {$_}) -ThrottleLimit $throttleLimit -ScriptBlock $meinScriptBlockTasks -Credential $credentials
+$alletasks += Invoke-Command -ComputerName ($computers | Where-Object {$_}) -ThrottleLimit $throttleLimit -ScriptBlock $meinScriptBlockTasks -Credential $credentials
 # Query all services on all machines
-$alledienste += Invoke-Command -ComputerName ($computers.DNSHostName | Where-Object {$_}) -ThrottleLimit $throttleLimit -ScriptBlock $meinScriptBlockDienste -Credential $credentials
+$alledienste += Invoke-Command -ComputerName ($computers | Where-Object {$_}) -ThrottleLimit $throttleLimit -ScriptBlock $meinScriptBlockDienste -Credential $credentials
 
 $alletasks | ConvertTo-Json | Out-File -FilePath $alletasks_exportfile
 $alledienste | ConvertTo-Json | Out-File -FilePath $alledienste_exportfile
+
+# Example to see all task users (with the domain mycorp) on all machines currently online!
+$alletasks | Where-Object {$_.User -like $domainname}  | Format-Table
+
+# Example to see all service users (with the domain mycorp) on all machines currently online!
+$alledienste | Where-Object {$_.StartName -like $domainname} | Sort-Object -Property StartName,Started | Format-Table

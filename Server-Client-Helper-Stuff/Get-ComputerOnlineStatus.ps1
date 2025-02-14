@@ -10,8 +10,7 @@ function Test-ConnectionInParallel { # Only Powershell 6 and above (because of F
         [int]$throttlelimit = 10
     )
     $ComputerNames | ForEach-Object -Parallel {
-        Write-Progress -Activity "Checking computer online status" `
-        -Status "$_"
+        Write-Progress -Activity "Checking computer online status" -Status "$_"
         [pscustomobject]@{ComputerName=$_;Online=Test-Connection -ComputerName $_ -Count 1 -Quiet -TimeoutSeconds 1;IP=(Test-Connection -ComputerName $_ -Count 1 -TimeoutSeconds 1 -ErrorAction SilentlyContinue).Address.IPAddressToString}
     } -ThrottleLimit $throttlelimit
 }
