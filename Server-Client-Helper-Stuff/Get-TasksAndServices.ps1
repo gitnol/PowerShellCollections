@@ -86,6 +86,12 @@ $alletasks += Invoke-Command -ComputerName ($computers | Where-Object {$_}) -Thr
 # Query all services on all machines
 $alledienste += Invoke-Command -ComputerName ($computers | Where-Object {$_}) -ThrottleLimit $throttleLimit -ScriptBlock $meinScriptBlockDienste -Credential $credentials
 
+# get all computer monitor. see Get-ClientMonitorEDIDData.ps1
+# $allemonitore = @()
+# $allemonitore_exportfile = 'C:\install\alle_monitore_aller_rechner.txt'
+# $allemonitore += Invoke-Command -ComputerName ($computers | Where-Object {$_}) -ThrottleLimit $throttleLimit -ScriptBlock (Get-Command Get-ClientMonitorEDIDData).ScriptBlock -Credential $credentials
+# $allemonitore | ConvertTo-Json | Out-File -FilePath $allemonitore_exportfile
+
 $alletasks | ConvertTo-Json | Out-File -FilePath $alletasks_exportfile
 $alledienste | ConvertTo-Json | Out-File -FilePath $alledienste_exportfile
 
