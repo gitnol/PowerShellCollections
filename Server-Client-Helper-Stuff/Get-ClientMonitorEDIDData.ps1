@@ -41,7 +41,7 @@ function Get-ClientMonitorEDIDData {
 # Get-ClientMonitorEDIDData -Computer "MYHOSTNAME"
 
 # Example to use the Scriptblock of the function for remote execution on one computer. On the Computer the script runs and the parameter Computer is then "localhost"
-# Invoke-Command -ScriptBlock (Get-Command Get-ClientMonitorEDIDData).ScriptBlock -ComputerName PRDEDV15
+# Invoke-Command -ScriptBlock (Get-Command Get-ClientMonitorEDIDData).ScriptBlock -ComputerName MYHOST
 
 # Use this knowledge to execute the function on many computers and then collect this for further analysis... (see Get-TasksAndServices.ps1)
 # $allemonitore = @()
