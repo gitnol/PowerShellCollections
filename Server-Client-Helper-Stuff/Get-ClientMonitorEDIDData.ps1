@@ -56,6 +56,7 @@ function Get-ClientMonitorEDIDData {
             UserFriendlyNameLength = ""
             WeekOfManufacture      = ""
             YearOfManufacture      = ""
+            ConnectionType         = ""
             PSComputerName         = ""
         }
         return $result
