@@ -98,5 +98,8 @@ $alledienste | ConvertTo-Json | Out-File -FilePath $alledienste_exportfile
 # Example to see all task users (with the domain mycorp) on all machines currently online!
 $alletasks | Where-Object {$_.User -like $domainname}  | Format-Table
 
+# Example to see all tasks executed with powershell on all machines currently online!
+$alletasks | Where-Object {$_.Program -like "*powershell*" -or $_.Program -like "*pwsh*"}  | Out-GridView -Title "Tasks with powershell or pwsh"
+
 # Example to see all service users (with the domain mycorp) on all machines currently online!
 $alledienste | Where-Object {$_.StartName -like $domainname} | Sort-Object -Property StartName,Started | Format-Table
