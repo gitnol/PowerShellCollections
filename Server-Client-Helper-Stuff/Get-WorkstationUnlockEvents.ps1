@@ -16,7 +16,7 @@ function Extract-MessageDetail {
 $MaxNumberOfEvents = 9999 # Change this to limit the events to the top X elements
 $EventIDsSecurity = 4800,4801 # Workstation Lock and UnlockEvents, but you can use multiple Events which are joined in the next line.  $EventIDs = 4801,4800,4624,...
 $EventIDsSystem = 41,1074,1076,6005,6006,6008,6009,6013 # Boot and Reboot Events
-$computers = "MYHOSTNAME"
+$computers = "localhost"
 
 $EventIDFilterSecurity = "*[System[(EventID=$($EventIDsSecurity -join ' or EventID='))]]"
 $EventIDFilterSystem = "*[System[(EventID=$($EventIDsSystem -join ' or EventID='))]]"
