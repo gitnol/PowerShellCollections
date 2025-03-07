@@ -47,8 +47,8 @@ function Get-RecursiveGroupSIDs {
     return $groupSIDs
 }
 
-(Get-RecursiveGroupSIDs -GroupDN 20-Projektleitung-Schreibzugriff | select GroupName | Sort-Object -Property GroupName).Count
+(Get-RecursiveGroupSIDs -GroupDN 20-Projektleitung-Schreibzugriff | Select-Object GroupName | Sort-Object -Property GroupName).Count
 
-Get-ADPrincipalGroupMembership -Identity myuser | ogv -Title "Get-ADPrincipalGroupMembership"
+Get-ADPrincipalGroupMembership -Identity myuser | Out-GridView -Title "Get-ADPrincipalGroupMembership"
 ist identisch zu 
-$myUsers | Where member -eq "myuser" | select inGroup | Sort-Object -Unique -Property inGroup | ogv
+$myUsers | Where-Object member -eq "myuser" | Select-Object inGroup | Sort-Object -Unique -Property inGroup | Out-GridView

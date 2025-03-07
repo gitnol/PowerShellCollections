@@ -1706,7 +1706,7 @@ Try {
         
         # Remove priviledges for user on a specific folder
         # $targetprivileges = 'none'
-        # Set-MSUserPrivilegesOnFolder -userName 'm.arnoldi' -folder $targetfolder -privileges $targetprivileges -msapiclient $msapiclient
+        # Set-MSUserPrivilegesOnFolder -userName 'myuser' -folder $targetfolder -privileges $targetprivileges -msapiclient $msapiclient
         
         # Get the priviledges of every user on the target folder with their priviledges
         Get-MSUsersPrivileges -msapiclient $msapiclient | Out-GridView -Title "Get-MSUsersPrivileges"
@@ -1718,7 +1718,7 @@ Try {
         Get-MSUserPriviledgesOnFolder -folder 'sharedmailboxinvoice' -msapiclient $msapiclient
 
         # Get-Specific UserInfo
-        $allusers | Where-Object { ($_.userName -eq 'm.arnoldi') -or ($_.userName -eq 'm.kuehn') } | Get-MSUserInfo -msapiclient $msapiclient
+        $allusers | Where-Object { ($_.userName -eq 'myuser') -or ($_.userName -eq 'myuser2') } | Get-MSUserInfo -msapiclient $msapiclient
 
         # Get All Users from ActiveDirectory with an emailaddress and check if their DN is within $allusers
         $result = Get-MailstoreAndExchangeUsers -allusers $allusers

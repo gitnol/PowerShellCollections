@@ -16,7 +16,7 @@ $PasswordToCheck = "mybadpassword123!"
 
 $badUsers = @()
 [System.Reflection.Assembly]::LoadWithPartialName("System.DirectoryServices.AccountManagement")
-$principalContext = New-Object System.DirectoryServices.AccountManagement.PrincipalContext([System.DirectoryServices.AccountManagement.ContextType]::Domain, 'lewa-attendorn.local')
+$principalContext = New-Object System.DirectoryServices.AccountManagement.PrincipalContext([System.DirectoryServices.AccountManagement.ContextType]::Domain, 'mycorp.local')
 
 # Get-ADUser -Filter * -Properties AccountLockoutTime,LastBadPasswordAttempt,BadPwdCount,LockedOut | Sort-Object -Property LastBadPasswordAttempt -Descending | ogv
 
