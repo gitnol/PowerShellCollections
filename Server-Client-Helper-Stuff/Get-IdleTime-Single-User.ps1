@@ -29,7 +29,7 @@ public class IdleTime
     }
 }
 "@
-
+Start-Sleep 1
 $idleTime = [IdleTime]::GetIdleTime()
 $idleSpan = [TimeSpan]::FromMilliseconds($idleTime)
 $idleSpan.TotalSeconds
