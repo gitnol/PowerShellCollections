@@ -15,3 +15,32 @@ foreach ($computer in $computers) {
         Write-Output ("Fehler bei {0}: {1}" -f $computer, $errorMessage)
     }
 }
+
+
+function Get-InstalledSoftware {
+    param(
+        [string]$ComputerName = 'localhost'
+    )
+
+    $hives = @(
+        @{ Path = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*'; Architecture = '64-bit' },
+        @{ Path = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'; Architecture = '32-bit' }
+    )
+
+    $result = foreach ($entry in $hives) {
+        Get-ItemProperty -Path $entry.Path -ErrorAction SilentlyContinue | Where-Object {
+            $_.DisplayName -and $_.UninstallString
+        } | ForEach-Object {
+            [PSCustomObject]@{
+                Name            = $_.DisplayName
+                Version         = $_.DisplayVersion
+                Publisher       = $_.Publisher
+                InstallDate     = $_.InstallDate
+                UninstallString = $_.UninstallString
+                Architektur     = $entry.Architecture
+            }
+        }
+    }
+
+    return $result | Sort-Object Name
+}

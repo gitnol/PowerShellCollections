@@ -2,8 +2,12 @@ function Extract-MessageDetail {
     param (
         [Parameter(ValueFromPipeline = $true, Mandatory = $true)]
         [PSCustomObject]$Event,
+
         [Parameter(Mandatory = $true)]
-        [string]$Detail
+        [string]$Detail,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Computer
     )
     process {
         if ($Event.Message -match "$Detail\s+(.*)") {
@@ -13,59 +17,70 @@ function Extract-MessageDetail {
     }
 }
 
-$MaxNumberOfEvents = 9999 # Change this to limit the events to the top X elements
-$EventIDsSecurity = 4800,4801 # Workstation Lock and UnlockEvents, but you can use multiple Events which are joined in the next line.  $EventIDs = 4801,4800,4624,...
-$EventIDsSystem = 41,1074,1076,6005,6006,6008,6009,6013 # Boot and Reboot Events
-$computers = "localhost"
+function Get-EventDetails {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Computer,
 
-$EventIDFilterSecurity = "*[System[(EventID=$($EventIDsSecurity -join ' or EventID='))]]"
-$EventIDFilterSystem = "*[System[(EventID=$($EventIDsSystem -join ' or EventID='))]]"
+        [int]$MaxEvents = 9999
+    )
 
-# Get-WinEvent -LogName Security -FilterXPath $Filter | Select-Object TimeCreated, Id, ProviderName, Message -First 20
+    $eventIDsSecurity = 4800,4801
+    $eventIDsSystem   = 41,1074,1076,6005,6006,6008,6009,6013
 
-$FilterXmlSecurity = @"
+    $filterSecurity = "*[System[(EventID=$($eventIDsSecurity -join ' or EventID='))]]"
+    $filterSystem   = "*[System[(EventID=$($eventIDsSystem   -join ' or EventID='))]]"
+
+    $filterXmlSecurity = @"
 <QueryList>
   <Query Id="0" Path="Security">
     <Select Path="Security">
-      $EventIDFilterSecurity
+      $filterSecurity
     </Select>
   </Query>
 </QueryList>
 "@
 
-$FilterXmlSystem = @"
+    $filterXmlSystem = @"
 <QueryList>
   <Query Id="0" Path="System">
     <Select Path="System">
-      $EventIDFilterSystem
+      $filterSystem
     </Select>
   </Query>
 </QueryList>
 "@
 
-$eventsSecurity = Get-WinEvent -FilterXml $FilterXmlSecurity -ComputerName $computers | Select-Object TimeCreated, Id, ProviderName, MachineName, Message -First $MaxNumberOfEvents
-$eventsSystem = Get-WinEvent -FilterXml $filterXMLSystem -ComputerName $computers | Select-Object TimeCreated, Id, ProviderName, MachineName, Message -First $MaxNumberOfEvents
+    $eventsSecurity = Get-WinEvent -FilterXml $filterXmlSecurity -ComputerName $Computer | Select-Object TimeCreated, Id, ProviderName, MachineName, Message -First $MaxEvents
+    $eventsSystem   = Get-WinEvent -FilterXml $filterXmlSystem   -ComputerName $Computer | Select-Object TimeCreated, Id, ProviderName, MachineName, Message -First $MaxEvents
 
-$eventsSecurity | ForEach-Object {
-  [PSCustomObject]@{
-      MachineName   = $_.MachineName
-      EventID       = $_.Id
-      TimeCreated   = $_.TimeCreated
-      SicherheitsID = ($_ | Extract-MessageDetail -Detail 'Sicherheits-ID:') 
-      Kontoname     = ($_ | Extract-MessageDetail -Detail 'Kontoname:')
-      Kontodomäne   = ($_ | Extract-MessageDetail -Detail 'Kontodomäne:')
-      SitzungsID    = ($_ | Extract-MessageDetail -Detail 'Sitzungs-ID:')
-  }
-} | Out-GridView -Title "Security Events"
+    $securityDetails = $eventsSecurity | ForEach-Object {
+        [PSCustomObject]@{
+            MachineName   = $_.MachineName
+            EventID       = $_.Id
+            TimeCreated   = $_.TimeCreated
+            SicherheitsID = ($_ | Extract-MessageDetail -Detail 'Sicherheits-ID:' -Computer $Computer)
+            Kontoname     = ($_ | Extract-MessageDetail -Detail 'Kontoname:'     -Computer $Computer)
+            Kontodomäne   = ($_ | Extract-MessageDetail -Detail 'Kontodomäne:'   -Computer $Computer)
+            SitzungsID    = ($_ | Extract-MessageDetail -Detail 'Sitzungs-ID:'   -Computer $Computer)
+        }
+    }
 
-$eventsSystem | ForEach-Object {
-  [PSCustomObject]@{
-      MachineName   = $_.MachineName
-      EventID       = $_.Id
-      TimeCreated   = $_.TimeCreated
-      SicherheitsID = ($_ | Extract-MessageDetail -Detail 'Sicherheits-ID:') 
-      Kontoname     = ($_ | Extract-MessageDetail -Detail 'Kontoname:')
-      Kontodomäne   = ($_ | Extract-MessageDetail -Detail 'Kontodomäne:')
-      SitzungsID    = ($_ | Extract-MessageDetail -Detail 'Sitzungs-ID:')
-  }
-} | Out-GridView -Title "System Events"
+    $systemDetails = $eventsSystem | ForEach-Object {
+        [PSCustomObject]@{
+            MachineName   = $_.MachineName
+            EventID       = $_.Id
+            TimeCreated   = $_.TimeCreated
+            SicherheitsID = ($_ | Extract-MessageDetail -Detail 'Sicherheits-ID:' -Computer $Computer)
+            Kontoname     = ($_ | Extract-MessageDetail -Detail 'Kontoname:'     -Computer $Computer)
+            Kontodomäne   = ($_ | Extract-MessageDetail -Detail 'Kontodomäne:'   -Computer $Computer)
+            SitzungsID    = ($_ | Extract-MessageDetail -Detail 'Sitzungs-ID:'   -Computer $Computer)
+        }
+    }
+
+    $securityDetails | Out-GridView -Title "Security Events - $Computer"
+    $systemDetails   | Out-GridView -Title "System Events - $Computer"
+}
+
+# Beispielaufruf
+Get-EventDetails -Computer "RemotePCName"
