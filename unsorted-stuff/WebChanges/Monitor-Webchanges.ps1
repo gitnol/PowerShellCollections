@@ -88,7 +88,6 @@ function Test-WebChanges {
 
 function Confirm-WebChange {
     param (
-        [Parameter(Mandatory = $true)]
         [string]$Url,
         [string]$StateDatei = "state.json"
     )
@@ -106,31 +105,92 @@ function Confirm-WebChange {
         return
     }
 
-    if (-not $state.ContainsKey($Url)) {
-        Write-Warning "URL nicht in Status-Datei: $Url"
-        return
-    }
-
-    if ($null -ne $state[$Url].NeuHash) {
-        $state[$Url].Hash = $state[$Url].NeuHash
-        $state[$Url].FoundText = $state[$Url].NeuFound
-        $state[$Url].NeuHash = $null
-        $state[$Url].NeuFound = $null
-        
-        try {
-            $state | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 -Path $StateDatei -Force
-            Write-Host "Änderung bestätigt: $Url"
-        }
-        catch {
-            Write-Warning "Fehler beim Speichern des bestätigten States: $_"
-        }
+    $urlsToCheck = @()
+    if ($Url) {
+        $urlsToCheck += $Url
     }
     else {
-        Write-Host "Keine neue Änderung bei: $Url"
+        $urlsToCheck += $state.Keys | Where-Object {
+            $s = $state[$_]
+            $null -ne $s.NeuHash -or $null -ne $s.NeuFound
+        }
+    }
+
+    foreach ($u in $urlsToCheck) {
+        if (-not $state.ContainsKey($u)) {
+            Write-Warning "URL nicht in Status-Datei: $u"
+            continue
+        }
+
+        $s = $state[$u]
+        if ($null -eq $s.NeuHash -and $null -eq $s.NeuFound) {
+            Write-Host "Keine neuen Änderungen bei: $u"
+            continue
+        }
+
+        if (-not $Url) {
+            Write-Host ""
+            Write-Host "Änderung erkannt für:"
+            Write-Host "  URL: $u"
+            Write-Host "  Alter Hash: $($s.Hash)"
+            Write-Host "  Neuer Hash: $($s.NeuHash)"
+            Write-Host "  Text vorher gefunden: $($s.FoundText)"
+            Write-Host "  Text jetzt gefunden:  $($s.NeuFound)"
+            
+            $skipToNext = $false
+            while (-not $skipToNext) {
+                $eingabe = Read-Host "Aktion? (j=ja / n=nein / s=überspringen / o=öffnen / q=abbrechen)"
+                switch ($eingabe.ToLower()) {
+                    'j' {
+                        $s.Hash = $s.NeuHash
+                        $s.FoundText = $s.NeuFound
+                        $s.NeuHash = $null
+                        $s.NeuFound = $null
+                        Write-Host "Änderung bestätigt: $u"
+                        $skipToNext = $true
+                    }
+                    'n' {
+                        $s.NeuHash = $null
+                        $s.NeuFound = $null
+                        Write-Host "Änderung verworfen: $u"
+                        $skipToNext = $true
+                    }
+                    's' {
+                        Write-Host "Übersprungen: $u"
+                        $skipToNext = $true
+                    }
+                    'o' {
+                        Start-Process $u
+                    }
+                    'q' {
+                        Write-Host "Abbruch durch Benutzer."
+                        return
+                    }
+                    default {
+                        Write-Host "Ungültige Eingabe."
+                    }
+                }
+            }
+        }
+        else {
+            $s.Hash = $s.NeuHash
+            $s.FoundText = $s.NeuFound
+            $s.NeuHash = $null
+            $s.NeuFound = $null
+            Write-Host "Änderung bestätigt: $u"
+        }
+    }
+
+    try {
+        $state | ConvertTo-Json -Depth 5 | Set-Content -Encoding UTF8 -Path $StateDatei -Force
+    }
+    catch {
+        Write-Warning "Fehler beim Speichern des bestätigten States: $_"
     }
 }
 
-Test-WebChanges -EingabeDatei "urls.txt" -StateDatei "state.json"
+
+# Test-WebChanges -EingabeDatei "urls.txt" -StateDatei "state.json"
 # Confirm-WebChange -Url "https://help-viewer.kisters.de/desktop/en/3dvs_versioninfo_intro.php"
 # Confirm-WebChange -Url "https://www.teamviewer.com/de/global/support/knowledge-base/teamviewer-remote/download-and-installation/supported-operating-systems-for-teamviewer-remote"
 
