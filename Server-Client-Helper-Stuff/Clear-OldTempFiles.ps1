@@ -50,7 +50,7 @@ function Clear-OldFiles {
     #>
     [CmdletBinding(SupportsShouldProcess = $true)]
     param()
-    
+
     if (-not ([bool](New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))) {
         Write-Warning "Dieses Skript sollte als Administrator ausgeführt werden."
         return
@@ -77,7 +77,7 @@ function Clear-OldFiles {
             }
 
             # Korrekte WhatIf-Unterstützung
-            if ($PSCmdlet.ShouldProcess($file.FullName, "Remove")) {
+            if ($PSCmdlet.ShouldProcess($file.FullName, "Remove Old File")) {
 				try {
 					Remove-Item -LiteralPath $file.FullName -Force -ErrorAction Stop
 					Write-Verbose "Erfolgreich gelöscht: $($file.FullName)"
@@ -89,6 +89,25 @@ function Clear-OldFiles {
         }
     }
 
+    foreach ($path in $folders) {
+        $emptyFolders = Get-ChildItem -Path $path -Recurse -Force -Attributes !ReparsePoint -ErrorAction SilentlyContinue |
+            Where-Object { $_.PSIsContainer } |
+            Where-Object {
+                @(Get-ChildItem -LiteralPath $_.FullName -Force -ErrorAction SilentlyContinue).Count -eq 0
+            }
+                        # Korrekte WhatIf-Unterstützung
+            foreach ($emptyFolder in $emptyFolders) {
+                        if ($PSCmdlet.ShouldProcess($emptyFolder.FullName, "Remove Empty Folder")) {
+				try {
+					Remove-Item -LiteralPath $emptyFolder.FullName -Force -ErrorAction Stop
+					Write-Verbose "Erfolgreich gelöscht (Leerer Ordner): $($emptyFolder.FullName)"
+				}
+				catch {
+					Write-Error "FEHLER (Leerer Ordner): $($_.Exception.Message)"
+				}
+            }
+        }
+    }
     # Gesamtergebnis ausgeben
     Write-Host ("{0:N2} MB eingespart." -f ($totalSize / 1MB))
 
