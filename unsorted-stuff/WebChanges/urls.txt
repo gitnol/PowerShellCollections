@@ -1,0 +1,2 @@
+https://help-viewer.kisters.de/desktop/en/3dvs_versioninfo_intro.php | 2025.2.312
+https://www.teamviewer.com/de/global/support/knowledge-base/teamviewer-remote/download-and-installation/supported-operating-systems-for-teamviewer-remote | TeamViewer 15.64
