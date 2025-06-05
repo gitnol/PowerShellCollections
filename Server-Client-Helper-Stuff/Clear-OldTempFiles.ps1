@@ -50,6 +50,11 @@ function Clear-OldFiles {
     #>
     [CmdletBinding(SupportsShouldProcess = $true)]
     param()
+    
+    if (-not ([bool](New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))) {
+        Write-Warning "Dieses Skript sollte als Administrator ausgeführt werden."
+        return
+    }
 
     $folders = Get-CleanupPaths
     $threshold = (Get-Date).AddDays(-1)
@@ -85,7 +90,7 @@ function Clear-OldFiles {
     }
 
     # Gesamtergebnis ausgeben
-    "{0:N2} MB eingespart." -f ($totalSize / 1MB)
+    Write-Host ("{0:N2} MB eingespart." -f ($totalSize / 1MB))
 
     # Optional: Gelöschte Dateien anzeigen oder exportieren
     # $deletedFiles | Sort-Object SizeMB -Descending | Format-Table -AutoSize
