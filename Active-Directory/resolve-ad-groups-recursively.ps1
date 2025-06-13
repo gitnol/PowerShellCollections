@@ -1,6 +1,6 @@
 Import-Module ActiveDirectory
 
-# $DomainName = "mycorp" # CaseSensitive
+$DomainName = "lewa-attendorn" # CaseSensitive
 $TopLevelDomainName = "local" # CaseSensitive
 # SearchScope should be limited to OneLevel if possible. (or limit by setting the SeachBase)
 # $SearchScope = "OneLevel" 
@@ -8,10 +8,11 @@ $SearchScope = "Subtree" # Base (only the queried Item) or 0 # OneLevel (alls it
 # Search for groups in the following OU
 # $SearchBase = "OU=Projektstruktur,OU=GRPMGMT,OU=ITMGMT,DC=$DomainName,DC=$TopLevelDomainName"
 $SearchBase = "OU=ITMGMT,DC=$DomainName,DC=$TopLevelDomainName"
+$SearchBase = "DC=$DomainName,DC=$TopLevelDomainName"
 # Limit to group names that contain the following string (* can be used as a wildcard)
 $GroupFilter = "*"
 
-$mygroups = Get-ADGroup -SearchBase $SearchBase -Filter * -SearchScope $SearchScope | Where-Object Name -like $GroupFilter
+$mygroups = Get-ADGroup -SearchBase $SearchBase -Filter * -SearchScope $SearchScope -Properties modifyTimeStamp, Members, MemberOf | Where-Object Name -like $GroupFilter
 
 function Get-ADGroupMembersRecursive {
     param (
@@ -69,7 +70,8 @@ function Get-ADGroupMembersRecursive {
             }
             return $userList
 
-        } else {
+        }
+        else {
             # Was it a New Group? 
             Write-Host("NG-") -NoNewline -ForegroundColor Yellow
             # Write-Host("")
@@ -143,6 +145,28 @@ Write-Host('Max Level: ' + $maxlevel) -ForegroundColor Red
 # Get-ADPrincipalGroupMembership -Identity myuser
 
 # Idee ProcessedGroups könnte man um die AD Property der Gruppe erweitern und modifyTimeStamp mit abspeichern, um viele Abfragen an das AD zu reduzieren.
-Get-ADGroup -Identity "AG_Personal_R" -Properties samAccountName,modifyTimeStamp | Select-Object samAccountName,modifyTimeStamp
+Get-ADGroup -Identity "AG_Personal_R" -Properties samAccountName, modifyTimeStamp | Select-Object samAccountName, modifyTimeStamp
 
 $myUsers | Group-Object -Property breadcrumb | Where-Object Count -gt 1 | Select-Object -ExpandProperty name
+
+
+# # This solution gets every group, resolves recursively (over sub-groups) all users, which are belonging to it and measures the time receiving it and the last modification date of the group
+# $howmany = 1000
+# $start = Get-Date
+# $erg = Get-ADGroup -Filter * -Properties modifyTimeStamp | Select -First $howmany| % {
+# Write-Host(".") -NoNewLine
+# $groupSamAccountName = $_.samAccountName;
+# $modifyTimeStamp = $_.modifyTimeStamp
+# [PSCustomObject]@{
+# groupSamAccountName = $groupSamAccountName
+# modifyTimeStamp = $modifyTimeStamp
+# groupMemberUser = (Get-ADGroupMember -Recursive $_ | Where objectClass -eq user)
+# }
+# }
+
+# Write-Host("Laufzeit: " + ((Get-Date) - $start))
+
+# ($erg | Where groupSamAccountName -eq "MDBS_Lehrhaus_W").groupMemberUser
+# $erg | Sort-Object -Property modifyTimeStamp -Descending | select -First 20
+
+# # Get-ADUser -Filter * -Properties modifyTimeStamp | Sort-Object -Property modifyTimeStamp -Descending | Select -First 50 -Property Name,SamAccountName,modifyTimeStamp

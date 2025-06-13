@@ -35,7 +35,7 @@ function e2p {
 $erg = e2p
 # use the $erg where the column Hostname and the column are set and then use the column Hostname to...
 $a = ($erg | Where-Object {$_.Hostname -ne ""} | Select-Object Hostname).Hostname
-$a = ($erg | Where-Object {$_.Hostname -ne "" -and $_.TeamViewerID -eq ""} | Select-Object Hostname).Hostname
+# $a = ($erg | Where-Object {$_.Hostname -ne "" -and $_.TeamViewerID -eq ""} | Select-Object Hostname).Hostname
 # ... check the online status of the Hosts --> Search this repo for "Get-CompuerOnlineStatus.ps1"
 $online = Test-ConnectionInParallel -ComputerNames $a | Where-Object Online -eq $True
 $online.ComputerName | Set-Clipboard

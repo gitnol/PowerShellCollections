@@ -36,4 +36,4 @@ Import-Module '..\API-Wrapper\MS.PS.Lib.psd1'
 
 $msapiclient = New-MSApiClient -Username admin -Password admin -MailStoreServer localhost -Port 8463 -IgnoreInvalidSSLCerts
 $users = (Invoke-MSApiCall $msapiclient "GetUsers").result
-foreach ($user in $users) {(Invoke-MSApiCall $msapiclient "GetUserInfo" @{userName = $user.userName}).result | fl}
+foreach ($user in $users) {(Invoke-MSApiCall $msapiclient "GetUserInfo" @{userName = $user.userName}).result | Format-List}

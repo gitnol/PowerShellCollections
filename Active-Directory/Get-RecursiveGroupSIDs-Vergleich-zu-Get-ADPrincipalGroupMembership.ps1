@@ -15,6 +15,7 @@ $groupDN
 
 function Get-RecursiveGroupSIDs {
     param (
+        [Parameter(Mandatory = $true)]
         [string]$GroupDN,
         [System.Collections.Generic.HashSet[string]]$ProcessedGroups = (New-Object 'System.Collections.Generic.HashSet[string]')
     )
