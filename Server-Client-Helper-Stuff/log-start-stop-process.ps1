@@ -1,21 +1,21 @@
 # File to which the processes should be exported to in "json" format.
-$global:mylogfileJson = "C:\install\test.json"
+$global:mylogfileJson = "C:\install\{0}_processes.json" -f (Get-Date -Format 'yyyyMMdd')
 
 
 $action = {
-    param ($EnableRaisingEvents, $event)
+    param ($EnableRaisingEvents, $param_event)
     $logfileJson = $global:mylogfileJson
 
-    if ($event.NewEvent.ToString() -eq "__InstanceCreationEvent") {
-        foreach ($item in ($event.NewEvent.TargetInstance | Select-Object -Property *)) {
+    if ($param_event.NewEvent.ToString() -eq "__InstanceCreationEvent") {
+        foreach ($item in ($param_event.NewEvent.TargetInstance | Select-Object -Property *)) {
             Write-Host("Prozess gestartet {0}" -f $item.ProcessName) -ForegroundColor Green
             # Write-Host($item | Select -Property * | Format-Table -Property * | Out-String) -ForegroundColor Green
             # Write-Host($item | Select -Property * | Format-List -Property * | Out-String) -ForegroundColor Green
             $item | Select-Object -Property @{Name = "EventType"; Expression = { "__InstanceCreationEvent" } }, * | ConvertTo-Json -Compress -Depth 1 -WarningAction SilentlyContinue | Out-File -Append -FilePath $logfileJson -Encoding utf8
         }	
     }
-    if ($event.NewEvent.ToString() -eq "__InstanceDeletionEvent") {
-        foreach ($item in ($event.NewEvent.TargetInstance | Select-Object -Property *)) {
+    if ($param_event.NewEvent.ToString() -eq "__InstanceDeletionEvent") {
+        foreach ($item in ($param_event.NewEvent.TargetInstance | Select-Object -Property *)) {
             Write-Host("Prozess entfernt {0}" -f $item.ProcessName) -ForegroundColor Red
             # Write-Host($item | Select -Property * |Format-Table -Property *| Out-String) -ForegroundColor Red
             # Write-Host($item | Select -Property * |Format-List -Property *  | Out-String) -ForegroundColor Red
@@ -45,5 +45,5 @@ do {
 Get-EventSubscriber | Unregister-Event
 
 # Einlesen
-$Allprocesses = @(); Get-Content -Path $logfileJson | ForEach-Object { $Allprocesses += $_ | ConvertFrom-Json }
+$Allprocesses = @(); Get-Content -Path $mylogfileJson | ForEach-Object { $Allprocesses += $_ | ConvertFrom-Json }
 $Allprocesses | Out-GridView
