@@ -131,7 +131,7 @@ function Get-LockedOutEventsAllDCs {
     # Parallel processing für bessere Performance
     $jobs = foreach ($dc in $dcs) {
         Start-Job -ScriptBlock {
-            param($dc, $logName, $eventIds, $start, $MaxEvents, $Credential)
+            param($dc, $logName, $eventIds, $start, $MaxEvents, [PSCredential] $Credential)
             
             $dcResults = [System.Collections.ArrayList]::new()
             
