@@ -69,15 +69,15 @@ function Get-LockedOutEventsAllDCs {
     #>
     [CmdletBinding()]
     param(
-        [Parameter(HelpMessage="Anzahl Tage rückwirkend (Standard: 1)")]
-        [ValidateRange(1,365)]
+        [Parameter(HelpMessage = "Anzahl Tage rückwirkend (Standard: 1)")]
+        [ValidateRange(1, 365)]
         [int]$DaysBack = 1,
         
-        [Parameter(HelpMessage="Max. Events pro DC (0=unbegrenzt, Standard: 1000)")]
-        [ValidateRange(0,10000)]
+        [Parameter(HelpMessage = "Max. Events pro DC (0=unbegrenzt, Standard: 1000)")]
+        [ValidateRange(0, 10000)]
         [int]$MaxEvents = 1000,
         
-        [Parameter(HelpMessage="Auch erfolgreiche Anmeldungen (4624) abfragen")]
+        [Parameter(HelpMessage = "Auch erfolgreiche Anmeldungen (4624) abfragen")]
         [switch]$IncludeSuccessfulLogons
     )
 
@@ -90,7 +90,7 @@ function Get-LockedOutEventsAllDCs {
     # Effizientere DC-Abfrage mit ErrorAction
     try {
         $dcs = Get-ADDomainController -Filter * -ErrorAction Stop | 
-               Select-Object -ExpandProperty HostName
+        Select-Object -ExpandProperty HostName
         Write-Verbose "Gefundene DCs: $($dcs.Count)"
     }
     catch {
@@ -146,8 +146,8 @@ function Get-LockedOutEventsAllDCs {
             }
             catch [System.Exception] {
                 return [PSCustomObject]@{
-                    Error = $true
-                    DC = $dc
+                    Error   = $true
+                    DC      = $dc
                     Message = $_.Exception.Message
                 }
             }
@@ -213,13 +213,13 @@ function Export-LockedOutEvents {
     #>
     [CmdletBinding()]
     param(
-        [Parameter(HelpMessage="Anzahl Tage rückwirkend")]
+        [Parameter(HelpMessage = "Anzahl Tage rückwirkend")]
         [int]$DaysBack = 1,
         
-        [Parameter(HelpMessage="Pfad zur CSV-Ausgabedatei")]
+        [Parameter(HelpMessage = "Pfad zur CSV-Ausgabedatei")]
         [string]$OutputPath = "LockoutEvents_$(Get-Date -Format 'yyyyMMdd_HHmmss').csv",
         
-        [Parameter(HelpMessage="Auch erfolgreiche Anmeldungen exportieren")]
+        [Parameter(HelpMessage = "Auch erfolgreiche Anmeldungen exportieren")]
         [switch]$IncludeSuccessfulLogons
     )
     
@@ -265,10 +265,10 @@ function Show-LockedOutEventsSummary {
     #>
     [CmdletBinding()]
     param(
-        [Parameter(HelpMessage="Anzahl Tage rückwirkend")]
+        [Parameter(HelpMessage = "Anzahl Tage rückwirkend")]
         [int]$DaysBack = 1,
         
-        [Parameter(HelpMessage="Auch erfolgreiche Anmeldungen analysieren")]
+        [Parameter(HelpMessage = "Auch erfolgreiche Anmeldungen analysieren")]
         [switch]$IncludeSuccessfulLogons
     )
     
@@ -300,8 +300,8 @@ function Show-LockedOutEventsSummary {
     # Zeitliche Verteilung
     Write-Host "`nZeitliche Verteilung (nach Stunden):" -ForegroundColor Yellow
     $events | Group-Object { $_.Time.Hour } | Sort-Object Name | 
-        Select-Object @{Name='Stunde';Expression={$_.Name}}, Count | 
-        Format-Table -AutoSize
+    Select-Object @{Name = 'Stunde'; Expression = { $_.Name } }, Count | 
+    Format-Table -AutoSize
 }
 
 # Verwendungsbeispiele:
