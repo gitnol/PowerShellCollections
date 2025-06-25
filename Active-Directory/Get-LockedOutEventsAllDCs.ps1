@@ -1,8 +1,83 @@
 function Get-LockedOutEventsAllDCs {
+    <#
+    .SYNOPSIS
+        Sammelt Account-Lockout-Events von allen Domain Controllern in der Domäne.
+
+    .DESCRIPTION
+        Diese Funktion fragt alle Domain Controller in der aktuellen AD-Domäne nach Account-Lockout-Events (Event ID 4740) ab.
+        Optional können auch erfolgreiche Anmeldungen (Event ID 4624) mit abgefragt werden.
+        Die Abfrage erfolgt parallel für bessere Performance bei mehreren DCs.
+
+    .PARAMETER DaysBack
+        Anzahl der Tage, die rückwirkend abgefragt werden sollen.
+        Standard: 1 Tag
+
+    .PARAMETER MaxEvents
+        Maximale Anzahl Events pro Domain Controller.
+        0 = unbegrenzt (Vorsicht bei großen Umgebungen!)
+        Standard: 1000
+
+    .PARAMETER IncludeSuccessfulLogons
+        Zusätzlich zu Lockout-Events auch erfolgreiche Anmeldungen (Event ID 4624) abfragen.
+        Nützlich für forensische Analysen.
+
+    .OUTPUTS
+        PSCustomObject[]
+        Array von Objekten mit folgenden Eigenschaften:
+        - DC: Name des Domain Controllers
+        - EventId: Event ID (4740 für Lockouts, 4624 für erfolgreiche Anmeldungen)
+        - Time: Zeitpunkt des Events
+        - User: Betroffener Benutzername
+        - Caller: Aufrufender Computer/Prozess
+        - SourceHost: Quell-Host der Anmeldung
+        - Message: Vollständige Event-Message
+
+    .EXAMPLE
+        Get-LockedOutEventsAllDCs
+        
+        Fragt Lockout-Events der letzten 24 Stunden von allen DCs ab.
+
+    .EXAMPLE
+        Get-LockedOutEventsAllDCs -DaysBack 7 -Verbose
+        
+        Fragt Lockout-Events der letzten 7 Tage ab mit detaillierter Ausgabe.
+
+    .EXAMPLE
+        Get-LockedOutEventsAllDCs -DaysBack 3 -MaxEvents 500 | Where-Object User -like "*admin*"
+        
+        Sucht nach Lockout-Events von Admin-Accounts in den letzten 3 Tagen, begrenzt auf 500 Events pro DC.
+
+    .EXAMPLE
+        Get-LockedOutEventsAllDCs -IncludeSuccessfulLogons | Group-Object User | Sort-Object Count -Descending
+        
+        Gruppiert Events nach Benutzern und sortiert nach Häufigkeit (inkl. erfolgreiche Anmeldungen).
+
+    .NOTES
+        Autor: IT-Administration
+        Version: 2.0
+        Erfordert: PowerShell 3.0+, ActiveDirectory-Modul, entsprechende Berechtigungen auf DCs
+        
+        Hinweise:
+        - Erfordert Leseberechtigung auf Security-Log aller Domain Controller
+        - Bei großen Umgebungen kann die Abfrage länger dauern
+        - Verwendet parallele Jobs für bessere Performance
+        - Sortiert Ergebnisse automatisch nach Zeit (neueste zuerst)
+
+    .LINK
+        Get-WinEvent
+        Get-ADDomainController
+    #>
     [CmdletBinding()]
     param(
+        [Parameter(HelpMessage="Anzahl Tage rückwirkend (Standard: 1)")]
+        [ValidateRange(1,365)]
         [int]$DaysBack = 1,
+        
+        [Parameter(HelpMessage="Max. Events pro DC (0=unbegrenzt, Standard: 1000)")]
+        [ValidateRange(0,10000)]
         [int]$MaxEvents = 1000,
+        
+        [Parameter(HelpMessage="Auch erfolgreiche Anmeldungen (4624) abfragen")]
         [switch]$IncludeSuccessfulLogons
     )
 
@@ -15,7 +90,7 @@ function Get-LockedOutEventsAllDCs {
     # Effizientere DC-Abfrage mit ErrorAction
     try {
         $dcs = Get-ADDomainController -Filter * -ErrorAction Stop | 
-        Select-Object -ExpandProperty HostName
+               Select-Object -ExpandProperty HostName
         Write-Verbose "Gefundene DCs: $($dcs.Count)"
     }
     catch {
@@ -71,8 +146,8 @@ function Get-LockedOutEventsAllDCs {
             }
             catch [System.Exception] {
                 return [PSCustomObject]@{
-                    Error   = $true
-                    DC      = $dc
+                    Error = $true
+                    DC = $dc
                     Message = $_.Exception.Message
                 }
             }
@@ -109,10 +184,42 @@ function Get-LockedOutEventsAllDCs {
 
 # Erweiterte Hilfsfunktionen
 function Export-LockedOutEvents {
+    <#
+    .SYNOPSIS
+        Exportiert Account-Lockout-Events von allen Domain Controllern in eine CSV-Datei.
+
+    .DESCRIPTION
+        Hilfsfunktion die Get-LockedOutEventsAllDCs aufruft und das Ergebnis automatisch 
+        in eine CSV-Datei mit Zeitstempel exportiert.
+
+    .PARAMETER DaysBack
+        Anzahl der Tage, die rückwirkend abgefragt werden sollen. Standard: 1
+
+    .PARAMETER OutputPath
+        Pfad zur Ausgabedatei. Standard: LockoutEvents_YYYYMMDD_HHMMSS.csv
+
+    .PARAMETER IncludeSuccessfulLogons
+        Auch erfolgreiche Anmeldungen exportieren.
+
+    .EXAMPLE
+        Export-LockedOutEvents -DaysBack 7
+        
+        Exportiert Lockout-Events der letzten 7 Tage.
+
+    .EXAMPLE
+        Export-LockedOutEvents -OutputPath "C:\Reports\Lockouts.csv" -IncludeSuccessfulLogons
+        
+        Exportiert Events inkl. erfolgreiche Anmeldungen in spezifische Datei.
+    #>
     [CmdletBinding()]
     param(
+        [Parameter(HelpMessage="Anzahl Tage rückwirkend")]
         [int]$DaysBack = 1,
+        
+        [Parameter(HelpMessage="Pfad zur CSV-Ausgabedatei")]
         [string]$OutputPath = "LockoutEvents_$(Get-Date -Format 'yyyyMMdd_HHmmss').csv",
+        
+        [Parameter(HelpMessage="Auch erfolgreiche Anmeldungen exportieren")]
         [switch]$IncludeSuccessfulLogons
     )
     
@@ -129,9 +236,39 @@ function Export-LockedOutEvents {
 }
 
 function Show-LockedOutEventsSummary {
+    <#
+    .SYNOPSIS
+        Zeigt eine zusammenfassende Analyse der Account-Lockout-Events an.
+
+    .DESCRIPTION
+        Erstellt verschiedene Gruppierungen und Statistiken der Lockout-Events:
+        - Top Benutzer mit den meisten Lockouts
+        - Top Source Hosts
+        - Verteilung nach Domain Controller
+        - Zeitliche Verteilung nach Stunden
+
+    .PARAMETER DaysBack
+        Anzahl der Tage, die rückwirkend analysiert werden sollen. Standard: 1
+
+    .PARAMETER IncludeSuccessfulLogons
+        Auch erfolgreiche Anmeldungen in die Analyse einbeziehen.
+
+    .EXAMPLE
+        Show-LockedOutEventsSummary -DaysBack 7
+        
+        Zeigt Zusammenfassung der letzten 7 Tage an.
+
+    .EXAMPLE
+        Show-LockedOutEventsSummary -IncludeSuccessfulLogons
+        
+        Zeigt Analyse inkl. erfolgreicher Anmeldungen an.
+    #>
     [CmdletBinding()]
     param(
+        [Parameter(HelpMessage="Anzahl Tage rückwirkend")]
         [int]$DaysBack = 1,
+        
+        [Parameter(HelpMessage="Auch erfolgreiche Anmeldungen analysieren")]
         [switch]$IncludeSuccessfulLogons
     )
     
@@ -163,8 +300,8 @@ function Show-LockedOutEventsSummary {
     # Zeitliche Verteilung
     Write-Host "`nZeitliche Verteilung (nach Stunden):" -ForegroundColor Yellow
     $events | Group-Object { $_.Time.Hour } | Sort-Object Name | 
-    Select-Object @{Name = 'Stunde'; Expression = { $_.Name } }, Count | 
-    Format-Table -AutoSize
+        Select-Object @{Name='Stunde';Expression={$_.Name}}, Count | 
+        Format-Table -AutoSize
 }
 
 # Verwendungsbeispiele:
