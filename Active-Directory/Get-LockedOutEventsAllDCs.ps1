@@ -21,6 +21,11 @@ function Get-LockedOutEventsAllDCs {
         Zusätzlich zu Lockout-Events auch erfolgreiche Anmeldungen (Event ID 4624) abfragen.
         Nützlich für forensische Analysen.
 
+    .PARAMETER Credential
+        PSCredential-Objekt für den Zugriff auf Domain Controller und Active Directory.
+        Wenn nicht angegeben, wird der aktuelle Benutzerkontext verwendet.
+        Nützlich wenn das Script unter einem anderen Account ausgeführt werden soll.
+
     .OUTPUTS
         PSCustomObject[]
         Array von Objekten mit folgenden Eigenschaften:
@@ -52,6 +57,17 @@ function Get-LockedOutEventsAllDCs {
         
         Gruppiert Events nach Benutzern und sortiert nach Häufigkeit (inkl. erfolgreiche Anmeldungen).
 
+    .EXAMPLE
+        $cred = Get-Credential
+        Get-LockedOutEventsAllDCs -DaysBack 7 -Credential $cred
+        
+        Fragt Events mit spezifischen Credentials ab.
+
+    .EXAMPLE
+        Get-LockedOutEventsAllDCs -Credential (Get-Credential) -IncludeSuccessfulLogons
+        
+        Interaktive Credential-Eingabe für erweiterte Analyse.
+
     .NOTES
         Autor: IT-Administration
         Version: 2.0
@@ -78,7 +94,12 @@ function Get-LockedOutEventsAllDCs {
         [int]$MaxEvents = 1000,
         
         [Parameter(HelpMessage = "Auch erfolgreiche Anmeldungen (4624) abfragen")]
-        [switch]$IncludeSuccessfulLogons
+        [switch]$IncludeSuccessfulLogons,
+        
+        [Parameter(HelpMessage = "Credentials für DC-Zugriff (Standard: aktueller Benutzer)")]
+        [System.Management.Automation.PSCredential]
+        [System.Management.Automation.Credential()]
+        $Credential = [System.Management.Automation.PSCredential]::Empty
     )
 
     $start = (Get-Date).AddDays(-$DaysBack)
@@ -89,8 +110,14 @@ function Get-LockedOutEventsAllDCs {
     
     # Effizientere DC-Abfrage mit ErrorAction
     try {
-        $dcs = Get-ADDomainController -Filter * -ErrorAction Stop | 
-        Select-Object -ExpandProperty HostName
+        if ($Credential -ne [System.Management.Automation.PSCredential]::Empty) {
+            $dcs = Get-ADDomainController -Filter * -Credential $Credential -ErrorAction Stop | 
+            Select-Object -ExpandProperty HostName
+        }
+        else {
+            $dcs = Get-ADDomainController -Filter * -ErrorAction Stop | 
+            Select-Object -ExpandProperty HostName
+        }
         Write-Verbose "Gefundene DCs: $($dcs.Count)"
     }
     catch {
@@ -104,7 +131,7 @@ function Get-LockedOutEventsAllDCs {
     # Parallel processing für bessere Performance
     $jobs = foreach ($dc in $dcs) {
         Start-Job -ScriptBlock {
-            param($dc, $logName, $eventIds, $start, $MaxEvents)
+            param($dc, $logName, $eventIds, $start, $MaxEvents, $Credential)
             
             $dcResults = [System.Collections.ArrayList]::new()
             
@@ -115,12 +142,22 @@ function Get-LockedOutEventsAllDCs {
                     StartTime = $start
                 }
                 
+                # Get-WinEvent Parameter je nach Credential
+                $winEventParams = @{
+                    ComputerName    = $dc
+                    FilterHashtable = $filterHashtable
+                    ErrorAction     = 'Stop'
+                }
+                
+                if ($Credential -and $Credential -ne [System.Management.Automation.PSCredential]::Empty) {
+                    $winEventParams.Credential = $Credential
+                }
+                
                 if ($MaxEvents -gt 0) {
-                    $events = Get-WinEvent -ComputerName $dc -FilterHashtable $filterHashtable -MaxEvents $MaxEvents -ErrorAction Stop
+                    $winEventParams.MaxEvents = $MaxEvents
                 }
-                else {
-                    $events = Get-WinEvent -ComputerName $dc -FilterHashtable $filterHashtable -ErrorAction Stop
-                }
+                
+                $events = Get-WinEvent @winEventParams
 
                 foreach ($event in $events) {
                     try {
@@ -153,7 +190,7 @@ function Get-LockedOutEventsAllDCs {
             }
             
             return $dcResults
-        } -ArgumentList $dc, $logName, $eventIds, $start, $MaxEvents
+        } -ArgumentList $dc, $logName, $eventIds, $start, $MaxEvents, $Credential
     }
 
     # Warte auf alle Jobs und sammle Ergebnisse
