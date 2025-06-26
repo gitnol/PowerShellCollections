@@ -164,6 +164,7 @@ catch {
 # Beispiele: 
 # @("Win32_BIOS", "Win32_Computersystem") | Get-WmiBriefOptimized -ComputerName localhost -Verbose
 # @("Win32_BIOS", "Win32_Computersystem") | ForEach-Object { wmic $_ | Out-GridView -Title $_ }
+# @("BIOS", "Computersystem") | ForEach-Object { wmic $_ -Verbose | Out-GridView -Title $_ }
 
 function Show-WmiCimMap {
     $mapping = @'
@@ -196,6 +197,11 @@ function Show-WmiCimMap {
 | `wmic battery`                       | `Win32_Battery`                                                     |
 | `wmic env`                           | `Win32_Environment`                                                 |
 | `wmic userprofile`                   | `Win32_UserProfile`                                                 |
+
+Beispiele: 
+@("Win32_BIOS", "Win32_Computersystem") | Get-WmiBriefOptimized -ComputerName localhost -Verbose
+@("Win32_BIOS", "Win32_Computersystem") | ForEach-Object { wmic $_ | Out-GridView -Title $_ }
+@("BIOS", "Computersystem") | ForEach-Object { wmic $_ -Verbose | Out-GridView -Title $_ }
 '@
 
     $mapping -split "`n" | ForEach-Object {
