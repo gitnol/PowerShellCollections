@@ -158,39 +158,50 @@ catch {
     Write-Host "✓ Get-WmiBriefOptimized geladen (ohne Alias)." -ForegroundColor Yellow
 }
 
-# Export der Funktion für Module
-Export-ModuleMember -Function Get-WmiBriefOptimized -Alias wmic
+# Hinweis: Export-ModuleMember wird nur benötigt, wenn dieses Script als .psm1-Modul verwendet wird
+# Export-ModuleMember -Function Get-WmiBriefOptimized -Alias wmic
 
 # Beispiele: 
-# @("Win32_BIOS", "Win32_Computersystem") | Get-WmiBriefOptimized -ComputerName localhost
+# @("Win32_BIOS", "Win32_Computersystem") | Get-WmiBriefOptimized -ComputerName localhost -Verbose
 # @("Win32_BIOS", "Win32_Computersystem") | ForEach-Object { wmic $_ | Out-GridView -Title $_ }
 
-# | WMIC-Befehl                          | CIM/WMI-Klasse                                                      |
-# | ------------------------------------ | ------------------------------------------------------------------- |
-# | `wmic computersystem`                | `Win32_ComputerSystem`                                              |
-# | `wmic bios`                          | `Win32_BIOS`                                                        |
-# | `wmic cpu`                           | `Win32_Processor`                                                   |
-# | `wmic os`                            | `Win32_OperatingSystem`                                             |
-# | `wmic logicaldisk`                   | `Win32_LogicalDisk`                                                 |
-# | `wmic nic`                           | `Win32_NetworkAdapter`                                              |
-# | `wmic nicconfig`                     | `Win32_NetworkAdapterConfiguration`                                 |
-# | `wmic baseboard`                     | `Win32_BaseBoard`                                                   |
-# | `wmic csproduct`                     | `Win32_ComputerSystemProduct`                                       |
-# | `wmic diskdrive`                     | `Win32_DiskDrive`                                                   |
-# | `wmic memphysical`                   | `Win32_PhysicalMemoryArray`                                         |
-# | `wmic memorychip`                    | `Win32_PhysicalMemory`                                              |
-# | `wmic path softwarelicensingservice` | `SoftwareLicensingService`                                          |
-# | `wmic volume`                        | `Win32_Volume`                                                      |
-# | `wmic service`                       | `Win32_Service`                                                     |
-# | `wmic startup`                       | `Win32_StartupCommand`                                              |
-# | `wmic useraccount`                   | `Win32_UserAccount`                                                 |
-# | `wmic qfe`                           | `Win32_QuickFixEngineering`                                         |
-# | `wmic product`                       | `Win32_Product` *(⚠️ vermeiden – langsam, verändert Systemzustand)* |
-# | `wmic printer`                       | `Win32_Printer`                                                     |
-# | `wmic sounddev`                      | `Win32_SoundDevice`                                                 |
-# | `wmic timezone`                      | `Win32_TimeZone`                                                    |
-# | `wmic desktopmonitor`                | `Win32_DesktopMonitor`                                              |
-# | `wmic videocontroller`               | `Win32_VideoController`                                             |
-# | `wmic battery`                       | `Win32_Battery`                                                     |
-# | `wmic env`                           | `Win32_Environment`                                                 |
-# | `wmic userprofile`                   | `Win32_UserProfile`                                                 |
+function Show-WmiCimMap {
+    $mapping = @'
+| WMIC-Befehl                          | CIM/WMI-Klasse                                                      |
+| ------------------------------------ | ------------------------------------------------------------------- |
+| `wmic computersystem`                | `Win32_ComputerSystem`                                              |
+| `wmic bios`                          | `Win32_BIOS`                                                        |
+| `wmic cpu`                           | `Win32_Processor`                                                   |
+| `wmic os`                            | `Win32_OperatingSystem`                                             |
+| `wmic logicaldisk`                   | `Win32_LogicalDisk`                                                 |
+| `wmic nic`                           | `Win32_NetworkAdapter`                                              |
+| `wmic nicconfig`                     | `Win32_NetworkAdapterConfiguration`                                 |
+| `wmic baseboard`                     | `Win32_BaseBoard`                                                   |
+| `wmic csproduct`                     | `Win32_ComputerSystemProduct`                                       |
+| `wmic diskdrive`                     | `Win32_DiskDrive`                                                   |
+| `wmic memphysical`                   | `Win32_PhysicalMemoryArray`                                         |
+| `wmic memorychip`                    | `Win32_PhysicalMemory`                                              |
+| `wmic path softwarelicensingservice` | `SoftwareLicensingService`                                          |
+| `wmic volume`                        | `Win32_Volume`                                                      |
+| `wmic service`                       | `Win32_Service`                                                     |
+| `wmic startup`                       | `Win32_StartupCommand`                                              |
+| `wmic useraccount`                   | `Win32_UserAccount`                                                 |
+| `wmic qfe`                           | `Win32_QuickFixEngineering`                                         |
+| `wmic product`                       | `Win32_Product` *(⚠️ vermeiden – langsam, verändert Systemzustand)* |
+| `wmic printer`                       | `Win32_Printer`                                                     |
+| `wmic sounddev`                      | `Win32_SoundDevice`                                                 |
+| `wmic timezone`                      | `Win32_TimeZone`                                                    |
+| `wmic desktopmonitor`                | `Win32_DesktopMonitor`                                              |
+| `wmic videocontroller`               | `Win32_VideoController`                                             |
+| `wmic battery`                       | `Win32_Battery`                                                     |
+| `wmic env`                           | `Win32_Environment`                                                 |
+| `wmic userprofile`                   | `Win32_UserProfile`                                                 |
+'@
+
+    $mapping -split "`n" | ForEach-Object {
+        Write-Host $_ -ForegroundColor Yellow
+    }
+}
+
+# Hinweis: Diese Funktion zeigt eine Tabelle mit den gängigen WMIC-Befehlen und ihren entsprechenden CIM/WMI-Klassen.
+Show-WmiCimMap
