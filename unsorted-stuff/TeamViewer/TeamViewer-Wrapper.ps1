@@ -362,20 +362,53 @@ function Set-TeamViewerAssignment {
     }
 }
 
+function Start-TeamViewerRemote {
+    <#
+    .SYNOPSIS
+    Öffnet TeamViewer auf erreichbaren AD-Computern, gefiltert nach Name oder Beschreibung.
+
+    .DESCRIPTION
+    Findet Active Directory-Computer anhand eines Suchbegriffs (Computername oder Beschreibung), 
+    prüft deren Erreichbarkeit per Ping und startet TeamViewer für jeden erreichbaren Rechner.
+
+    .PARAMETER SearchTerm
+    Teilstring des Computernamens oder der Beschreibung im AD
+
+    .PARAMETER Timeout
+    Timeout für die Ping-Erreichbarkeitsprüfung in Sekunden (Default: 1)
+
+    .EXAMPLE
+    Start-TeamViewerRemote -SearchTerm "Meier"
+
+    .EXAMPLE
+    Start-TeamViewerRemote -SearchTerm "Laptop" -Timeout 2
+    #>
+
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$SearchTerm,
+
+        [int]$Timeout = 1
+    )
+
+    $computers = Get-ADComputer -Filter { Enabled -eq $true } -Properties Description |
+    Where-Object { $_.Description -like "*$SearchTerm*" -or $_.Name -like "*$SearchTerm*" } |
+    Out-GridView -PassThru
+
+    foreach ($comp in $computers) {
+        Write-Host "Checking if computer is reachable: $($comp.DNSHostName)" -ForegroundColor Yellow
+        if (Test-Connection -ComputerName $comp.DNSHostName -IPv4 -Ping -Count 1 -Quiet -TimeoutSeconds $Timeout) {
+            Write-Host "reachable: $($comp.DNSHostName)" -ForegroundColor Green
+            Start-TeamViewer -ID $comp.DNSHostName
+        }
+        else {
+            Write-Host "not reachable: $($comp.DNSHostName)" -ForegroundColor Red
+        }
+    }
+}
+
 # Example usage of the Start-TeamViewer function
 # Start-TeamViewer -ID "MYHOSTNAME"
 $UserOrComputer = Read-Host -Prompt "(Part of) Username (Description) Or Computername"
-$mycomputers = Get-ADComputer -Filter { Enabled -eq $true } -Properties Description | Where-Object { $_.Description -like "*$UserOrComputer*" -or $_.Name -like "*$UserOrComputer*" } | Out-GridView -passthru
-$mycomputers | ForEach-Object {
-    Write-Host ("Checking if computer is reachable: $_.DNSHostName") -ForeGroundCOlor yellow
-    # Test-Connection to check if the computer is reachable
-    $reachable = $false
-    $reachable = Test-Connection -ComputerName $_.DNSHostName -IPv4 -Ping -Count 1 -Quiet -TimeoutSeconds 1
-    if ($reachable) {
-        Write-Host "reachable: $_.DNSHostName" -ForegroundColor Green
-        Start-TeamViewer -ID $_.DNSHostname
-    }
-    else {
-        Write-Host "not reachable: $_.DNSHostName" -ForeGroundcolor Red
-    }
-} 
+Start-TeamViewerRemote -SearchTerm $UserOrComputer
