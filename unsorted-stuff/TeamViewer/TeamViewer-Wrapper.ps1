@@ -361,3 +361,21 @@ function Set-TeamViewerAssignment {
         throw "Failed to assign TeamViewer: $_"
     }
 }
+
+# Example usage of the Start-TeamViewer function
+# Start-TeamViewer -ID "MYHOSTNAME"
+$UserOrComputer = Read-Host -Prompt "(Part of) Username (Description) Or Computername"
+$mycomputers = Get-ADComputer -Filter { Enabled -eq $true } -Properties Description | Where-Object { $_.Description -like "*$UserOrComputer*" -or $_.Name -like "*$UserOrComputer*" } | Out-GridView -passthru
+$mycomputers | ForEach-Object {
+    Write-Host ("Checking if computer is reachable: $_.DNSHostName") -ForeGroundCOlor yellow
+    # Test-Connection to check if the computer is reachable
+    $reachable = $false
+    $reachable = Test-Connection -ComputerName $_.DNSHostName -IPv4 -Ping -Count 1 -Quiet -TimeoutSeconds 1
+    if ($reachable) {
+        Write-Host "reachable: $_.DNSHostName" -ForegroundColor Green
+        Start-TeamViewer -ID $_.DNSHostname
+    }
+    else {
+        Write-Host "not reachable: $_.DNSHostName" -ForeGroundcolor Red
+    }
+} 
