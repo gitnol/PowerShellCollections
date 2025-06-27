@@ -14,13 +14,17 @@ function Send-WakeOnLan {
         Die Broadcast-Adresse (Standard: 255.255.255.255)
     
     .PARAMETER Port
-        Der UDP-Port (Standard: 9)
+        Der UDP-Port (Standard: 9) 
+        Üblicherweise wird Port 9 für Wake-on-LAN verwendet, mann kann aber auch andere Ports wie z.B. 30000 (für Dell Geräte) nutzen.
     
     .EXAMPLE
         Send-WakeOnLan -MacAddress "00:11:22:33:44:55"
         
     .EXAMPLE
         Send-WakeOnLan -MacAddress "00-11-22-33-44-55" -Broadcast "192.168.1.255"
+
+    .EXAMPLE
+        Send-WakeOnLan -MacAddress "00-11-22-33-44-55" -Port 30000 -Verbose
     #>
     
     [CmdletBinding()]
