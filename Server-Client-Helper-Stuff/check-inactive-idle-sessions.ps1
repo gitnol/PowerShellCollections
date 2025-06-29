@@ -37,15 +37,48 @@ function Get-SessionIDReadIOCounts {
     }
 }
 
+# $timespan = 10
+# $firstCheck = Get-SessionIDReadIOCounts
+# Start-Sleep -Seconds $timespan
+# $secondCheck = Get-SessionIDReadIOCounts
+# $comparision = Compare-Object -ReferenceObject $firstCheck -DifferenceObject $secondCheck -Property sessionID, ReadIOCount
+# if (-not $comparision) {
+#     Write-Host("No User Interaction in all Sessions for {0} seconds" -f $timespan) -foregroundcolor Red
+#     # now do your evil stuff and shut down or restart the computer.
+# }
+# else {
+#     Write-Host("User Interaction in at least one Sessions detected") -foregroundcolor Green
+# }
 
-$timespan = 10
-$firstCheck = Get-SessionIDReadIOCounts
-Start-Sleep -Seconds $timespan
-$secondCheck = Get-SessionIDReadIOCounts
-$comparision = Compare-Object -ReferenceObject $firstCheck -DifferenceObject $secondCheck -Property sessionID, ReadIOCount
-if (-not $comparision) {
-    Write-Host("No User Interaction in all Sessions for {0} seconds" -f $timespan) -foregroundcolor Red
-    # now do your evil stuff and shut down or restart the computer.
-} else {
-    Write-Host("User Interaction in at least one Sessions detected") -foregroundcolor Green
+function Test-Idle {
+    param (
+        [int]$Timespan = 10  # Standardwert für Timespan ist 10 Sekunden
+    )
+
+    # Speichern der ersten Sessiondaten
+    $firstCheck = Get-SessionIDReadIOCounts
+
+    # Warten für die angegebene Zeitspanne
+    Start-Sleep -Seconds $Timespan
+
+    # Speichern der zweiten Sessiondaten
+    $secondCheck = Get-SessionIDReadIOCounts
+
+    # Vergleich der beiden Datensätze basierend auf sessionID und ReadIOCount
+    $comparision = Compare-Object -ReferenceObject $firstCheck -DifferenceObject $secondCheck -Property sessionID, ReadIOCount
+
+    if ($comparision.Count -eq 0) {
+        # Keine Veränderungen in den Sessions, Benutzer hat keine Interaktion gezeigt
+        Write-Host "No User Interaction in all Sessions for $Timespan seconds" -ForegroundColor Red
+        return $true  # Keine Benutzerinteraktion => Computer ist inaktiv
+    }
+    else {
+        # Es gab Änderungen, also User Interaction erkannt
+        Write-Host "User Interaction in at least one Session detected" -ForegroundColor Green
+        return $false  # Es gab Änderungen => Benutzerinteraktion erkannt
+    }
+}
+
+If (Test-Idle -eq $true) {
+    Stop-Computer -Force -WhatIf
 }
