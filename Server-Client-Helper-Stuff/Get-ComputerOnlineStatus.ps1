@@ -105,14 +105,25 @@ function Get-ComputerOnlineStatus {
 # $computers = (Get-ADComputer -Filter { OperatingSystem -like '*Windows*' -and Enabled -eq 'True' } -Property DNSHostName).DNSHostName
 # $onlineStatus = Get-ComputerOnlineStatus -Computers $computers
 
-$onlyServers = (Get-ADComputer -Filter { OperatingSystem -like '*Windows*' -and OperatingSystem -like '*Server*' -and Enabled -eq 'True' } -Property DNSHostName).DNSHostName
+$allServers = (Get-ADComputer -Filter { OperatingSystem -like '*Windows*' -and OperatingSystem -like '*Server*' -and Enabled -eq 'True' } -Property DNSHostName, Description)
+$onlyServers = $allServers.DNSHostName
 $onlyServersonlineStatus = Get-ComputerOnlineStatus -Computers ($onlyServers) -numberConcurrentJobs 20 -pingCounts 1
+# online Servers
 $onlyServersonlineStatus | Where-Object Online -eq $true |  Out-GridView
 
-$onlyClients = (Get-ADComputer -Filter { OperatingSystem -like '*Windows*' -and OperatingSystem -notlike '*Server*' -and Enabled -eq 'True' } -Property DNSHostName).DNSHostName
-$onlyClientsonlineStatus = Get-ComputerOnlineStatus -Computers ($onlyClients) -numberConcurrentJobs 20 -pingCounts 1
+# offline Servers? please check
+$onlyServersonlineStatus | Where-Object Online -ne $true |  Out-GridView
+
+$allClients = (Get-ADComputer -Filter { OperatingSystem -like '*Windows*' -and OperatingSystem -notlike '*Server*' -and Enabled -eq 'True' } -Property DNSHostName, Description)
+$onlyClients = $allClients.DNSHostName
+$onlyClientsonlineStatus = Get-ComputerOnlineStatus -Computers ($onlyClients) -numberConcurrentJobs 32 -pingCounts 1
 # $onlineStatus = Get-ComputerOnlineStatus -Computers ($computers | Select-Object -first 10) -numberConcurrentJobs 10 -pingCounts 1
+
+# online clients (at weekends should be powered off, shouldn't they?)
 $onlyClientsonlineStatus | Where-Object Online -eq $true |  Out-GridView
+
+# offline clients
+$onlyClientsonlineStatus | Where-Object Online -ne $true |  Out-GridView
 
 # this function is a huge win against this here:
 # $onlyClients | ForEach-Object {
@@ -121,3 +132,23 @@ $onlyClientsonlineStatus | Where-Object Online -eq $true |  Out-GridView
 #             $a | Select-Object -Property Source, Destination, Address, Status
 #         }
 #     }
+
+
+# Iteriere durch jedes Element in $onlyClientsonlineStatus
+foreach ($client in $onlyClientsonlineStatus) {
+    # Finde den passenden Computer in $allClients basierend auf dem Computer-Namen
+    $matchingClient = $allClients | Where-Object { $_.DNSHostName -eq $client.Computer }
+
+    # Wenn ein passender Computer gefunden wurde, füge die Description hinzu
+    if ($matchingClient) {
+        # Erstelle ein neues PSCustomObject mit der Description
+        $client | Add-Member -MemberType NoteProperty -Name "Description" -Value $matchingClient.Description
+    }
+}
+
+# Should the clients be powered off?
+$scriptBlock = {Stop-Computer -Force -WhatIf}
+# Scriptblock könnte auch sowas sein wie check-inactive-idle-sessions.ps1, damit man die Idle Zeit prüft vorher.
+
+$arbeitsliste = $onlyClientsonlineStatus | Where-Object Online -eq $true |  Out-GridView -PassThru
+Invoke-Command -ComputerName $arbeitsliste.Computer -ScriptBlock $scriptBlock
