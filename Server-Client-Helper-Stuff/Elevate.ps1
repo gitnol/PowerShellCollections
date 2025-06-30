@@ -66,7 +66,7 @@ function Invoke-RunAsElevatedPowershell {
 }
 
 function elevate {
-    Invoke-RunAsElevated -User 'MYDOMAIN\MYUSER' | Out-Null
+    Invoke-RunAsElevated -User 'MYDOMAIN\MYUSER'
 }
 
 # Manuelle Option: OneLiner (aus Powershell): 
