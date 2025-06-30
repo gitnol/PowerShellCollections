@@ -19,9 +19,11 @@ function Invoke-RunAsElevated {
     # If the script is running in a PowerShell Core session, use pwsh instead of powershell
     if ($wp -like '*pwsh.exe*') {
         Write-Host "pwsh.exe detected: $wp"
-    } elseif ($wp -like '*powershell.exe*') {
+    }
+    elseif ($wp -like '*powershell.exe*') {
         Write-Host "powershell.exe detected: $wp"
-    } else {
+    }
+    else {
         Write-Error "Unknown PowerShell executable: $wp"
         return
     }
