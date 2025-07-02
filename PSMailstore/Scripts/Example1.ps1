@@ -36,4 +36,4 @@ Import-Module '..\API-Wrapper\MS.PS.Lib.psd1'
 
 $msapiclient = New-MSApiClient -Username admin -Password admin -MailStoreServer localhost -Port 8463 -IgnoreInvalidSSLCerts
 $return = Invoke-MSApiCall $msapiclient "GetServerInfo"
-$return | fl
+$return | Format-List
