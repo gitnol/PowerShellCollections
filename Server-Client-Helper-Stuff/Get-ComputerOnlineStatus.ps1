@@ -108,22 +108,11 @@ function Get-ComputerOnlineStatus {
 $allServers = (Get-ADComputer -Filter { OperatingSystem -like '*Windows*' -and OperatingSystem -like '*Server*' -and Enabled -eq 'True' } -Property DNSHostName, Description)
 $onlyServers = $allServers.DNSHostName
 $onlyServersonlineStatus = Get-ComputerOnlineStatus -Computers ($onlyServers) -numberConcurrentJobs 20 -pingCounts 1
-# online Servers
-$onlyServersonlineStatus | Where-Object Online -eq $true |  Out-GridView
-
-# offline Servers? please check
-$onlyServersonlineStatus | Where-Object Online -ne $true |  Out-GridView
 
 $allClients = (Get-ADComputer -Filter { OperatingSystem -like '*Windows*' -and OperatingSystem -notlike '*Server*' -and Enabled -eq 'True' } -Property DNSHostName, Description)
 $onlyClients = $allClients.DNSHostName
 $onlyClientsonlineStatus = Get-ComputerOnlineStatus -Computers ($onlyClients) -numberConcurrentJobs 32 -pingCounts 1
 # $onlineStatus = Get-ComputerOnlineStatus -Computers ($computers | Select-Object -first 10) -numberConcurrentJobs 10 -pingCounts 1
-
-# online clients (at weekends should be powered off, shouldn't they?)
-$onlyClientsonlineStatus | Where-Object Online -eq $true |  Out-GridView
-
-# offline clients
-$onlyClientsonlineStatus | Where-Object Online -ne $true |  Out-GridView
 
 # this function is a huge win against this here:
 # $onlyClients | ForEach-Object {
@@ -146,9 +135,46 @@ foreach ($client in $onlyClientsonlineStatus) {
     }
 }
 
+# online Servers
+$onlyServersonlineStatus | Where-Object Online -eq $true |  Out-GridView
+
+# offline Servers? please check
+$onlyServersonlineStatus | Where-Object Online -ne $true |  Out-GridView
+
+
+# online clients (at weekends should be powered off, shouldn't they?)
+$onlyClientsonlineStatus | Where-Object Online -eq $true |  Out-GridView
+
+# offline clients
+$onlyClientsonlineStatus | Where-Object Online -ne $true |  Out-GridView
+
+
 # # Should the clients be powered off?
 # $scriptBlock = {Stop-Computer -Force -WhatIf}
 # # Scriptblock könnte auch sowas sein wie check-inactive-idle-sessions.ps1, damit man die Idle Zeit prüft vorher.
 
 # $arbeitsliste = $onlyClientsonlineStatus | Where-Object Online -eq $true |  Out-GridView -PassThru
 # Invoke-Command -ComputerName $arbeitsliste.Computer -ScriptBlock $scriptBlock
+
+
+$computers = ($onlyClientsonlineStatus | Where-Object Online -eq $true).Computer
+# Define the throttle limit for parallel execution
+$throttleLimit = 32
+# Define the script block to get network cards information
+$credentials = Get-Credential -Message "Please enter credentials for remote access to the computers"
+
+# This script block will be executed on each remote computer to get network card information
+$scriptBlockNetworkCards = {
+    Get-NetAdapter |
+    Where-Object { $_.Status -eq 'Up' } |
+    Select-Object -Property Name, MacAddress |
+    ForEach-Object {
+        [PSCustomObject]@{
+            AdapterName = $_.Name
+            MACAddress  = $_.MacAddress
+        }
+    }
+}
+
+$allenetzwerkkarten = @()
+$allenetzwerkkarten += Invoke-Command -ComputerName ($computers | Where-Object { $_ }) -ThrottleLimit $throttleLimit -ScriptBlock $scriptBlockNetworkCards -Credential $credentials
