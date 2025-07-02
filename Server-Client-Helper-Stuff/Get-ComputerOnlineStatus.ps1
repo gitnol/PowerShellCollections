@@ -146,9 +146,9 @@ foreach ($client in $onlyClientsonlineStatus) {
     }
 }
 
-# Should the clients be powered off?
-$scriptBlock = {Stop-Computer -Force -WhatIf}
-# Scriptblock könnte auch sowas sein wie check-inactive-idle-sessions.ps1, damit man die Idle Zeit prüft vorher.
+# # Should the clients be powered off?
+# $scriptBlock = {Stop-Computer -Force -WhatIf}
+# # Scriptblock könnte auch sowas sein wie check-inactive-idle-sessions.ps1, damit man die Idle Zeit prüft vorher.
 
-$arbeitsliste = $onlyClientsonlineStatus | Where-Object Online -eq $true |  Out-GridView -PassThru
-Invoke-Command -ComputerName $arbeitsliste.Computer -ScriptBlock $scriptBlock
+# $arbeitsliste = $onlyClientsonlineStatus | Where-Object Online -eq $true |  Out-GridView -PassThru
+# Invoke-Command -ComputerName $arbeitsliste.Computer -ScriptBlock $scriptBlock
