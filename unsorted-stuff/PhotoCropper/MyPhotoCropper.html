@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bewerbungsfoto Auto-Cropper</title>
+    <title>Foto Auto-Cropper</title>
     <style>
         * {
             margin: 0;
@@ -338,10 +338,10 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎯 Bewerbungsfoto Auto-Cropper</h1>
+            <h1>🎯 Foto Auto-Cropper</h1>
             <p>
                 Automatische Gesichtserkennung und optimales Cropping für perfekte
-                Bewerbungsfotos
+                Fotos
             </p>
             <p>-----------</p>
             <p>
@@ -355,7 +355,7 @@
             <div class="upload-section">
                 <div class="upload-area" id="uploadArea">
                     <div class="upload-icon">📸</div>
-                    <div class="upload-text">Bewerbungsfoto hochladen</div>
+                    <div class="upload-text">Foto hochladen</div>
                     <div class="upload-hint">
                         Klicken Sie hier oder ziehen Sie ein Foto hinein (JPG, PNG, WEBP)
                     </div>
@@ -372,7 +372,7 @@
                         <option value="400">400x400 px (Mittel)</option>
                         <option value="500">500x500 px (Groß)</option>
                         <option value="600">600x600 px (Sehr groß)</option>
-                        <option value="600">648x648 px (Microsoft Teams)</option>
+                        <option selected="selected" value="648">648x648 px (Microsoft Teams)</option>
                     </select>
                 </div>
 
@@ -402,7 +402,7 @@
                         </div>
                     </div>
                     <div class="image-container">
-                        <h3>Optimiertes Bewerbungsfoto</h3>
+                        <h3>Optimiertes Foto</h3>
                         <div class="image-wrapper">
                             <img id="croppedImage" alt="Zugeschnitten" />
                         </div>
@@ -411,7 +411,7 @@
 
                 <div class="download-section">
                     <button class="download-btn" id="downloadBtn" disabled>
-                        💾 Bewerbungsfoto herunterladen
+                        💾 Foto herunterladen
                     </button>
                     <p style="margin-top: 10px; color: #7f8c8d; font-size: 0.9rem">
                         Laden Sie zuerst ein Bild hoch, um den Download zu aktivieren
@@ -426,7 +426,7 @@
                         Automatische Gesichtserkennung mit Web API (nur Chrome und Edge)
                     </li>
                     <li>Intelligente Bildausschnitt-Berechnung</li>
-                    <li>Quadratische Crops für Bewerbungsfotos</li>
+                    <li>Quadratische Crops für Fotos</li>
                     <li>Anpassbare Ausgabegrößen</li>
                     <li>Einstellbare Ränder und Positionierung</li>
                     <li>Sofortiger Download als hochauflösendes JPG</li>
@@ -720,7 +720,7 @@
                 try {
                     // Dateiname generieren
                     const timestamp = new Date().toISOString().slice(0, 10);
-                    const filename = `bewerbungsfoto_${timestamp}.jpg`;
+                    const filename = `Foto_${timestamp}.jpg`;
 
                     // Download-Link erstellen
                     this.canvas.toBlob(
@@ -741,7 +741,7 @@
                             URL.revokeObjectURL(url);
 
                             // Erfolgsmeldung anzeigen
-                            this.showSuccess("Bewerbungsfoto erfolgreich heruntergeladen!");
+                            this.showSuccess("Foto erfolgreich heruntergeladen!");
                         },
                         "image/jpeg",
                         0.95
