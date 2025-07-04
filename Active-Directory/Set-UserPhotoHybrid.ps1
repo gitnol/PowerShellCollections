@@ -5,18 +5,17 @@ function Set-UserPhotoHybrid {
         [Parameter()][PSCredential]$ADCredential,
         [Parameter()][switch]$SkipGraph
     )
+    
+    
+    if (Test-Path $PhotoPath) {
+        $PhotoPath = (Get-Item $photopath).FullName    
+    }
+    else {
+        throw "PhotoPath '$PhotoPath' existiert nicht."
+    }
 
     Add-Type -AssemblyName System.Drawing
     $original = [System.Drawing.Image]::FromFile($PhotoPath)
-
-    # function Resize-Image {
-    #     param([System.Drawing.Image]$Image, [int]$Size)
-    #     $thumb = New-Object System.Drawing.Bitmap -ArgumentList $Size, $Size
-    #     $g = [System.Drawing.Graphics]::FromImage($thumb)
-    #     $g.DrawImage($Image, 0, 0, $Size, $Size)
-    #     $g.Dispose()
-    #     return $thumb
-    # }
 
     function Resize-Image {
         param (
@@ -114,4 +113,4 @@ function Set-UserPhotoHybrid {
 #$cred = Get-Credential
 
 # Aufruf
-#Set-UserPhotoHybrid -UserPrincipalName "user@firma.de" -PhotoPath "C:\Fotos\user.jpg" -ADCredential $cred
+#Set-UserPhotoHybrid -ADCredential $cred -UserPrincipalName "user@firma.de" -PhotoPath "C:\Fotos\user.jpg" 
