@@ -365,6 +365,14 @@
 
             <div class="controls">
                 <div class="control-group">
+                    <label for="formatSelect">Format:</label>
+                    <select id="formatSelect">
+                        <option value="jpg" selected>JPG</option>
+                        <option value="png">PNG</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
                     <label for="outputSize">Ausgabegröße:</label>
                     <select id="outputSize">
                         <option value="96">96x96 px (AD thumbnailPhoto)</option>
@@ -422,14 +430,12 @@
             <div class="info-section">
                 <h3>🚀 Funktionen</h3>
                 <ul class="info-list">
-                    <li>
-                        Automatische Gesichtserkennung mit Web API (nur Chrome und Edge)
-                    </li>
+                    <li>Automatische Gesichtserkennung mit Web API (nur Chrome und Edge)</li>
                     <li>Intelligente Bildausschnitt-Berechnung</li>
                     <li>Quadratische Crops für Fotos</li>
                     <li>Anpassbare Ausgabegrößen</li>
                     <li>Einstellbare Ränder und Positionierung</li>
-                    <li>Sofortiger Download als hochauflösendes JPG</li>
+                    <li>Sofortiger Download als hochauflösendes JPG (Standard) oder als PNG</li>
                 </ul>
             </div>
         </div>
@@ -444,6 +450,8 @@
                 this.ctx = this.canvas.getContext("2d");
                 this.initializeElements();
                 this.setupEventListeners();
+                this.downloadFormat = "jpg";
+
             }
 
             initializeElements() {
@@ -460,6 +468,7 @@
                 this.verticalOffsetSlider = document.getElementById("verticalOffset");
                 this.marginValue = document.getElementById("marginValue");
                 this.offsetValue = document.getElementById("offsetValue");
+                this.formatSelect = document.getElementById("formatSelect");
             }
 
             setupEventListeners() {
@@ -504,6 +513,10 @@
                 this.downloadBtn.addEventListener("click", () =>
                     this.downloadImage()
                 );
+                this.formatSelect.addEventListener("change", (e) => {
+                    this.downloadFormat = e.target.value;
+                });
+
             }
 
             handleFileSelect(event) {
@@ -511,6 +524,7 @@
                 if (files.length > 0) {
                     const file = files[0];
                     if (file.type.startsWith("image/")) {
+                        this.uploadedFile = file;
                         this.processImage(file);
                     } else {
                         this.showError(
@@ -719,10 +733,16 @@
 
                 try {
                     // Dateiname generieren
-                    const timestamp = new Date().toISOString().slice(0, 10);
-                    const filename = `Foto_${timestamp}.jpg`;
+                    // const timestamp = new Date().toISOString().slice(0, 10);
+                    // const filename = `Foto_${timestamp}.jpg`;
+                    const outputSize = this.outputSizeSelect.value;
+                    const baseName = this.uploadedFile?.name?.split(".").slice(0, -1).join(".") || "Foto";
+                    const filename = `${baseName}_${outputSize}.${this.downloadFormat || "jpg"}`;
 
-                    // Download-Link erstellen
+
+                    const mimeType = this.downloadFormat === "png" ? "image/png" : "image/jpeg";
+                    const quality = this.downloadFormat === "png" ? 1.0 : 0.95;
+
                     this.canvas.toBlob(
                         (blob) => {
                             if (!blob) {
@@ -734,17 +754,15 @@
                             const a = document.createElement("a");
                             a.href = url;
                             a.download = filename;
-                            a.style.display = "none";
                             document.body.appendChild(a);
                             a.click();
                             document.body.removeChild(a);
                             URL.revokeObjectURL(url);
 
-                            // Erfolgsmeldung anzeigen
                             this.showSuccess("Foto erfolgreich heruntergeladen!");
                         },
-                        "image/jpeg",
-                        0.95
+                        mimeType,
+                        quality
                     );
                 } catch (error) {
                     this.showError("Download-Fehler: " + error.message);
