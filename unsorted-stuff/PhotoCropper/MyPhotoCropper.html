@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bewerbungsfoto Auto-Cropper</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .upload-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .upload-area {
+            border: 3px dashed #3498db;
+            border-radius: 15px;
+            padding: 60px 20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        .upload-area:hover {
+            border-color: #2980b9;
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            transform: translateY(-2px);
+        }
+
+        .upload-area.dragover {
+            border-color: #27ae60;
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: #3498db;
+            margin-bottom: 20px;
+        }
+
+        .upload-text {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .control-group select,
+        .control-group input[type="range"] {
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .control-group select:focus,
+        .control-group input[type="range"]:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .processing-section {
+            display: none;
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .results-section {
+            display: none;
+            margin-top: 40px;
+        }
+
+        .image-comparison {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .image-container {
+            flex: 1;
+            min-width: 300px;
+            text-align: center;
+        }
+
+        .image-container h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            font-size: 1.3rem;
+        }
+
+        .image-wrapper {
+            position: relative;
+            display: inline-block;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .image-wrapper:hover {
+            transform: translateY(-5px);
+        }
+
+        .image-wrapper img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .face-detection-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .face-box {
+            position: absolute;
+            border: 3px solid #e74c3c;
+            border-radius: 8px;
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .face-box::before {
+            content: "Gesicht erkannt";
+            position: absolute;
+            top: -30px;
+            left: 0;
+            background: #e74c3c;
+            color: white;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        .download-section {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+
+        .download-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .download-btn:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .info-section {
+            background: #e8f4f8;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 40px;
+        }
+
+        .info-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .info-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+            color: #495057;
+        }
+
+        .info-list li:last-child {
+            border-bottom: none;
+        }
+
+        .info-list li::before {
+            content: "✓";
+            color: #27ae60;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .image-comparison {
+                flex-direction: column;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Bewerbungsfoto Auto-Cropper</h1>
+            <p>
+                Automatische Gesichtserkennung und optimales Cropping für perfekte
+                Bewerbungsfotos
+            </p>
+            <p>-----------</p>
+            <p>
+                Gesichtserkennung funktioniert nur im Chrome und Edge Browser richtig
+            </p>
+            <p>Öffne chrome://flags oder edge://flags/</p>
+            <p>Suche und aktiviere "Experimental Web Platform features"</p>
+        </div>
+
+        <div class="content">
+            <div class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📸</div>
+                    <div class="upload-text">Bewerbungsfoto hochladen</div>
+                    <div class="upload-hint">
+                        Klicken Sie hier oder ziehen Sie ein Foto hinein (JPG, PNG, WEBP)
+                    </div>
+                </div>
+                <input type="file" id="fileInput" class="file-input" accept="image/*" />
+            </div>
+
+            <div class="controls">
+                <div class="control-group">
+                    <label for="outputSize">Ausgabegröße:</label>
+                    <select id="outputSize">
+                        <option value="96">96x96 px (AD thumbnailPhoto)</option>
+                        <option value="300">300x300 px (Standard)</option>
+                        <option value="400">400x400 px (Mittel)</option>
+                        <option value="500">500x500 px (Groß)</option>
+                        <option value="600">600x600 px (Sehr groß)</option>
+                        <option value="600">648x648 px (Microsoft Teams)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="marginSlider">Rand um Gesicht: <span id="marginValue">50%</span></label>
+                    <input type="range" id="marginSlider" min="10" max="50" value="50" />
+                </div>
+
+                <div class="control-group">
+                    <label for="verticalOffset">Vertikale Position: <span id="offsetValue">0%</span></label>
+                    <input type="range" id="verticalOffset" min="-20" max="20" value="0" />
+                </div>
+            </div>
+
+            <div class="processing-section" id="processingSection">
+                <div class="spinner"></div>
+                <p>Gesichtserkennung läuft...</p>
+            </div>
+
+            <div class="results-section" id="resultsSection">
+                <div class="image-comparison">
+                    <div class="image-container">
+                        <h3>Original mit Gesichtserkennung</h3>
+                        <div class="image-wrapper">
+                            <img id="originalImage" alt="Original" />
+                            <div class="face-detection-overlay" id="faceOverlay"></div>
+                        </div>
+                    </div>
+                    <div class="image-container">
+                        <h3>Optimiertes Bewerbungsfoto</h3>
+                        <div class="image-wrapper">
+                            <img id="croppedImage" alt="Zugeschnitten" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="download-section">
+                    <button class="download-btn" id="downloadBtn" disabled>
+                        💾 Bewerbungsfoto herunterladen
+                    </button>
+                    <p style="margin-top: 10px; color: #7f8c8d; font-size: 0.9rem">
+                        Laden Sie zuerst ein Bild hoch, um den Download zu aktivieren
+                    </p>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <h3>🚀 Funktionen</h3>
+                <ul class="info-list">
+                    <li>
+                        Automatische Gesichtserkennung mit Web API (nur Chrome und Edge)
+                    </li>
+                    <li>Intelligente Bildausschnitt-Berechnung</li>
+                    <li>Quadratische Crops für Bewerbungsfotos</li>
+                    <li>Anpassbare Ausgabegrößen</li>
+                    <li>Einstellbare Ränder und Positionierung</li>
+                    <li>Sofortiger Download als hochauflösendes JPG</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class PhotoCropper {
+            constructor() {
+                this.originalImage = null;
+                this.detectedFaces = [];
+                this.canvas = document.createElement("canvas");
+                this.ctx = this.canvas.getContext("2d");
+                this.initializeElements();
+                this.setupEventListeners();
+            }
+
+            initializeElements() {
+                this.uploadArea = document.getElementById("uploadArea");
+                this.fileInput = document.getElementById("fileInput");
+                this.processingSection = document.getElementById("processingSection");
+                this.resultsSection = document.getElementById("resultsSection");
+                this.originalImageEl = document.getElementById("originalImage");
+                this.croppedImageEl = document.getElementById("croppedImage");
+                this.faceOverlay = document.getElementById("faceOverlay");
+                this.downloadBtn = document.getElementById("downloadBtn");
+                this.outputSizeSelect = document.getElementById("outputSize");
+                this.marginSlider = document.getElementById("marginSlider");
+                this.verticalOffsetSlider = document.getElementById("verticalOffset");
+                this.marginValue = document.getElementById("marginValue");
+                this.offsetValue = document.getElementById("offsetValue");
+            }
+
+            setupEventListeners() {
+                // Upload-Events
+                this.uploadArea.addEventListener("click", () =>
+                    this.fileInput.click()
+                );
+                this.fileInput.addEventListener("change", (e) =>
+                    this.handleFileSelect(e)
+                );
+
+                // Drag & Drop
+                this.uploadArea.addEventListener("dragover", (e) => {
+                    e.preventDefault();
+                    this.uploadArea.classList.add("dragover");
+                });
+
+                this.uploadArea.addEventListener("dragleave", () => {
+                    this.uploadArea.classList.remove("dragover");
+                });
+
+                this.uploadArea.addEventListener("drop", (e) => {
+                    e.preventDefault();
+                    this.uploadArea.classList.remove("dragover");
+                    this.handleFileSelect(e);
+                });
+
+                // Control-Events
+                this.outputSizeSelect.addEventListener("change", () =>
+                    this.updateCroppedImage()
+                );
+                this.marginSlider.addEventListener("input", (e) => {
+                    this.marginValue.textContent = e.target.value + "%";
+                    this.updateCroppedImage();
+                });
+                this.verticalOffsetSlider.addEventListener("input", (e) => {
+                    this.offsetValue.textContent = e.target.value + "%";
+                    this.updateCroppedImage();
+                });
+
+                // Download-Event
+                this.downloadBtn.addEventListener("click", () =>
+                    this.downloadImage()
+                );
+            }
+
+            handleFileSelect(event) {
+                const files = event.target.files || event.dataTransfer.files;
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type.startsWith("image/")) {
+                        this.processImage(file);
+                    } else {
+                        this.showError(
+                            "Bitte wählen Sie eine Bilddatei aus (JPG, PNG, WEBP)"
+                        );
+                    }
+                }
+            }
+
+            async processImage(file) {
+                this.showProcessing();
+
+                try {
+                    // Bild laden
+                    const img = new Image();
+                    img.onload = async () => {
+                        this.originalImage = img;
+                        this.originalImageEl.src = img.src;
+
+                        // Gesichtserkennung
+                        await this.detectFaces(img);
+
+                        if (this.detectedFaces.length > 0) {
+                            this.showFaceDetection();
+                            this.updateCroppedImage();
+                            this.showResults();
+                        } else {
+                            this.showError(
+                                "Kein Gesicht erkannt. Bitte verwenden Sie ein Foto mit einem klar sichtbaren Gesicht."
+                            );
+                        }
+                    };
+
+                    img.src = URL.createObjectURL(file);
+                } catch (error) {
+                    this.showError(
+                        "Fehler beim Verarbeiten des Bildes: " + error.message
+                    );
+                }
+            }
+
+            async detectFaces(img) {
+                try {
+                    // FaceDetector API verwenden (falls verfügbar)
+                    if ("FaceDetector" in window) {
+                        const faceDetector = new FaceDetector();
+                        const faces = await faceDetector.detect(img);
+                        this.detectedFaces = faces.map((face) => ({
+                            x: face.boundingBox.x,
+                            y: face.boundingBox.y,
+                            width: face.boundingBox.width,
+                            height: face.boundingBox.height,
+                        }));
+                    } else {
+                        // Fallback: Einfache Gesichtserkennung basierend auf Bildproportionen
+                        // Diese Implementierung nimmt an, dass das Gesicht im oberen Drittel des Bildes ist
+                        const estimatedFace = this.estimateFacePosition(img);
+                        this.detectedFaces = [estimatedFace];
+                    }
+                } catch (error) {
+                    console.log("Face detection failed, using estimation:", error);
+                    // Fallback auf geschätzte Position
+                    const estimatedFace = this.estimateFacePosition(img);
+                    this.detectedFaces = [estimatedFace];
+                }
+            }
+
+            estimateFacePosition(img) {
+                // Heuristische Gesichtserkennung basierend auf typischen Portraitproportionen
+                const imgWidth = img.width;
+                const imgHeight = img.height;
+
+                // Annahme: Gesicht ist zentriert im oberen Drittel
+                const faceWidth = imgWidth * 0.3; // 30% der Bildbreite
+                const faceHeight = imgHeight * 0.4; // 40% der Bildhöhe
+                const faceX = (imgWidth - faceWidth) / 2;
+                const faceY = imgHeight * 0.15; // 15% von oben
+
+                return {
+                    x: faceX,
+                    y: faceY,
+                    width: faceWidth,
+                    height: faceHeight,
+                };
+            }
+
+            showFaceDetection() {
+                this.faceOverlay.innerHTML = "";
+
+                const imgRect = this.originalImageEl.getBoundingClientRect();
+                const imgNaturalWidth = this.originalImage.width;
+                const imgNaturalHeight = this.originalImage.height;
+
+                // Skalierungsfaktoren berechnen
+                const scaleX = this.originalImageEl.offsetWidth / imgNaturalWidth;
+                const scaleY = this.originalImageEl.offsetHeight / imgNaturalHeight;
+
+                this.detectedFaces.forEach((face) => {
+                    const faceBox = document.createElement("div");
+                    faceBox.className = "face-box";
+                    faceBox.style.left = face.x * scaleX + "px";
+                    faceBox.style.top = face.y * scaleY + "px";
+                    faceBox.style.width = face.width * scaleX + "px";
+                    faceBox.style.height = face.height * scaleY + "px";
+                    this.faceOverlay.appendChild(faceBox);
+                });
+            }
+
+            updateCroppedImage() {
+                if (!this.originalImage || this.detectedFaces.length === 0) return;
+
+                const outputSize = parseInt(this.outputSizeSelect.value);
+                const marginPercent = parseInt(this.marginSlider.value);
+                const verticalOffset = parseInt(this.verticalOffsetSlider.value);
+
+                // Größtes Gesicht auswählen
+                const primaryFace = this.detectedFaces.reduce((largest, current) =>
+                    current.width * current.height > largest.width * largest.height
+                        ? current
+                        : largest
+                );
+
+                // Crop-Bereich berechnen
+                const cropSize = this.calculateCropSize(
+                    primaryFace,
+                    marginPercent,
+                    verticalOffset
+                );
+
+                // Canvas für Cropping vorbereiten
+                this.canvas.width = outputSize;
+                this.canvas.height = outputSize;
+
+                // Bild croppen und skalieren
+                this.ctx.drawImage(
+                    this.originalImage,
+                    cropSize.x,
+                    cropSize.y,
+                    cropSize.size,
+                    cropSize.size,
+                    0,
+                    0,
+                    outputSize,
+                    outputSize
+                );
+
+                // Ergebnis anzeigen
+                this.croppedImageEl.src = this.canvas.toDataURL("image/jpeg", 0.95);
+            }
+
+            calculateCropSize(face, marginPercent, verticalOffset) {
+                const img = this.originalImage;
+                const faceCenter = {
+                    x: face.x + face.width / 2,
+                    y: face.y + face.height / 2,
+                };
+
+                // Größe des Quadrats basierend auf Gesichtsgröße und Rand
+                const faceSize = Math.max(face.width, face.height);
+                const marginFactor = 1 + marginPercent / 100;
+                let cropSize = faceSize * marginFactor;
+
+                // Vertikaler Offset anwenden
+                const offsetPixels = (verticalOffset / 100) * cropSize;
+                const adjustedCenterY = faceCenter.y + offsetPixels;
+
+                // Crop-Position berechnen
+                let cropX = faceCenter.x - cropSize / 2;
+                let cropY = adjustedCenterY - cropSize / 2;
+
+                // Grenzen des Bildes beachten
+                if (cropX < 0) {
+                    cropX = 0;
+                }
+                if (cropY < 0) {
+                    cropY = 0;
+                }
+                if (cropX + cropSize > img.width) {
+                    cropX = img.width - cropSize;
+                }
+                if (cropY + cropSize > img.height) {
+                    cropY = img.height - cropSize;
+                }
+
+                // Wenn das Crop-Quadrat zu groß ist, anpassen
+                if (cropSize > Math.min(img.width, img.height)) {
+                    cropSize = Math.min(img.width, img.height);
+                    cropX = (img.width - cropSize) / 2;
+                    cropY = (img.height - cropSize) / 2;
+                }
+
+                return {
+                    x: cropX,
+                    y: cropY,
+                    size: cropSize,
+                };
+            }
+
+            downloadImage() {
+                if (!this.canvas || !this.canvas.width) {
+                    this.showError(
+                        "Bitte laden Sie zuerst ein Bild hoch und lassen Sie es verarbeiten."
+                    );
+                    return;
+                }
+
+                try {
+                    // Dateiname generieren
+                    const timestamp = new Date().toISOString().slice(0, 10);
+                    const filename = `bewerbungsfoto_${timestamp}.jpg`;
+
+                    // Download-Link erstellen
+                    this.canvas.toBlob(
+                        (blob) => {
+                            if (!blob) {
+                                this.showError("Fehler beim Generieren des Downloads.");
+                                return;
+                            }
+
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement("a");
+                            a.href = url;
+                            a.download = filename;
+                            a.style.display = "none";
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(url);
+
+                            // Erfolgsmeldung anzeigen
+                            this.showSuccess("Bewerbungsfoto erfolgreich heruntergeladen!");
+                        },
+                        "image/jpeg",
+                        0.95
+                    );
+                } catch (error) {
+                    this.showError("Download-Fehler: " + error.message);
+                }
+            }
+
+            showProcessing() {
+                this.processingSection.style.display = "block";
+                this.resultsSection.style.display = "none";
+                this.hideError();
+            }
+
+            showResults() {
+                this.processingSection.style.display = "none";
+                this.resultsSection.style.display = "block";
+
+                // Download-Button aktivieren
+                this.downloadBtn.disabled = false;
+                this.downloadBtn.parentNode.querySelector("p").style.display = "none";
+            }
+
+            showError(message) {
+                this.processingSection.style.display = "none";
+
+                let errorDiv = document.querySelector(".error-message");
+                if (!errorDiv) {
+                    errorDiv = document.createElement("div");
+                    errorDiv.className = "error-message";
+                    this.uploadArea.parentNode.insertBefore(
+                        errorDiv,
+                        this.uploadArea.nextSibling
+                    );
+                }
+                errorDiv.textContent = message;
+                errorDiv.style.display = "block";
+            }
+
+            showSuccess(message) {
+                let successDiv = document.querySelector(".success-message");
+                if (!successDiv) {
+                    successDiv = document.createElement("div");
+                    successDiv.className = "success-message";
+                    this.downloadBtn.parentNode.insertBefore(
+                        successDiv,
+                        this.downloadBtn.nextSibling
+                    );
+                }
+                successDiv.textContent = message;
+                successDiv.style.display = "block";
+
+                // Erfolgsmeldung nach 3 Sekunden ausblenden
+                setTimeout(() => {
+                    successDiv.style.display = "none";
+                }, 3000);
+            }
+
+            hideError() {
+                const errorDiv = document.querySelector(".error-message");
+                if (errorDiv) {
+                    errorDiv.style.display = "none";
+                }
+            }
+        }
+
+        // API-Modus für automatische Verarbeitung
+        window.photoCropperAPI = {
+            processImage: async function (imageData, options = {}) {
+                const cropper = new PhotoCropper();
+
+                // Standardoptionen
+                const settings = {
+                    outputSize: options.outputSize || 400,
+                    marginPercent: options.marginPercent || 20,
+                    verticalOffset: options.verticalOffset || 0,
+                    quality: options.quality || 0.95,
+                    ...options,
+                };
+
+                return new Promise((resolve, reject) => {
+                    try {
+                        const img = new Image();
+                        img.onload = async () => {
+                            cropper.originalImage = img;
+
+                            // Gesichtserkennung
+                            await cropper.detectFaces(img);
+
+                            if (cropper.detectedFaces.length === 0) {
+                                reject(new Error("Kein Gesicht erkannt"));
+                                return;
+                            }
+
+                            // Canvas für Cropping vorbereiten
+                            cropper.canvas.width = settings.outputSize;
+                            cropper.canvas.height = settings.outputSize;
+
+                            // Crop-Bereich berechnen
+                            const primaryFace = cropper.detectedFaces.reduce(
+                                (largest, current) =>
+                                    current.width * current.height >
+                                        largest.width * largest.height
+                                        ? current
+                                        : largest
+                            );
+
+                            const cropSize = cropper.calculateCropSize(
+                                primaryFace,
+                                settings.marginPercent,
+                                settings.verticalOffset
+                            );
+
+                            // Bild croppen
+                            cropper.ctx.drawImage(
+                                img,
+                                cropSize.x,
+                                cropSize.y,
+                                cropSize.size,
+                                cropSize.size,
+                                0,
+                                0,
+                                settings.outputSize,
+                                settings.outputSize
+                            );
+
+                            // Ergebnis als Base64 zurückgeben
+                            const result = cropper.canvas.toDataURL(
+                                "image/jpeg",
+                                settings.quality
+                            );
+                            resolve({
+                                success: true,
+                                data: result,
+                                faceCount: cropper.detectedFaces.length,
+                                cropArea: cropSize,
+                            });
+                        };
+
+                        img.onerror = () =>
+                            reject(new Error("Fehler beim Laden des Bildes"));
+                        img.src = imageData;
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            },
+        };
+
+        // Initialisierung
+        document.addEventListener("DOMContentLoaded", () => {
+            new PhotoCropper();
+        });
+    </script>
+</body>
+
+</html>
