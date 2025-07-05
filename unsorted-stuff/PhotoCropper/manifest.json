@@ -1,0 +1,32 @@
+{
+  "name": "Foto Auto-Cropper",
+  "short_name": "Photocropper",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a5e71",
+  "theme_color": "#ab1c37",
+  "icons": [
+    {
+      "src": "favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    }
+  ]
+}
