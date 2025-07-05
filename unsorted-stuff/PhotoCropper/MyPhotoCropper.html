@@ -367,12 +367,13 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎯 Foto Auto-Cropper</h1>
+            <h1>🖼️🤖✂️🎯 Foto Auto-Cropper</h1>
             <p>
                 Automatische Gesichtserkennung und optimales Cropping für perfekte
                 Fotos
             </p>
-            <p>-----------</p>
+            <hr style="border: none; border-top: 2px solid #ccc; width: 50%; margin: 20px auto;">
+            <!-- <p>-----------</p> -->
             <p>
                 Gesichtserkennung funktioniert nur im Chrome und Edge Browser richtig
             </p>
@@ -389,7 +390,9 @@
                         Klicken Sie hier oder ziehen Sie ein Foto hinein (JPG, PNG, WEBP)
                     </div>
                 </div>
-                <input type="file" id="fileInput" class="file-input" accept="image/*" />
+                <!-- <input type="file" id="fileInput" class="file-input" accept="image/*" /> -->
+                <!-- accept muss rausgenommen werden, weil Kamera sonst nicht funktioniert -->
+                <input type="file" id="fileInput" class="file-input" />
             </div>
 
             <div class="controls">
@@ -415,7 +418,7 @@
 
                 <div class="control-group">
                     <label for="marginSlider">Rand um Gesicht: <span id="marginValue">50%</span></label>
-                    <input type="range" id="marginSlider" min="10" max="50" value="50" />
+                    <input type="range" id="marginSlider" min="10" max="60" value="50" />
                 </div>
 
                 <div class="control-group">
@@ -456,6 +459,12 @@
                 </div>
             </div>
 
+            <div class="download-section">
+                <button class="download-btn" onclick="location.reload();">
+                    🔄 Reload / Reset
+                </button>
+            </div>
+
             <div class="info-section">
                 <h3>🚀 Funktionen</h3>
                 <ul class="info-list">
@@ -480,7 +489,6 @@
                 this.initializeElements();
                 this.setupEventListeners();
                 this.downloadFormat = "jpg";
-
             }
 
             initializeElements() {
