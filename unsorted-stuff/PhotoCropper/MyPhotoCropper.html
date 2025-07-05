@@ -578,11 +578,19 @@
                     // Bild laden
                     const img = new Image();
                     img.onload = async () => {
-                        this.originalImage = img;
-                        this.originalImageEl.src = img.src;
+                        // EXIF-Orientierung korrigieren und Bild als JPG/PNG auf Canvas neu zeichnen
+                        const correctedImage = await this.correctImageOrientation(img);
+                        this.originalImage = correctedImage;
+                        this.originalImageEl.src = correctedImage.src;
 
-                        // Gesichtserkennung
-                        await this.detectFaces(img);
+                        // Gesichtserkennung auf dem korrigierten Bild
+                        await this.detectFaces(correctedImage);
+
+                        // this.originalImage = img;
+                        // this.originalImageEl.src = img.src;
+
+                        // // Gesichtserkennung
+                        // await this.detectFaces(img);
 
                         if (this.detectedFaces.length > 0) {
                             this.showFaceDetection();
@@ -601,6 +609,29 @@
                         "Fehler beim Verarbeiten des Bildes: " + error.message
                     );
                 }
+            }
+
+            // NEUE FUNKTION: Korrigiert die Bildorientierung und kodiert neu
+            async correctImageOrientation(img) {
+                return new Promise(resolve => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    // Für eine echte EXIF-Orientierungskorrektur wäre eine externe Bibliothek erforderlich.
+                    // Dieser Ansatz zeichnet das Bild einfach auf einen neuen Canvas,
+                    // was oft hilft, Kompatibilitätsprobleme zu beheben,
+                    // da es eine neue JPEG/PNG-Kodierung erzwingt.
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+
+                    // Exportiere das Bild als Blob und erstelle eine neue URL
+                    canvas.toBlob(blob => {
+                        const newImg = new Image();
+                        newImg.onload = () => resolve(newImg);
+                        newImg.src = URL.createObjectURL(blob);
+                    }, 'image/jpeg', 0.95); // Sicherstellen, dass es als JPG kodiert wird (Standard)
+                });
             }
 
             async detectFaces(img) {
@@ -770,8 +801,6 @@
 
                 try {
                     // Dateiname generieren
-                    // const timestamp = new Date().toISOString().slice(0, 10);
-                    // const filename = `Foto_${timestamp}.jpg`;
                     const outputSize = this.outputSizeSelect.value;
                     const baseName = this.uploadedFile?.name?.split(".").slice(0, -1).join(".") || "Foto";
                     const filename = `${baseName}_${outputSize}.${this.downloadFormat || "jpg"}`;
@@ -882,10 +911,12 @@
                     try {
                         const img = new Image();
                         img.onload = async () => {
-                            cropper.originalImage = img;
+                            // Hier auch die Orientierung korrigieren, falls die API-Methode ein direktes Image-DataURL bekommt
+                            const correctedImage = await cropper.correctImageOrientation(img);
+                            cropper.originalImage = correctedImage;
 
                             // Gesichtserkennung
-                            await cropper.detectFaces(img);
+                            await cropper.detectFaces(correctedImage);
 
                             if (cropper.detectedFaces.length === 0) {
                                 reject(new Error("Kein Gesicht erkannt"));
@@ -913,7 +944,7 @@
 
                             // Bild croppen
                             cropper.ctx.drawImage(
-                                img,
+                                correctedImage, // Das korrigierte Bild hier verwenden
                                 cropSize.x,
                                 cropSize.y,
                                 cropSize.size,
