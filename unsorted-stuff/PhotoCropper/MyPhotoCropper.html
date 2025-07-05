@@ -425,6 +425,12 @@
                     <label for="verticalOffset">Vertikale Position: <span id="offsetValue">0%</span></label>
                     <input type="range" id="verticalOffset" min="-20" max="20" value="0" />
                 </div>
+
+                <div class="control-group">
+                    <label for="horizontalOffset">Horizontale Position: <span
+                            id="horizontalOffsetValue">0%</span></label>
+                    <input type="range" id="horizontalOffset" min="-20" max="20" value="0" />
+                </div>
             </div>
 
             <div class="processing-section" id="processingSection">
@@ -506,6 +512,8 @@
                 this.marginValue = document.getElementById("marginValue");
                 this.offsetValue = document.getElementById("offsetValue");
                 this.formatSelect = document.getElementById("formatSelect");
+                this.horizontalOffsetSlider = document.getElementById("horizontalOffset");
+                this.horizontalOffsetValue = document.getElementById("horizontalOffsetValue");
             }
 
             setupEventListeners() {
@@ -543,6 +551,11 @@
                 });
                 this.verticalOffsetSlider.addEventListener("input", (e) => {
                     this.offsetValue.textContent = e.target.value + "%";
+                    this.updateCroppedImage();
+                });
+
+                this.horizontalOffsetSlider.addEventListener("input", (e) => {
+                    this.horizontalOffsetValue.textContent = e.target.value + "%";
                     this.updateCroppedImage();
                 });
 
@@ -707,6 +720,7 @@
                 const outputSize = parseInt(this.outputSizeSelect.value);
                 const marginPercent = parseInt(this.marginSlider.value);
                 const verticalOffset = parseInt(this.verticalOffsetSlider.value);
+                const horizontalOffset = parseInt(this.horizontalOffsetSlider.value);
 
                 // Größtes Gesicht auswählen
                 const primaryFace = this.detectedFaces.reduce((largest, current) =>
@@ -719,7 +733,8 @@
                 const cropSize = this.calculateCropSize(
                     primaryFace,
                     marginPercent,
-                    verticalOffset
+                    verticalOffset,
+                    horizontalOffset
                 );
 
                 // Canvas für Cropping vorbereiten
@@ -743,7 +758,7 @@
                 this.croppedImageEl.src = this.canvas.toDataURL("image/jpeg", 0.95);
             }
 
-            calculateCropSize(face, marginPercent, verticalOffset) {
+            calculateCropSize(face, marginPercent, verticalOffset, horizontalOffset = 0) {
                 const img = this.originalImage;
                 const faceCenter = {
                     x: face.x + face.width / 2,
@@ -759,8 +774,12 @@
                 const offsetPixels = (verticalOffset / 100) * cropSize;
                 const adjustedCenterY = faceCenter.y + offsetPixels;
 
+                // Horizontaler Offset anwenden
+                const horizontalOffsetPixels = (horizontalOffset / 100) * cropSize;
+                const adjustedCenterX = faceCenter.x + horizontalOffsetPixels;
+
                 // Crop-Position berechnen
-                let cropX = faceCenter.x - cropSize / 2;
+                let cropX = adjustedCenterX - cropSize / 2;
                 let cropY = adjustedCenterY - cropSize / 2;
 
                 // Grenzen des Bildes beachten
@@ -903,6 +922,7 @@
                     outputSize: options.outputSize || 400,
                     marginPercent: options.marginPercent || 20,
                     verticalOffset: options.verticalOffset || 0,
+                    horizontalOffset: options.horizontalOffset || 0,
                     quality: options.quality || 0.95,
                     ...options,
                 };
@@ -939,7 +959,8 @@
                             const cropSize = cropper.calculateCropSize(
                                 primaryFace,
                                 settings.marginPercent,
-                                settings.verticalOffset
+                                settings.verticalOffset,
+                                settings.horizontalOffset
                             );
 
                             // Bild croppen
