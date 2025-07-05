@@ -39,5 +39,5 @@ $return = Start-MSApiCall $msapiclient "VerifyStore" @{id = "1"}
 if ($return.statusCode -eq "running") {
     $mssevent = Register-EngineEvent -SourceIdentifier $return.Token -Action {write-host $event.MessageData}
 } else {
-    $return | fl
+    $return | Format-List
 }

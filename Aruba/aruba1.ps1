@@ -1,10 +1,9 @@
-# Just a demo script to connect to aruba switches and get the mac address table
 
+# iwr https://www.wireshark.org/json/manuf.json -OutFile C:\install\manuf.json
 $global:ouilist = (Get-Content -LiteralPath "C:\install\manuf.json" | ConvertFrom-Json -AsHashtable -Depth 10).data
 
 function lookup-mac_address {
-    # https://www.wireshark.org/tools/assets/js/manuf.json
-    # https://www.wireshark.org/assets/json/manuf.json
+    # https://www.wireshark.org/json/manuf.json
     [CmdletBinding()]
     param(
         [Parameter(Position = 0, mandatory = $true)]
@@ -18,15 +17,18 @@ function lookup-mac_address {
             $changed_mac_addresses = @()
             foreach ($mac_address in $mac_addresses) {
                 $mac_address = ((($mac_address -replace ":", "") -replace "-", "") -replace "\.", "")
-                if ($global:ouilist[$mac_address.substring(0, 9)]) {
+                $search9 = $mac_Address.substring(0, 9).ToLower()
+                $search7 = $mac_Address.substring(0, 7).ToLower()
+                $search6 = $mac_Address.substring(0, 6).ToLower()
+                if ($global:ouilist[$search9]) {
                     #$changed_mac_addresses+=@($mac_address,$global:ouilist[$mac_address.substring(0,9)])
-                    $changed_mac_addresses += @([pscustomobject]@{mac_address = $mac_address; ouilookup = $global:ouilist[$mac_address.substring(0, 9)] })
+                    $changed_mac_addresses += @([pscustomobject]@{mac_address = $mac_address; ouilookup = $global:ouilist[$search9] })
                 }
-                elseif ($global:ouilist[$mac_address.substring(0, 7)]) {
-                    $changed_mac_addresses += @([pscustomobject]@{mac_address = $mac_address; ouilookup = $global:ouilist[$mac_address.substring(0, 7)] })
+                elseif ($global:ouilist[$search7]) {
+                    $changed_mac_addresses += @([pscustomobject]@{mac_address = $mac_address; ouilookup = $global:ouilist[$search7] })
                 }
-                elseif ($global:ouilist[$mac_address.substring(0, 6)]) {
-                    $changed_mac_addresses += @([pscustomobject]@{mac_address = $mac_address; ouilookup = $global:ouilist[$mac_address.substring(0, 6)] })
+                elseif ($global:ouilist[$search6]) {
+                    $changed_mac_addresses += @([pscustomobject]@{mac_address = $mac_address; ouilookup = $global:ouilist[$search6] })
                 }
                 else {
                     $changed_mac_addresses += @([pscustomobject]@{mac_address = $mac_address; ouilookup = "_N_V_" })
@@ -93,7 +95,9 @@ function copy_file_explorer_like([string]$pfadzurdatei) {
     [System.Windows.Forms.Clipboard]::SetFileDropList($f)
 }
 
-$switche = @('10.0.1.40')
+# $switche = @('10.0.1.40')
+$switche = @('1.2.3.4')
+
 $cred = Get-Credential
 
 # Liste alle Seriennummern der Aruba Switche auf und hole die MAC-ADresstabelle von den Switchen.
