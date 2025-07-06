@@ -484,21 +484,6 @@
                         <option selected="selected" value="648">648x648 px (Microsoft Teams)</option>
                     </select>
                 </div>
-
-                <div class="control-group">
-                    <label for="marginSlider">Rand um Gesicht: <span id="marginValue">50%</span></label>
-                    <input type="range" id="marginSlider" min="10" max="60" value="50" />
-                </div>
-            </div>
-
-            <div class="controls">
-                <div class="control-group">
-                    <label for="verticalOffset">Vertikale Position: <span id="offsetValue">0%</span></label>
-                    <input type="range" id="verticalOffset" min="-20" max="20" value="0" />
-                    <label for="horizontalOffset">Horizontale Position: <span
-                            id="horizontalOffsetValue">0%</span></label>
-                    <input type="range" id="horizontalOffset" min="-20" max="20" value="0" />
-                </div>
             </div>
 
             <div class="processing-section" id="processingSection">
@@ -509,21 +494,24 @@
             <div class="results-section" id="resultsSection">
                 <div class="image-comparison">
                     <div class="image-container">
-                        <h3>Optimiertes Foto</h3>
+                        <h3>Optimiertes Foto mit Gesichtserkennung</h3>
+                        <div class="controls">
+                            <div class="control-group">
+                                <label for="marginSlider">Rand um Gesicht: <span id="marginValue">50%</span></label>
+                                <input type="range" id="marginSlider" min="10" max="60" value="50" />
+                                <label for="verticalOffset">Vertikale Position: <span id="offsetValue">0%</span></label>
+                                <input type="range" id="verticalOffset" min="-20" max="20" value="0" />
+                                <label for="horizontalOffset">Horizontale Position: <span
+                                        id="horizontalOffsetValue">0%</span></label>
+                                <input type="range" id="horizontalOffset" min="-20" max="20" value="0" />
+                            </div>
+                        </div>
                         <div class="image-wrapper">
                             <img id="croppedImage" alt="Zugeschnitten" />
                         </div>
-                        <div class="download-section">
-                            <button class="download-btn" id="downloadBtn" disabled>
-                                💾 Foto herunterladen
-                            </button>
-                            <p style="margin-top: 10px; color: #7f8c8d; font-size: 0.9rem">
-                                Laden Sie zuerst ein Bild hoch, um den Download zu aktivieren
-                            </p>
-                        </div>
                     </div>
                     <div class="image-container">
-                        <h3>Original mit Gesichtserkennung</h3>
+                        <h3>Original</h3>
                         <div class="image-wrapper">
                             <img id="originalImage" alt="Original" />
                             <div class="face-detection-overlay" id="faceOverlay"></div>
@@ -531,7 +519,14 @@
                     </div>
                 </div>
             </div>
-
+            <div class="download-section">
+                <button class="download-btn" id="downloadBtn" disabled>
+                    💾 Foto herunterladen
+                </button>
+                <p style="margin-top: 10px; color: #7f8c8d; font-size: 0.9rem">
+                    Laden Sie zuerst ein Bild hoch, um den Download zu aktivieren
+                </p>
+            </div>
             <div class="download-section">
                 <button class="download-btn" onclick="location.reload();">
                     🔄 Reload / Reset
