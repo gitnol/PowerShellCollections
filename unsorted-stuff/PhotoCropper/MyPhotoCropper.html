@@ -366,6 +366,54 @@
             margin-right: 10px;
         }
 
+        .info-list-warning {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-list-warning li {
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+            color: #3b3b3a;
+        }
+
+        .info-list-warning li:last-child {
+            border-bottom: none;
+        }
+
+        .info-list-warning li::before {
+            content: "⚠️";
+            color: #0a5e71;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .info-list-lamp {
+            list-style: none;
+            padding: 0;
+        }
+
+        .info-list-lamp li {
+            padding: 8px 0;
+            border-bottom: 1px solid #dee2e6;
+            color: #3b3b3a;
+        }
+
+        .info-list-lamp a {
+            color: #3b3b3a;
+        }
+
+        .info-list-lamp li:last-child {
+            border-bottom: none;
+        }
+
+        .info-list-lamp li::before {
+            content: "💡";
+            color: #0a5e71;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
         @media (max-width: 768px) {
             .image-comparison {
                 flex-direction: column;
@@ -397,20 +445,17 @@
             </p>
             <hr>
             <p>
-                ⚠️ Gesichtserkennung funktioniert (aktuell) nur korrekt im Chrome und Edge Browser
+                ⚠️ <a href="#wichtigebedingungen">Liesmich vor der ersten Benutzung!</a><br /><br />
             </p>
-            <div style="width: 50%; padding-top: 20px; margin: auto;">
-                <p style="text-align: left;">1️⃣ Öffne chrome://flags oder edge://flags/</p><br />
-                <p style="text-align: left;">2️⃣ Suche und aktiviere "Experimental Web Platform features"</p>
-            </div>
-            <hr>
             <p>
-                💡 Alle Daten verbleiben lokal und werden nicht zum Server geschickt.
-                Das Tool funktioniert vollständig offline!
-            </p> <br />
-            <p><a href="https://github.com/gitnol/PowerShellCollections/blob/main/unsorted-stuff/PhotoCropper/MyPhotoCropper.html"
-                    target="_blank">Quellcode</a>
+                💡 Installationsbeschreibung:<br />
+                Android ➡ Chrome ➡ ⋮ Menü ➡ "Zum Startbildschirm hinzufügen"<br />
+                Windows ➡ Chrome ➡ "In App öffnen" auswählen"
             </p>
+            <hr>
+            <p>Los geht's! 🚀
+            </p>
+            <p>⬇⬇⬇⬇</p>
         </div>
 
         <div class="content">
@@ -503,7 +548,15 @@
             </div>
 
             <div class="info-section">
+                <a id="wichtigebedingungen"></a>
                 <h3>🚀 Funktionen</h3>
+                <ul class="info-list-warning">
+                    <li>Gesichtserkennung funktioniert (aktuell) nur korrekt im Chrome und Edge Browser</li>
+                    <li>Damit es also überhaupt funktioniert:
+                        <p style="padding-left: 30px;">1️⃣ Öffne <b>chrome://flags</b> oder <b>edge://flags</b></p>
+                        <p style="padding-left: 30px;">2️⃣ Suche und aktiviere <b>"Experimental Web Platform features"</b></p>
+                    </li>
+                </ul>
                 <ul class="info-list">
                     <li>Automatische Gesichtserkennung mit Web API (nur Chrome und Edge)</li>
                     <li>Intelligente Bildausschnitt-Berechnung</li>
@@ -512,6 +565,15 @@
                     <li>Einstellbare Ränder und Positionierung</li>
                     <li>Sofortiger Download als hochauflösendes JPG (Standard) oder als PNG</li>
                 </ul>
+                <ul class="info-list-lamp">
+                    <li>Alle Daten verbleiben lokal und werden nicht zum Server geschickt. Das Tool funktioniert
+                        vollständig offline und ist installierbar
+                    </li>
+                    <li><a href="https://github.com/gitnol/PowerShellCollections/blob/main/unsorted-stuff/PhotoCropper/MyPhotoCropper.html"
+                            target="_blank">Quellcode</a>
+                    </li>
+                </ul>
+
             </div>
         </div>
     </div>
