@@ -105,12 +105,17 @@ function Set-UserPhotoHybrid {
     }
 }
 
+$ModuleName = "Microsoft.Graph"
+if (-not (Get-Module -ListAvailable -Name $ModuleName)) {
+    Install-Module -Name $ModuleName -Scope CurrentUser -Force
+}
 
-# Voraussetzung: Verbinde Graph vorher
-#Connect-MgGraph -Scopes "User.ReadWrite.All"
+if ((Get-Module -ListAvailable -Name $ModuleName)) {
+    # Voraussetzung: Verbinde Graph vorher
+    Connect-MgGraph -Scopes "User.ReadWrite.All"
+}
 
 # Lokales AD Passwort-Dialog
-#$cred = Get-Credential
-
+$cred = Get-Credential
 # Aufruf
-#Set-UserPhotoHybrid -ADCredential $cred -UserPrincipalName "user@firma.de" -PhotoPath "C:\Fotos\user.jpg" 
+# Set-UserPhotoHybrid -ADCredential $cred -UserPrincipalName "user@firma.de" -PhotoPath "C:\Fotos\user.jpg" 
