@@ -732,20 +732,29 @@
                 try {
                     // FaceDetector API verwenden (falls verfügbar)
                     if ("FaceDetector" in window) {
-                        const faceDetector = new FaceDetector();
-                        const faces = await faceDetector.detect(img);
-                        this.detectedFaces = faces.map((face) => ({
-                            x: face.boundingBox.x,
-                            y: face.boundingBox.y,
-                            width: face.boundingBox.width,
-                            height: face.boundingBox.height,
-                        }));
-                    } else {
-                        // Fallback: Einfache Gesichtserkennung basierend auf Bildproportionen
-                        // Diese Implementierung nimmt an, dass das Gesicht im oberen Drittel des Bildes ist
-                        const estimatedFace = this.estimateFacePosition(img);
-                        this.detectedFaces = [estimatedFace];
-                    }
+    alert("FaceDetector wird unterstützt.");
+
+    try {
+        const faceDetector = new FaceDetector();
+        const faces = await faceDetector.detect(img);
+        alert(`FaceDetector hat ${faces.length} Gesicht(er) erkannt.`);
+
+        this.detectedFaces = faces.map((face) => ({
+            x: face.boundingBox.x,
+            y: face.boundingBox.y,
+            width: face.boundingBox.width,
+            height: face.boundingBox.height,
+        }));
+    } catch (e) {
+        alert("FaceDetector existiert, aber detect() hat einen Fehler geworfen.");
+        console.error(e);
+    }
+} else {
+    alert("FaceDetector wird nicht unterstützt. Nutze Fallback.");
+    
+    const estimatedFace = this.estimateFacePosition(img);
+    this.detectedFaces = [estimatedFace];
+}
                 } catch (error) {
                     console.log("Face detection failed, using estimation:", error);
                     // Fallback auf geschätzte Position
