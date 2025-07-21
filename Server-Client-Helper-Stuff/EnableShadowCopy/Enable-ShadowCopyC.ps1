@@ -35,9 +35,16 @@ function Enable-ShadowCopyC {
         ) -WindowStyle Hidden
 
         Write-Log "Schattenkopie für C:\ aktiviert mit max. $MaxPercent% = $([math]::Round($maxSizeBytes / 1MB)) MB."
-    }
-    else {
-        Write-Log "Schattenkopien für C:\ waren bereits aktiv. Keine Änderung."
+    } else {
+        Write-Log "Schattenkopien für C:\ waren bereits aktiv. Ändere auf $MaxPercent ..."
+        Start-Process -Wait -FilePath "vssadmin.exe" -ArgumentList @(
+            "resize shadowstorage",
+            "/for=C:",
+            "/on=C:",
+            "/maxsize=$([math]::Round($maxSizeBytes / 1MB))MB"
+        ) -WindowStyle Hidden
+
+        Write-Log "Schattenkopie für C:\ aktiviert mit max. $MaxPercent% = $([math]::Round($maxSizeBytes / 1MB)) MB."
     }
 }
 
