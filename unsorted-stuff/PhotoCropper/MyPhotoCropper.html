@@ -499,7 +499,7 @@
                         <div class="controls">
                             <div class="control-group">
                                 <label for="marginSlider">Rand um Gesicht: <span id="marginValue">50%</span></label>
-                                <input type="range" id="marginSlider" min="10" max="60" value="50" />
+                                <input type="range" id="marginSlider" min="10" max="200" value="50" />
                                 <label for="verticalOffset">Vertikale Position: <span id="offsetValue">0%</span></label>
                                 <input type="range" id="verticalOffset" min="-20" max="20" value="0" />
                                 <label for="horizontalOffset">Horizontale Position: <span
@@ -730,25 +730,31 @@
 
             async detectFaces(img) {
                 try {
-                    // FaceDetector API verwenden (falls verfügbar)
                     if ("FaceDetector" in window) {
+                        console.log("FaceDetector API available. Attempting to detect faces.");
                         const faceDetector = new FaceDetector();
                         const faces = await faceDetector.detect(img);
-                        this.detectedFaces = faces.map((face) => ({
-                            x: face.boundingBox.x,
-                            y: face.boundingBox.y,
-                            width: face.boundingBox.width,
-                            height: face.boundingBox.height,
-                        }));
+
+                        if (faces.length > 0) {
+                            console.log("FaceDetector API: Faces detected!", faces);
+                            this.detectedFaces = faces.map((face) => ({
+                                x: face.boundingBox.x,
+                                y: face.boundingBox.y,
+                                width: face.boundingBox.width,
+                                height: face.boundingBox.height,
+                            }));
+                        } else {
+                            console.log("FaceDetector API: No faces detected, falling back to estimation.");
+                            const estimatedFace = this.estimateFacePosition(img);
+                            this.detectedFaces = [estimatedFace];
+                        }
                     } else {
-                        // Fallback: Einfache Gesichtserkennung basierend auf Bildproportionen
-                        // Diese Implementierung nimmt an, dass das Gesicht im oberen Drittel des Bildes ist
+                        console.log("FaceDetector API NOT available, falling back to estimation.");
                         const estimatedFace = this.estimateFacePosition(img);
                         this.detectedFaces = [estimatedFace];
                     }
                 } catch (error) {
-                    console.log("Face detection failed, using estimation:", error);
-                    // Fallback auf geschätzte Position
+                    console.log("Face detection failed (Error caught!), using estimation:", error);
                     const estimatedFace = this.estimateFacePosition(img);
                     this.detectedFaces = [estimatedFace];
                 }
@@ -780,9 +786,21 @@
                 const imgNaturalWidth = this.originalImage.width;
                 const imgNaturalHeight = this.originalImage.height;
 
+
+                // NEUE LOG-AUSGABEN HIER:
+                console.log("Debug showFaceDetection:");
+                console.log("  imgNaturalWidth:", imgNaturalWidth);
+                console.log("  imgNaturalHeight:", imgNaturalHeight);
+                console.log("  originalImageEl.offsetWidth:", this.originalImageEl.offsetWidth);
+                console.log("  originalImageEl.offsetHeight:", this.originalImageEl.offsetHeight);
+
                 // Skalierungsfaktoren berechnen
                 const scaleX = this.originalImageEl.offsetWidth / imgNaturalWidth;
                 const scaleY = this.originalImageEl.offsetHeight / imgNaturalHeight;
+
+                // Fügen Sie hier die Log-Ausgabe hinzu:
+                console.log("scaleX in showFaceDetection:", scaleX);
+                console.log("scaleY in showFaceDetection:", scaleY);
 
                 this.detectedFaces.forEach((face) => {
                     const faceBox = document.createElement("div");
@@ -810,6 +828,9 @@
                         : largest
                 );
 
+                // NEUE LOG-AUSGABE HIER:
+                console.log("Primary Face Data (x, y, width, height):", primaryFace.x, primaryFace.y, primaryFace.width, primaryFace.height);
+
                 // Crop-Bereich berechnen
                 const cropSize = this.calculateCropSize(
                     primaryFace,
@@ -834,6 +855,11 @@
                     outputSize,
                     outputSize
                 );
+
+                console.log("cropSize.x in updateCroppedImage:", cropSize.x);
+                console.log("cropSize.y in updateCroppedImage:", cropSize.y);
+                console.log("cropSize.size in updateCroppedImage:", cropSize.size);
+                console.log("outputSize in updateCroppedImage:", outputSize);
 
                 // Ergebnis anzeigen
                 this.croppedImageEl.src = this.canvas.toDataURL("image/jpeg", 0.95);
