@@ -7,7 +7,24 @@ $deviceID = $volume.DeviceID
 
 $shadowCopiesFromVolumeC = Get-WmiObject Win32_ShadowCopy | Where-Object { $_.VolumeName -eq $deviceID }
 
-$shadowCopiesFromVolumeC | Select-Object ID, VolumeName, DeviceObject, InstallDate
+
+function Convert-WmiDateTime {
+    param (
+        [string]$WmiDate
+    )
+    if ($WmiDate -match '^(\d{14})') {
+        $dt = [datetime]::ParseExact($Matches[1], 'yyyyMMddHHmmss', $null)
+        return $dt.ToString('yyyyMMdd_HHmmss')
+    }
+    return $null
+}
+
+$shadowCopiesFromVolumeC | Select-Object ID, VolumeName, DeviceObject, @{
+    Name       = 'ErstelltAm'
+    Expression = { Convert-WmiDateTime $_.InstallDate }
+}
+
+
 
 # $deviceObject = $snapshot.DeviceObject + "\"
 # Write-Host "Snapshot erstellt unter: $deviceObject"

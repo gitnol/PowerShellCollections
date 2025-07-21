@@ -35,7 +35,8 @@ function Enable-ShadowCopyC {
         ) -WindowStyle Hidden
 
         Write-Log "Schattenkopie für C:\ aktiviert mit max. $MaxPercent% = $([math]::Round($maxSizeBytes / 1MB)) MB."
-    } else {
+    }
+    else {
         Write-Log "Schattenkopien für C:\ waren bereits aktiv. Ändere auf $MaxPercent ..."
         Start-Process -Wait -FilePath "vssadmin.exe" -ArgumentList @(
             "resize shadowstorage",
@@ -49,3 +50,10 @@ function Enable-ShadowCopyC {
 }
 
 Enable-ShadowCopyC -MaxPercent 10
+
+Enable-ComputerRestore -Drive 'C:\'
+Checkpoint-Computer -Description 'Initialer Wiederherstellungspunkt' -RestorePointType 'MODIFY_SETTINGS'
+
+
+# Erstellt eine Schattenkopie
+# $r = ([WmiClass]'root\cimv2:Win32_ShadowCopy').Create('C:\', 'ClientAccessible')
