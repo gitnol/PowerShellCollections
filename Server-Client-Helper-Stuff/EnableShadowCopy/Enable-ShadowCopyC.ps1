@@ -66,5 +66,15 @@ else {
     Write-Log "Initialer Wiederherstellungspunkt bereits vorhanden."
 }
 
+$myScriptPath = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
+$myFilename = "Wiederherstellungspunkt_C_Täglich.xml"
+$fullPath = Join-Path -Path $myScriptPath -ChildPath $myFilename
+if (Test-Path -Path $fullPath -PathType Leaf) {
+    schtasks /create /tn "Wiederherstellungspunkt_C_Täglich" /xml $fullPath /f
+}
+
+
+
+
 # Erstellt eine Schattenkopie
 # $r = ([WmiClass]'root\cimv2:Win32_ShadowCopy').Create('C:\', 'ClientAccessible')
