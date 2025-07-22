@@ -1,22 +1,23 @@
-function Enable-ShadowCopyC {
-    param(
-        [int]$MaxPercent = 10
-    )
-
+function Write-Log {
+    param([string]$Message)
     $logPath = "C:\Install"
     $logFile = "$logPath\shadowcopy.log"
 
     if (-not (Test-Path $logPath)) {
         New-Item -ItemType Directory -Path $logPath -Force | Out-Null
     }
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    "$timestamp - $Message" | Out-File -FilePath $logFile -Encoding UTF8 -Append
+}
 
-    function Write-Log {
-        param([string]$Message)
-        $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-        "$timestamp - $Message" | Out-File -FilePath $logFile -Encoding UTF8 -Append
-    }
+function Enable-ShadowCopyC {
+    param(
+        [int]$MaxPercent = 10
+    )
 
-    $volume = Get-CimInstance -Query "SELECT * FROM Win32_Volume WHERE DriveLetter = 'C:' AND FileSystem = 'NTFS'"
+    # $volume = Get-CimInstance -Query "SELECT * FROM Win32_Volume WHERE DriveLetter = 'C:' AND FileSystem = 'NTFS'"
+    $volume = Get-CimInstance -Namespace root\cimv2 -ClassName Win32_Volume | Where-Object { $_.Name -eq "C:\" -and $_.FileSystem -eq "NTFS" }
+
     if (-not $volume) {
         Write-Log "C:\ nicht gefunden oder kein NTFS-Dateisystem. Abbruch."
         return
@@ -45,15 +46,25 @@ function Enable-ShadowCopyC {
             "/maxsize=$([math]::Round($maxSizeBytes / 1MB))MB"
         ) -WindowStyle Hidden
 
-        Write-Log "Schattenkopie für C:\ aktiviert mit max. $MaxPercent% = $([math]::Round($maxSizeBytes / 1MB)) MB."
+        Write-Log "Schattenkopie für C:\ geändert mit max. $MaxPercent% = $([math]::Round($maxSizeBytes / 1MB)) MB."
     }
 }
 
+# Legt die maximale Größe der Schattenkopie fest und aktiviert sie
 Enable-ShadowCopyC -MaxPercent 10
 
+# Aktiviert den Systemschutz für C:\
 Enable-ComputerRestore -Drive 'C:\'
-Checkpoint-Computer -Description 'Initialer Wiederherstellungspunkt' -RestorePointType 'MODIFY_SETTINGS'
 
+# Erstellt einen initialen Wiederherstellungspunkt
+if (-not (Get-ComputerRestorePoint -ErrorAction SilentlyContinue)) {
+    Write-Log "Erstelle initialen Wiederherstellungspunkt ..."
+    Checkpoint-Computer -Description 'Initialer Wiederherstellungspunkt' -RestorePointType 'MODIFY_SETTINGS' -ErrorAction Stop
+    Write-Log "Initialer Wiederherstellungspunkt erstellt."
+}
+else {
+    Write-Log "Initialer Wiederherstellungspunkt bereits vorhanden."
+}
 
 # Erstellt eine Schattenkopie
 # $r = ([WmiClass]'root\cimv2:Win32_ShadowCopy').Create('C:\', 'ClientAccessible')
