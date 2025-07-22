@@ -26,6 +26,19 @@ $shadowCopiesFromVolumeC | Select-Object ID, VolumeName, DeviceObject, @{
 
 
 
+# # Get the snapshot object (replace with your specific query)
+# $snapshot = Get-CimInstance -ClassName Win32_ShadowCopy | Where-Object { $_.ID -eq "your_snapshot_id" }
+
+# # Delete the snapshot
+# if ($snapshot) {
+#     $snapshot | Remove-CimInstance
+#     Write-Host "Snapshot deleted."
+# }
+# else {
+#     Write-Host "Snapshot not found."
+# }
+
+
 # $deviceObject = $snapshot.DeviceObject + "\"
 # Write-Host "Snapshot erstellt unter: $deviceObject"
 
