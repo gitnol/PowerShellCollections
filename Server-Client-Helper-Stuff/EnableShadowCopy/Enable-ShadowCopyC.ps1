@@ -54,7 +54,7 @@ function Enable-ShadowCopyC {
 Enable-ShadowCopyC -MaxPercent 10
 
 # Aktiviert den Systemschutz für C:\
-Enable-ComputerRestore -Drive 'C:\'
+Enable-ComputerRestore -Drive 'C:\':
 
 # Erstellt einen initialen Wiederherstellungspunkt
 if (-not (Get-ComputerRestorePoint -ErrorAction SilentlyContinue)) {
