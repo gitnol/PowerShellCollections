@@ -15,14 +15,14 @@ PowerShell 7 AD Computer Monitor
 
 # Globale Konfiguration
 $Global:ModuleConfig = @{
-    SMTPServer = "smtp.company.com"
-    SMTPPort = 587
-    FromAddress = "monitoring@company.com"
-    ToAddress = @("admin@company.com")
-    UseSSL = $true
-    PingTimeout = 2000
+    SMTPServer      = "smtp.company.com"
+    SMTPPort        = 587
+    FromAddress     = "monitoring@company.com"
+    ToAddress       = @("admin@company.com")
+    UseSSL          = $true
+    PingTimeout     = 2000
     MaxParallelJobs = 50
-    LogPath = "$env:TEMP\Win10Monitor.log"
+    LogPath         = "$env:TEMP\Win10Monitor.log"
 }
 
 function Write-LogMessage {
@@ -43,7 +43,7 @@ function Write-LogMessage {
     $logEntry = "[$timestamp] [$Level] $Message"
     
     Write-Host $logEntry -ForegroundColor $(
-        switch($Level) {
+        switch ($Level) {
             'INFO' { 'Green' }
             'WARNING' { 'Yellow' }
             'ERROR' { 'Red' }
@@ -92,7 +92,8 @@ function Get-Windows10Computers {
             try {
                 Import-Module ActiveDirectory -ErrorAction Stop
                 return Get-Windows10ComputersWithADModule -SearchBase $SearchBase -IncludeDisabled:$IncludeDisabled
-            } catch {
+            }
+            catch {
                 Write-LogMessage "ActiveDirectory-Modul konnte nicht verwendet werden, verwende LDAP-Fallback..." -Level WARNING
             }
         }
@@ -100,7 +101,8 @@ function Get-Windows10Computers {
         # Fallback zu DirectorySearcher
         return Get-Windows10ComputersWithLDAP -SearchBase $SearchBase -IncludeDisabled:$IncludeDisabled -Domain $Domain
         
-    } catch {
+    }
+    catch {
         Write-LogMessage "Fehler beim Abrufen der AD-Computer: $($_.Exception.Message)" -Level ERROR
         throw
     }
@@ -119,7 +121,7 @@ function Get-Windows10ComputersWithADModule {
     }
     
     $params = @{
-        Filter = $filter
+        Filter     = $filter
         Properties = @('Name', 'OperatingSystem', 'OperatingSystemVersion', 'LastLogonDate', 'IPv4Address', 'Enabled', 'Description')
     }
     
@@ -151,7 +153,8 @@ function Get-Windows10ComputersWithLDAP {
         $ldapPath = "LDAP://$Domain"
         if ($SearchBase) {
             $ldapPath += "/$SearchBase"
-        } else {
+        }
+        else {
             $ldapPath += "/$domainDN"
         }
         
@@ -169,9 +172,9 @@ function Get-Windows10ComputersWithLDAP {
         
         $searcher.Filter = $filter
         $searcher.PropertiesToLoad.AddRange(@(
-            "name", "operatingSystem", "operatingSystemVersion", 
-            "lastLogonTimestamp", "dNSHostName", "userAccountControl", "description"
-        ))
+                "name", "operatingSystem", "operatingSystemVersion", 
+                "lastLogonTimestamp", "dNSHostName", "userAccountControl", "description"
+            ))
         
         $results = $searcher.FindAll()
         
@@ -196,23 +199,24 @@ function Get-Windows10ComputersWithLDAP {
             try {
                 if ($props["dNSHostName"][0]) {
                     $ipv4 = [System.Net.Dns]::GetHostAddresses($props["dNSHostName"][0]) | 
-                           Where-Object { $_.AddressFamily -eq 'InterNetwork' } | 
-                           Select-Object -First 1 -ExpandProperty IPAddressToString
+                    Where-Object { $_.AddressFamily -eq 'InterNetwork' } | 
+                    Select-Object -First 1 -ExpandProperty IPAddressToString
                 }
-            } catch {
+            }
+            catch {
                 # DNS-Lookup fehlgeschlagen
             }
             
             # PSCustomObject erstellen (kompatibel mit AD-Modul-Ausgabe)
             [PSCustomObject]@{
-                Name = $props["name"][0]
-                OperatingSystem = $props["operatingSystem"][0]
+                Name                   = $props["name"][0]
+                OperatingSystem        = $props["operatingSystem"][0]
                 OperatingSystemVersion = $props["operatingSystemVersion"][0]
-                LastLogonDate = $lastLogon
-                IPv4Address = $ipv4
-                Enabled = $enabled
-                Description = $props["description"][0]
-                DNSHostName = $props["dNSHostName"][0]
+                LastLogonDate          = $lastLogon
+                IPv4Address            = $ipv4
+                Enabled                = $enabled
+                Description            = $props["description"][0]
+                DNSHostName            = $props["dNSHostName"][0]
             }
         }
         
@@ -222,7 +226,8 @@ function Get-Windows10ComputersWithLDAP {
         Write-LogMessage "Gefunden: $($computers.Count) Windows 10 Computer (LDAP-Abfrage)"
         return $computers
         
-    } catch {
+    }
+    catch {
         Write-LogMessage "Fehler bei LDAP-Abfrage: $($_.Exception.Message)" -Level ERROR
         throw
     }
@@ -268,7 +273,7 @@ function Test-ComputerConnectivity {
             $timeout = $using:TimeoutMs
             
             try {
-                $ping = Test-Connection -ComputerName $computer.Name -Count 1 -TimeoutSeconds ($timeout/1000) -Quiet -ErrorAction Stop
+                $ping = Test-Connection -ComputerName $computer.Name -Count 1 -TimeoutSeconds ($timeout / 1000) -Quiet -ErrorAction Stop
                 
                 if ($ping) {
                     # Zusätzliche Informationen sammeln
@@ -282,25 +287,27 @@ function Test-ComputerConnectivity {
                             $lastBootTime = $wmi.LastBootUpTime
                             $osVersion = $wmi.Version
                         }
-                    } catch {
+                    }
+                    catch {
                         # Ignoriere WMI-Fehler, Ping war erfolgreich
                     }
                     
                     [PSCustomObject]@{
-                        ComputerName = $computer.Name
-                        OperatingSystem = $computer.OperatingSystem
+                        ComputerName           = $computer.Name
+                        OperatingSystem        = $computer.OperatingSystem
                         OperatingSystemVersion = $computer.OperatingSystemVersion
-                        OSVersionDetailed = $osVersion
-                        LastLogonDate = $computer.LastLogonDate
-                        LastBootTime = $lastBootTime
-                        IPv4Address = $computer.IPv4Address
-                        Enabled = $computer.Enabled
-                        Description = $computer.Description
-                        PingSuccess = $true
-                        TestTimestamp = Get-Date
+                        OSVersionDetailed      = $osVersion
+                        LastLogonDate          = $computer.LastLogonDate
+                        LastBootTime           = $lastBootTime
+                        IPv4Address            = $computer.IPv4Address
+                        Enabled                = $computer.Enabled
+                        Description            = $computer.Description
+                        PingSuccess            = $true
+                        TestTimestamp          = Get-Date
                     }
                 }
-            } catch {
+            }
+            catch {
                 # Computer nicht erreichbar - kein Objekt zurückgeben
             }
         } -ThrottleLimit $MaxParallelJobs
@@ -310,7 +317,8 @@ function Test-ComputerConnectivity {
         
         return $onlineComputers
         
-    } catch {
+    }
+    catch {
         Write-LogMessage "Fehler beim Konnektivitätstest: $($_.Exception.Message)" -Level ERROR
         throw
     }
@@ -450,7 +458,8 @@ function Send-ComputerStatusMail {
             Remove-Item $csvPath -Force
         }
         
-    } catch {
+    }
+    catch {
         Write-LogMessage "Fehler beim E-Mail-Versand: $($_.Exception.Message)" -Level ERROR
         throw
     }
@@ -525,7 +534,8 @@ function Send-SecureEmail {
         $mailMessage.Dispose()
         $smtpClient.Dispose()
         
-    } catch {
+    }
+    catch {
         # Detaillierte Fehlermeldung
         $errorDetails = $_.Exception.Message
         if ($_.Exception.InnerException) {
@@ -543,7 +553,8 @@ function Send-SecureEmail {
         }
         
         throw
-    } finally {
+    }
+    finally {
         # Sicherstellen, dass Ressourcen freigegeben werden
         if ($attachment) { 
             try { $attachment.Dispose() } catch { }
@@ -632,7 +643,7 @@ function Invoke-Windows10ComputerMonitoring {
         # 3. E-Mail senden
         $mailParams = @{
             ComputerData = $onlineComputers
-            SMTPConfig = $Global:ModuleConfig
+            SMTPConfig   = $Global:ModuleConfig
         }
         if ($SendCSVAttachment) { $mailParams.IncludeCSVAttachment = $true }
         
@@ -643,14 +654,15 @@ function Invoke-Windows10ComputerMonitoring {
         
         # Rückgabe für weitere Verarbeitung
         return [PSCustomObject]@{
-            TotalComputers = $adComputers.Count
-            OnlineComputers = $onlineComputers.Count
+            TotalComputers   = $adComputers.Count
+            OnlineComputers  = $onlineComputers.Count
             OfflineComputers = $adComputers.Count - $onlineComputers.Count
-            ComputerData = $onlineComputers
-            Timestamp = Get-Date
+            ComputerData     = $onlineComputers
+            Timestamp        = Get-Date
         }
         
-    } catch {
+    }
+    catch {
         Write-LogMessage "Kritischer Fehler im Monitoring-Prozess: $($_.Exception.Message)" -Level ERROR
         throw
     }
@@ -734,7 +746,8 @@ function Test-SMTPConfiguration {
         Send-SecureEmail -SMTPConfig $SMTPConfig -Subject "SMTP Test - $(Get-Date -Format 'HH:mm:ss')" -HtmlBody $testBody
         Write-Host "✓ SMTP-Test erfolgreich!" -ForegroundColor Green
         
-    } catch {
+    }
+    catch {
         Write-Host "✗ SMTP-Test fehlgeschlagen: $($_.Exception.Message)" -ForegroundColor Red
         throw
     }
@@ -750,35 +763,35 @@ function Get-CommonSMTPSettings {
     #>
     
     $providers = @{
-        "Gmail" = @{
+        "Gmail"                        = @{
             SMTPServer = "smtp.gmail.com"
-            SMTPPort = 587
-            UseSSL = $true
-            Note = "App-Passwort erforderlich wenn 2FA aktiviert"
+            SMTPPort   = 587
+            UseSSL     = $true
+            Note       = "App-Passwort erforderlich wenn 2FA aktiviert"
         }
-        "Outlook/Hotmail" = @{
+        "Outlook/Hotmail"              = @{
             SMTPServer = "smtp-mail.outlook.com" 
-            SMTPPort = 587
-            UseSSL = $true
-            Note = "App-Passwort empfohlen"
+            SMTPPort   = 587
+            UseSSL     = $true
+            Note       = "App-Passwort empfohlen"
         }
         "Exchange Online (Office 365)" = @{
             SMTPServer = "smtp.office365.com"
-            SMTPPort = 587  
-            UseSSL = $true
-            Note = "Modern Auth oder App-Passwort"
+            SMTPPort   = 587  
+            UseSSL     = $true
+            Note       = "Modern Auth oder App-Passwort"
         }
-        "Exchange On-Premises" = @{
+        "Exchange On-Premises"         = @{
             SMTPServer = "mail.company.com"
-            SMTPPort = 587
-            UseSSL = $true
-            Note = "Interne Exchange-Adresse verwenden"
+            SMTPPort   = 587
+            UseSSL     = $true
+            Note       = "Interne Exchange-Adresse verwenden"
         }
-        "Yahoo" = @{
+        "Yahoo"                        = @{
             SMTPServer = "smtp.mail.yahoo.com"
-            SMTPPort = 587
-            UseSSL = $true
-            Note = "App-Passwort erforderlich"
+            SMTPPort   = 587
+            UseSSL     = $true
+            Note       = "App-Passwort erforderlich"
         }
     }
     
