@@ -1,4 +1,8 @@
 function Get-DiskTypes {
+    param (
+        [Parameter(Mandatory = $false, Position = 0)]
+        [string]$ComputerName = 'localhost'
+    )
     $BusTypeMap = @{
         0 = 'Unbekannt'; 1 = 'SCSI'; 2 = 'ATAPI'; 3 = 'ATA'; 4 = 'IEEE1394'; 5 = 'SSA'; 6 = 'FibreChannel'
         7 = 'USB'; 8 = 'RAID'; 9 = 'iSCSI'; 10 = 'SAS'; 11 = 'SATA'; 12 = 'SD'; 13 = 'MMC'
@@ -8,7 +12,7 @@ function Get-DiskTypes {
         0 = 'Unspecified'; 3 = 'HDD'; 4 = 'SSD'; 5 = 'SCM'
     }
 
-    Get-CimInstance -Namespace root/Microsoft/Windows/Storage -ClassName MSFT_PhysicalDisk |
+    Get-CimInstance -Namespace root/Microsoft/Windows/Storage -ClassName MSFT_PhysicalDisk -ComputerName $ComputerName |
     ForEach-Object {
         $mediaRaw = $_.MediaType
         $busRaw = $_.BusType
