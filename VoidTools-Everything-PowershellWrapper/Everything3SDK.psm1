@@ -1,3 +1,15 @@
+Write-Host "=== DEBUG: Everything3SDK.psm1 wird geladen von: $PSCommandPath ===" -ForegroundColor Green
+Write-Host "PSScriptRoot: $PSScriptRoot" -ForegroundColor Yellow
+
+$ModulePath = $PSScriptRoot
+$DllPath = Join-Path $ModulePath "Everything3_x64.dll"
+Write-Host "DLL-Pfad: $DllPath" -ForegroundColor Cyan
+Write-Host "DLL existiert: $(Test-Path $DllPath)" -ForegroundColor Cyan
+
+# Modul-Pfad zu PATH hinzufügen für DLL-Loading
+$env:PATH = "$ModulePath;$env:PATH"
+Write-Host "Modul-Pfad zu PATH hinzugefügt" -ForegroundColor Yellow 
+
 #region P/Invoke Definitions
 
 # Korrigierte C# Wrapper-Klasse für Everything3 SDK
@@ -111,14 +123,54 @@ public static class Everything3Properties
 }
 "@
 
-# Typ zu PowerShell hinzufügen
-try {
-    Add-Type -TypeDefinition $Everything3Type # -ErrorAction SilentlyContinue
-    Write-Verbose "Everything3 SDK-Typen erfolgreich geladen"
+# $TempFile = [System.IO.Path]::GetTempFileName() + ".cs"
+# Write-Host "Temp-Datei: $TempFile" -ForegroundColor Magenta
+
+$typeExists = $null -ne ([System.Management.Automation.PSTypeName]'Everything3SDK').Type
+Write-Host "Everything3SDK Type bereits geladen: $typeExists" -ForegroundColor Yellow
+
+$typeExists = $null -ne ([System.Management.Automation.PSTypeName]'Everything3SDK').Type
+Write-Verbose "Everything3SDK Type bereits geladen: $typeExists"
+if (-not $typeExists) {
+    try {
+
+        Write-Host "Lade native DLL explizit: $DllPath" -ForegroundColor Yellow
+        
+        # Kernel32 LoadLibrary P/Invoke definieren
+        $Kernel32Type = @"
+using System;
+using System.Runtime.InteropServices;
+
+public static class Kernel32
+{
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern IntPtr LoadLibrary(string lpFileName);
+    
+    [DllImport("kernel32.dll", SetLastError = true)]
+    public static extern bool FreeLibrary(IntPtr hModule);
 }
-catch {
-    if ($_.Exception.Message -notmatch "already exists") {
-        throw "Fehler beim Laden der Everything3 SDK-Typen: $($_.Exception.Message)"
+"@
+
+        # Kernel32 Type laden falls noch nicht vorhanden
+        if (-not ([System.Management.Automation.PSTypeName]'Kernel32').Type) {
+            Add-Type -TypeDefinition $Kernel32Type
+        }
+        
+        # DLL laden (Weil in VSCode es ansonsten nicht funktioniert)
+        $hModule = [Kernel32]::LoadLibrary($DllPath)
+        if ($hModule -eq [IntPtr]::Zero) {
+            throw "Fehler beim Laden der nativen DLL: $DllPath"
+        }
+        Write-Host "Native DLL erfolgreich geladen, Handle: $hModule" -ForegroundColor Green
+
+        # Prüfen ob Type bereits existiert
+        # $Everything3Type | Out-File -FilePath $TempFile -Encoding UTF8
+        # Add-Type -Path $TempFile -ErrorAction Stop
+        Add-Type -TypeDefinition $Everything3Type -ErrorAction Stop
+        Write-Host "Everything3SDK Types über temporäre Datei geladen" -ForegroundColor Green
+    }
+    finally {
+        # if (Test-Path $TempFile) { Remove-Item $TempFile }
     }
 }
 
