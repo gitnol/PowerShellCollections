@@ -1,14 +1,14 @@
-Write-Host "=== DEBUG: Everything3SDK.psm1 wird geladen von: $PSCommandPath ===" -ForegroundColor Green
-Write-Host "PSScriptRoot: $PSScriptRoot" -ForegroundColor Yellow
+Write-Verbose "=== DEBUG: Everything3SDK.psm1 wird geladen von: $PSCommandPath ==="
+Write-Verbose "PSScriptRoot: $PSScriptRoot"
 
 $ModulePath = $PSScriptRoot
 $DllPath = Join-Path $ModulePath "Everything3_x64.dll"
-Write-Host "DLL-Pfad: $DllPath" -ForegroundColor Cyan
-Write-Host "DLL existiert: $(Test-Path $DllPath)" -ForegroundColor Cyan
+Write-Verbose "DLL-Pfad: $DllPath"
+Write-Verbose "DLL existiert: $(Test-Path $DllPath)"
 
 # Modul-Pfad zu PATH hinzufügen für DLL-Loading
 $env:PATH = "$ModulePath;$env:PATH"
-Write-Host "Modul-Pfad zu PATH hinzugefügt" -ForegroundColor Yellow 
+Write-Verbose "Modul-Pfad zu PATH hinzugefügt"
 
 #region P/Invoke Definitions
 
@@ -123,14 +123,12 @@ public static class Everything3Properties
 }
 "@
 
-# $TempFile = [System.IO.Path]::GetTempFileName() + ".cs"
-# Write-Host "Temp-Datei: $TempFile" -ForegroundColor Magenta
-
 $typeExists = $null -ne ([System.Management.Automation.PSTypeName]'Everything3SDK').Type
-Write-Host "Everything3SDK Type bereits geladen: $typeExists" -ForegroundColor Yellow
+Write-Verbose "Everything3SDK Type bereits geladen: $typeExists"
 
 $typeExists = $null -ne ([System.Management.Automation.PSTypeName]'Everything3SDK').Type
 Write-Verbose "Everything3SDK Type bereits geladen: $typeExists"
+
 if (-not $typeExists) {
     try {
 
@@ -161,16 +159,13 @@ public static class Kernel32
         if ($hModule -eq [IntPtr]::Zero) {
             throw "Fehler beim Laden der nativen DLL: $DllPath"
         }
-        Write-Host "Native DLL erfolgreich geladen, Handle: $hModule" -ForegroundColor Green
+        Write-Verbose "Native DLL erfolgreich geladen, Handle: $hModule"
 
-        # Prüfen ob Type bereits existiert
-        # $Everything3Type | Out-File -FilePath $TempFile -Encoding UTF8
-        # Add-Type -Path $TempFile -ErrorAction Stop
         Add-Type -TypeDefinition $Everything3Type -ErrorAction Stop
-        Write-Host "Everything3SDK Types über temporäre Datei geladen" -ForegroundColor Green
+        Write-Verbose "Everything3SDK Types über temporäre Datei geladen"
     }
     finally {
-        # if (Test-Path $TempFile) { Remove-Item $TempFile }
+        Write-Verbose "Finishe: Alles geladen, DLL Handle: $hModule"
     }
 }
 
