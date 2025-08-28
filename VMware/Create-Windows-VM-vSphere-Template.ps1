@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Bereitet eine Windows-VM als vSphere-Template vor ("Gold Standard"-Version).
+    Bereitet eine Windows-VM als vSphere-Template vor.
 .DESCRIPTION
     Version: 4.1 (Linter-Fixed)
     Dieses Skript führt eine tiefgreifende Systembereinigung durch, inklusive Sicherheits-Hardening,
@@ -16,11 +16,11 @@
     Führt zum Schluss Sysprep /generalize /oobe /shutdown /mode:vm aus.
 .EXAMPLE
     # Führt den kompletten "Gold Standard"-Lauf durch und versiegelt die VM.
-    .\Prep-Template-V4.1.ps1 -ClearEventLogs -ClearWSUS -AggressiveDISM -SysprepAndShutdown
+    .\Create-Windows-VM-vSphere-Template.ps1 -ClearEventLogs -ClearWSUS -AggressiveDISM -SysprepAndShutdown
 
 .EXAMPLE
     # Führt einen Trockenlauf durch, um alle geplanten Aktionen anzuzeigen.
-    .\Prep-Template-V4.1.ps1 -ClearEventLogs -ClearWSUS -AggressiveDISM -SysprepAndShutdown -WhatIf
+    .\Create-Windows-VM-vSphere-Template.ps1 -ClearEventLogs -ClearWSUS -AggressiveDISM -SysprepAndShutdown -WhatIf
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(
