@@ -4,6 +4,7 @@
 # Perhaps it would be better to do this with Invoke-Command
 
 function Get-LoggedInUsers {
+    # Get-LoggedOnUsers / Get-LoggedInUsers
     param (
         [Parameter(Mandatory = $true)]
         [string[]]$ComputerNames,
@@ -21,12 +22,14 @@ function Get-LoggedInUsers {
                     # Query the Win32_Process CIM class to get all 'explorer.exe' processes
                     if ($Credential) {
                         $myCIMSession = New-CimSession -ComputerName $ComputerName -Credential $Credential
-                    } else {
+                    }
+                    else {
                         $myCIMSession = New-CimSession -ComputerName $ComputerName
                     }
                     if ((($env:COMPUTERNAME).ToLower() -eq $ComputerName.ToLower()) -or (-not $myCIMSession)) {
                         $processes = Get-CimInstance -ClassName Win32_Process -Filter "Name = 'explorer.exe'" # -ComputerName $ComputerName
-                    } else {
+                    }
+                    else {
                         $processes = Get-CimInstance -CimSession $myCIMSession  -ClassName Win32_Process -Filter "Name = 'explorer.exe'" # -ComputerName $ComputerName
                     }
 
@@ -37,7 +40,8 @@ function Get-LoggedInUsers {
                             # There seems to be a bug within Get-CimInstance using a CimSession when the Host queried is the local Computer where the script is running
                             # beside that... the local query without cimsession is faster.
                             $logonSessions = Get-CimInstance -Query "Associators of {Win32_Process='$processId'} Where Resultclass = Win32_LogonSession Assocclass = Win32_SessionProcess" # -ComputerName $ComputerName
-                        } else {
+                        }
+                        else {
                             $logonSessions = Get-CimInstance -CimSession $myCIMSession -Query "Associators of {Win32_Process='$processId'} Where Resultclass = Win32_LogonSession Assocclass = Win32_SessionProcess" # -ComputerName $ComputerName
                         }
                         
@@ -62,38 +66,40 @@ function Get-LoggedInUsers {
                         # Write the pscustomobject to the pipeline
                         [pscustomobject]@{
                             ComputerName = $ComputerName
-                            userDomain = $ownerInfo.Domain
-                            userName   = $ownerInfo.User
-                            SessionID  = $process.SessionID
-                            logonType  = $logonType
-                            online     = $true
-                            success    = $true
+                            userDomain   = $ownerInfo.Domain
+                            userName     = $ownerInfo.User
+                            SessionID    = $process.SessionID
+                            logonType    = $logonType
+                            online       = $true
+                            success      = $true
                         }
                     }
-                } catch {
+                }
+                catch {
                     # If an error occurs, return an empty string
                     Write-Error "Exception Message: $($_.Exception.Message)"
                     Write-Error "Inner Exception: $($_.Exception.InnerException)"
                     Write-Error "Inner Exception Message: $($_.Exception.InnerException.Message)"
                     [pscustomobject]@{
                         ComputerName = $ComputerName
-                        userDomain = ""
-                        userName   = ""
-                        SessionID  = ""
-                        logonType  = ""
-                        online     = $true
-                        success    = $false
+                        userDomain   = ""
+                        userName     = ""
+                        SessionID    = ""
+                        logonType    = ""
+                        online       = $true
+                        success      = $false
                     }
                 }
-            } else {
+            }
+            else {
                 [pscustomobject]@{
                     ComputerName = $ComputerName
-                    userDomain = ""
-                    userName   = ""
-                    SessionID  = ""
-                    logonType  = ""
-                    online     = $false
-                    success    = $false
+                    userDomain   = ""
+                    userName     = ""
+                    SessionID    = ""
+                    logonType    = ""
+                    online       = $false
+                    success      = $false
                 }
                 # If the computer is not online, return an error message
                 Write-Error "ERROR: Computer is not pingable"
