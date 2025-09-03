@@ -14,6 +14,7 @@
     - Das 'Privileged Access Management Feature' muss im AD Forest aktiviert sein.
 
 .VERSION
+    2.1 - Kleinere Korrekturen und Verbesserungen
     2.0 - Refactored by Gemini
     Version 1.2 Tastenkombinationen hinzufügt.
     Version 1.1 diverse Änderungen u.a. mehrfaches Hinzufügen bei laufendem Dialog // Mehrfachauswahl bei Listenfeld inkl STRG+C Funktion zum kopieren!
@@ -30,8 +31,12 @@
     
 #>
 
-#Requires -Modules ActiveDirectory
 #Requires -RunAsAdministrator
+# --- GUI Erstellung ---
+Import-Module ActiveDirectory
+
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
 
 # --- Initialisierung und Überprüfung ---
 
@@ -49,11 +54,6 @@ catch {
     [System.Windows.Forms.MessageBox]::Show("Das PAM-Feature konnte nicht überprüft werden. Stellen Sie sicher, dass das AD-Modul geladen ist und Sie ausreichende Berechtigungen haben.`n`nFehler: $($_.Exception.Message)", "Fehler", "OK", "Error")
     exit
 }
-
-# --- GUI Erstellung ---
-
-Add-Type -AssemblyName System.Windows.Forms
-Add-Type -AssemblyName System.Drawing
 
 # Formular erstellen
 $mainForm = New-Object System.Windows.Forms.Form
