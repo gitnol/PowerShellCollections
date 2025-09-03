@@ -1,4 +1,4 @@
-# Version 1.0 geklaut aus diversen Quellen und abgeändert durch mich am 10.08.2021
+# Version 1.0 geklaut aus diversen Quellen und abgeändert durch M.Arnoldi am 10.08.2021
 # Version 1.1 diverse Änderungen u.a. mehrfaches Hinzufügen bei laufendem Dialog // Mehrfachauswahl bei Listenfeld inkl STRG+C Funktion zum kopieren!
 # Version 1.2 Tastenkombinationen hinzufügt.
 # Quellen:
@@ -10,17 +10,24 @@
 # Prüfen ob Privileded Access Management Feature aktiviert ist
 
 If ((Get-ADOptionalFeature -Identity 'Privileged Access Management Feature').EnabledScopes.Count -eq 0) {
+   
     $Result = [System.Windows.Forms.MessageBox]::Show("Das Feature Privileged Access Management Feature wurde nicht gefunden, das Programm wird nicht fortgeführt!", "Frage an den Benutzer", 0)
-} else {
+}
+else {
+
     #Globale Befehle abschicken um User aus dem AD in $user zu laden (siehe dropdown)
-    $user = Get-ADUser -Filter { (name -notlike "HealthMailbox*") -and (name -notlike "SystemMailbox*")
-        -and (name -notlike "DiscoverySearchMailbox*") -and (name -notlike "FederatedEmail*")
-        -and (name -notlike "Migration.*") -and (name -notlike "Exchange Online-ApplicationAccount*")
-        -and (name -notlike "DefaultAccount") -and (name -notlike "Gast") } -properties * |
-    Select-Object -ExpandProperty SamAccountName | Sort-Object
+    $user = Get-ADUser -Filter * -Properties SamAccountName |
+    Where-Object { $_.Name -notmatch '^(HealthMailbox|SystemMailbox|DiscoverySearchMailbox|FederatedEmail|Migration\.|Exchange Online-ApplicationAccount|DefaultAccount|Gast)' } |
+    Select-Object -ExpandProperty SamAccountName |
+    Sort-Object
+
+    # Write-Host($user)
+    # Write-Host($user.count)
+
+
 
     #Globale Befehle abschicken um Gruppen aus dem AD in $gruppen zu laden (siehe dropdown)
-    $Gruppen = Get-ADGroup -Filter * | Select-Object -ExpandProperty SamAccountName | Sort-Object
+    $Gruppen = Get-ADGroup -Filter * | Select -ExpandProperty SamAccountName | Sort-Object
 
     $MemberList = @()
     $testGesamt = @()
@@ -28,7 +35,7 @@ If ((Get-ADOptionalFeature -Identity 'Privileged Access Management Feature').Ena
     foreach ($gruppe in $Gruppen) {
         $GroupName = $gruppe
         $GroupMembers = (Get-ADGroup $GroupName -Property member -ShowMemberTimeToLive).Member
-
+    
         foreach ($GroupMember in $GroupMembers) {
             if ($GroupMember -match "TTL=") {
                 $TTL = $GroupMember.split(",")[0].split("=")[1].replace(">", "")
@@ -36,13 +43,14 @@ If ((Get-ADOptionalFeature -Identity 'Privileged Access Management Feature').Ena
                 $MemberDN = $GroupMember.Split(">")[1].Replace(",CN", "CN")
                 #$username = (Get-ADUser -Filter * -SearchBase "$MemberDN" | select Name)
                 $username = (Get-ADUser -Filter * -SearchBase "$MemberDN")
-                # $test = new-object PSObject -property @{DN = $MemberDN; Group = $GroupName; TTLDate = "$TTLDate"; TTL = "$TTL" }
+                $test = new-object PSObject -property @{DN = $MemberDN; Group = $GroupName; TTLDate = "$TTLDate"; TTL = "$TTL" }
                 $testGesamt += $username.Name + " -> " + $groupName + " bis " + $TTLDate.ToString("dd/MM/yyyy HH:mm:ss")
                 #$test
                 $MemberList += $username
                 #$MemberListGroupName += $GroupName
                 #$MemberList += $test
-            } else {
+            }
+            else {
                 #$TTL = "Unlimited"
                 #$TTLDate = "Unlimited"
                 #$MemberDN = $GroupMember
@@ -51,7 +59,8 @@ If ((Get-ADOptionalFeature -Identity 'Privileged Access Management Feature').Ena
         }
     }
 
-    $MemberList = ($MemberList | Sort-Object) | Select-Object Name
+
+    $MemberList = ($MemberList | Sort-Object) | select Name
 
     # GUI erstellen
     [void] [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing") 
@@ -66,6 +75,7 @@ If ((Get-ADOptionalFeature -Identity 'Privileged Access Management Feature').Ena
     $objForm.Text = 'Temporäre Gruppenmitgliedschaft setzen'
     $objForm.Size = New-Object Drawing.Size @(1000, 490) # 490
     $objForm.StartPosition = 'CenterScreen'
+
 
     $objLabelLB = New-Object System.Windows.Forms.Label
     $objLabelLB.Location = New-Object System.Drawing.Size(240, 60) 
@@ -115,8 +125,9 @@ If ((Get-ADOptionalFeature -Identity 'Privileged Access Management Feature').Ena
     $objForm.Add_Shown({ $objForm.Activate() })
     $objCombobox.Items.AddRange($user) #User werden aus der Variable geladen und angezeigt
     $objCombobox.SelectedItem #ausgewählter Username wird übernommen
+            
+    #$objCombobox.Add_SelectedIndexChanged({ })
 
-    #$objCombobox.Add_SelectedIndexChanged({ })#
 
     #Drop DownFeld für Gruppen
 
@@ -137,8 +148,9 @@ If ((Get-ADOptionalFeature -Identity 'Privileged Access Management Feature').Ena
     $objForm.Add_Shown({ $objForm.Activate() })
     $objCombobox1.Items.AddRange($gruppen) #User werden aus der Variable geladen und angezeigt
     $objCombobox1.SelectedItem #ausgewählter Username wird übernommen
-    
+            
     #$objCombobox.Add_SelectedIndexChanged({ })
+
 
     #Kalender
     $objLabel = New-Object System.Windows.Forms.Label
@@ -169,7 +181,8 @@ If ((Get-ADOptionalFeature -Identity 'Privileged Access Management Feature').Ena
             if (Get-ADGroupMember $objCombobox1.SelectedItem | Where-Object { $_.SamAccountName -eq $objCombobox.SelectedItem }) {
 
                 $Result = [System.Windows.Forms.MessageBox]::Show($mgm1, "Frage an den Benutzer", 0)
-            } else {
+            }
+            else {
                 $Tag1 = $calendar.SelectionStart
                 $Tag2 = Get-Date
                 $Tag = ($Tag1 - $Tag2).TotalMinutes
@@ -178,6 +191,7 @@ If ((Get-ADOptionalFeature -Identity 'Privileged Access Management Feature').Ena
 
                 $Result = [System.Windows.Forms.MessageBox]::Show($mgm2, "Frage an den Benutzer", 0)
             }
+
         })
 
     $objForm.AcceptButton = $OKButton
@@ -203,16 +217,21 @@ If ((Get-ADOptionalFeature -Identity 'Privileged Access Management Feature').Ena
     $HinzufButton.Text = '+ &hinzufügen (ALT+H)'
     #$HinzufButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
     $HinzufButton.Add_Click({
+
             # Message setzen und Gruppe dem Benutzer hinzufügen bzw. abprüfen
+
             If ([string]::IsNullOrEmpty($objCombobox1.SelectedItem) -or [string]::IsNullOrEmpty($objCombobox.SelectedItem)) {
                 $Result = [System.Windows.Forms.MessageBox]::Show("Bitte Benutzer und Gruppe auswählen!", "Frage an den Benutzer", 0)
-            } else {
+            }
+            else {
                 $mgm1 = "Der ausgewählte Benutzer", $objCombobox.SelectedItem, "ist bereits in der ausgewählten Gruppe", $objCombobox1.SelectedItem, "enthalten!"
                 $mgm2 = "Benutzer wurde in die Gruppe", $objCombobox1.SelectedItem, "hinzugefügt! Gültigkeit bis", $calendar.SelectionStart
-
+    
                 if (Get-ADGroupMember $objCombobox1.SelectedItem | Where-Object { $_.SamAccountName -eq $objCombobox.SelectedItem }) {
+    
                     $Result = [System.Windows.Forms.MessageBox]::Show($mgm1, "Frage an den Benutzer", 0)
-                } else {
+                }
+                else {
                     $Tag1 = $calendar.SelectionStart
                     $Tag2 = Get-Date
                     $Tag = ($Tag1 - $Tag2).TotalMinutes
@@ -222,18 +241,26 @@ If ((Get-ADOptionalFeature -Identity 'Privileged Access Management Feature').Ena
                         $Result = [System.Windows.Forms.MessageBox]::Show($mgm2, "Frage an den Benutzer", 0)
                         $item = ($objCombobox.SelectedItem + ' -> ' + $objCombobox1.SelectedItem + " bis " + $Tag1)
                         $objCurrentUserWithLimits.Items.Add($item)
-                    } else {
+                    }
+                    else {
                         $Result = [System.Windows.Forms.MessageBox]::Show("Bitte einen Tag in der Zukunft auswählen!", "Frage an den Benutzer", 0)
                     }
                 }
             }
+
+
         })
+
     $objForm.Controls.Add($HinzufButton)
 
+
+
     $result = $objForm.ShowDialog()
+
     if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
         $date = $calendar.SelectionStart
         $date
         Write-Host "Date selected: $($date.ToShortDateString())"
     }
+
 }
