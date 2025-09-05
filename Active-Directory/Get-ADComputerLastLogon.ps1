@@ -8,14 +8,15 @@ function Get-ADComputerLastLogon {
     $DCs = Get-ADDomainController -Filter *
 
     $allResults = foreach ($DC in $DCs) {
-        Get-ADComputer -Filter $Filter -Server $DC.HostName -Properties lastLogon, pwdLastSet, OperatingSystem, Enabled |
+        Get-ADComputer -Filter $Filter -Server $DC.HostName -Properties lastLogon, pwdLastSet, OperatingSystem, Enabled, Description |
         Select-Object Name,
         DistinguishedName,
         OperatingSystem,
         Enabled,
         @{Name = 'DC'; Expression = { $DC.HostName } },
         @{Name = 'LastLogon'; Expression = { [datetime]::FromFileTime($_.lastLogon) } },
-        @{Name = 'PwdLastSet'; Expression = { [datetime]::FromFileTime($_.pwdLastSet) } }
+        @{Name = 'PwdLastSet'; Expression = { [datetime]::FromFileTime($_.pwdLastSet) } },
+        Description
     }
 
     # pro Computer den neuesten Logonwert wählen
@@ -27,6 +28,7 @@ function Get-ADComputerLastLogon {
             Enabled         = $latest.Enabled
             LastLogon       = $latest.LastLogon
             PwdLastSet      = $latest.PwdLastSet
+            Description     = $latest.Description
         }
     }
 }
