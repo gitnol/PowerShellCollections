@@ -8,6 +8,7 @@
 .DESCRIPTION
     Inventarisiert Computer im Active Directory parallel und speichert Benutzer- und Hardware-Informationen
     im Description-Feld für einfache Suche. Nutzt PowerShell 7 Parallelisierung für optimale Performance.
+    Die Datensammlung erfolgt parallel, die Aktualisierung der AD-Objekte seriell.
     
 .PARAMETER WeeksBack
     Anzahl Wochen zurück für LastLogon-Filter (Standard: 6)
@@ -16,7 +17,7 @@
     Maximale Anzahl Benutzer im Description-Feld (Standard: 3)
     
 .PARAMETER ThrottleLimit
-    Anzahl parallele Threads (Standard: 10)
+    Anzahl parallele Threads für die Datensammlung (Standard: 10)
     
 .PARAMETER TestMode
     Simulation ohne AD-Änderungen (Standard: $false)
@@ -25,10 +26,10 @@
     Ping-Timeout in Sekunden (Standard: 2)
     
 .EXAMPLE
-    .\AD-Computer-Inventory-Parallel.ps1 -WeeksBack 4 -ThrottleLimit 15
+    .\AD-Computer-Inventory-Refactored.ps1 -WeeksBack 4 -ThrottleLimit 15
     
 .EXAMPLE
-    .\AD-Computer-Inventory-Parallel.ps1 -TestMode -Verbose
+    .\AD-Computer-Inventory-Refactored.ps1 -TestMode -Verbose
 #>
 
 [CmdletBinding()]
@@ -58,8 +59,10 @@ $script:Stats = [System.Collections.Concurrent.ConcurrentDictionary[string, int]
 $script:Stats['Total'] = 0
 $script:Stats['Online'] = 0
 $script:Stats['Offline'] = 0
-$script:Stats['Updated'] = 0
-$script:Stats['Failed'] = 0
+$script:Stats['NeedsUpdate'] = 0
+$script:Stats['SucceededUpdates'] = 0
+$script:Stats['FailedUpdates'] = 0
+$script:Stats['CollectionFailed'] = 0
 $script:Stats['NoChange'] = 0
 
 # Logging-Funktionen
@@ -98,7 +101,8 @@ function Initialize-UserCache {
         
         Write-Log "AD-Benutzer-Cache erstellt: $($userCache.Count) Benutzer" -Level Success
         return $userCache
-    } catch {
+    }
+    catch {
         Write-Log "Fehler beim Laden des Benutzer-Cache: $($_.Exception.Message)" -Level Warning
         return @{}
     }
@@ -128,7 +132,8 @@ function Update-UserList {
         if ($userPart) {
             $users = $userPart -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
         }
-    } elseif ($CurrentDescription -and $CurrentDescription -notmatch '#.*#$') {
+    }
+    elseif ($CurrentDescription -and $CurrentDescription -notmatch '#.*#$') {
         # Legacy Format ohne Seriennummer - als einzelner User behandeln
         $users = @($CurrentDescription.Trim())
     }
@@ -144,12 +149,12 @@ function Update-UserList {
         
         # Auf MaxUsers begrenzen
         if ($users.Count -gt $MaxUsers) {
-            $users = $users[0..($MaxUsers-1)]
+            $users = $users[0..($MaxUsers - 1)]
         }
     }
     
     return @{
-        Users = $users
+        Users        = $users
         SerialNumber = $serialNumber
     }
 }
@@ -169,16 +174,19 @@ function Format-Description {
     
     if ($userPart -and $serialPart) {
         return "$userPart $serialPart"
-    } elseif ($userPart) {
+    }
+    elseif ($userPart) {
         return $userPart
-    } elseif ($serialPart) {
+    }
+    elseif ($serialPart) {
         return $serialPart
-    } else {
+    }
+    else {
         return ''
     }
 }
 
-# Hauptfunktion für Computer-Verarbeitung
+# Hauptfunktion für Computer-Verarbeitung (Datensammlung)
 function Invoke-ComputerInventory {
     param(
         [Parameter(Mandatory = $true)]
@@ -200,7 +208,7 @@ function Invoke-ComputerInventory {
         [hashtable]$UserCache
     )
     
-    Write-Log "Starte parallele Verarbeitung von $($Computers.Count) Computern mit $ThrottleLimit Threads" -Level Info
+    Write-Log "Starte parallele Datensammlung von $($Computers.Count) Computern mit $ThrottleLimit Threads" -Level Info
     
     $startTime = Get-Date
     
@@ -228,27 +236,23 @@ function Invoke-ComputerInventory {
                 if ($userPart) {
                     $users = $userPart -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
                 }
-            } elseif ($CurrentDescription -and $CurrentDescription -notmatch '#.*#$') {
+            }
+            elseif ($CurrentDescription -and $CurrentDescription -notmatch '#.*#$') {
                 $users = @($CurrentDescription.Trim())
             }
             
-            # Benutzer nur hinzufügen wenn tatsächlich ein neuer Benutzer übergeben wurde
             if ($NewUser -and $NewUser.Trim()) {
                 $cleanNewUser = $NewUser.Trim()
-                # Duplikat entfernen (case-insensitive)
                 $users = $users | Where-Object { $_ -ne $cleanNewUser }
-                
-                # Neuen User an erste Stelle setzen
                 $users = @($cleanNewUser) + $users
                 
-                # Auf MaxUsers begrenzen
                 if ($users.Count -gt $MaxUsers) {
-                    $users = $users[0..($MaxUsers-1)]
+                    $users = $users[0..($MaxUsers - 1)]
                 }
             }
             
             return @{
-                Users = $users
+                Users        = $users
                 SerialNumber = $serialNumber
             }
         }
@@ -261,25 +265,29 @@ function Invoke-ComputerInventory {
             
             if ($userPart -and $serialPart) {
                 return "$userPart $serialPart"
-            } elseif ($userPart) {
+            }
+            elseif ($userPart) {
                 return $userPart
-            } elseif ($serialPart) {
+            }
+            elseif ($serialPart) {
                 return $serialPart
-            } else {
+            }
+            else {
                 return ''
             }
         }
         
         $result = @{
-            ComputerName = $computer.Name
-            Status = 'Processing'
-            Online = $false
-            CurrentUser = ''
-            SerialNumber = ''
-            OldDescription = $computer.Description
-            NewDescription = ''
-            Updated = $false
-            Error = ''
+            ComputerName      = $computer.Name
+            DistinguishedName = $computer.DistinguishedName
+            Status            = 'Processing'
+            Online            = $false
+            CurrentUser       = ''
+            SerialNumber      = ''
+            OldDescription    = $computer.Description
+            NewDescription    = ''
+            ShouldUpdate      = $false
+            Error             = ''
         }
         
         try {
@@ -288,7 +296,7 @@ function Invoke-ComputerInventory {
             $result.Online = $pingResult
             
             if ($pingResult) {
-                $stats['Online'] = $stats['Online'] + 1
+                $stats.TryUpdate('Online', $stats['Online'] + 1, $stats['Online'])
                 
                 # CIM-Session erstellen für bessere Performance
                 $cimSession = $null
@@ -298,110 +306,62 @@ function Invoke-ComputerInventory {
                     
                     if ($cimSession) {
                         # Aktueller Benutzer ermitteln
-                        try {
-                            $computerSystem = Get-CimInstance -CimSession $cimSession -ClassName Win32_ComputerSystem -ErrorAction SilentlyContinue
-                            if ($computerSystem.UserName) {
-                                $user = $computerSystem.UserName
-                                if ($user.Contains('\')) {
-                                    $result.CurrentUser = $user.Split('\')[1]
-                                } else {
-                                    $result.CurrentUser = $user
-                                }
-                            }
-                        } catch {
-                            # Benutzer konnte nicht ermittelt werden
+                        $computerSystem = Get-CimInstance -CimSession $cimSession -ClassName Win32_ComputerSystem -ErrorAction SilentlyContinue
+                        if ($computerSystem.UserName) {
+                            $user = $computerSystem.UserName.Split('\')[-1]
+                            $result.CurrentUser = $user
                         }
                         
                         # BIOS-Seriennummer ermitteln
-                        try {
-                            $bios = Get-CimInstance -CimSession $cimSession -ClassName Win32_BIOS -ErrorAction SilentlyContinue
-                            if ($bios.SerialNumber) {
-                                $result.SerialNumber = $bios.SerialNumber.Trim()
-                            }
-                        } catch {
-                            # Seriennummer konnte nicht ermittelt werden
-                        }
-                    }
-                } catch {
-                    # CIM-Session konnte nicht erstellt werden - Fallback ohne Session
-                    try {
-                        $computerSystem = Get-CimInstance -ComputerName $computer.Name -ClassName Win32_ComputerSystem -OperationTimeoutSec 10 -ErrorAction SilentlyContinue
-                        if ($computerSystem.UserName) {
-                            $user = $computerSystem.UserName
-                            if ($user.Contains('\')) {
-                                $result.CurrentUser = $user.Split('\')[1]
-                            } else {
-                                $result.CurrentUser = $user
-                            }
-                        }
-                        
-                        $bios = Get-CimInstance -ComputerName $computer.Name -ClassName Win32_BIOS -OperationTimeoutSec 10 -ErrorAction SilentlyContinue
+                        $bios = Get-CimInstance -CimSession $cimSession -ClassName Win32_BIOS -ErrorAction SilentlyContinue
                         if ($bios.SerialNumber) {
                             $result.SerialNumber = $bios.SerialNumber.Trim()
                         }
-                    } catch {
-                        # Auch Fallback fehlgeschlagen
-                    }
-                } finally {
-                    # CIM-Session aufräumen
-                    if ($cimSession) {
-                        try {
-                            Remove-CimSession -CimSession $cimSession -ErrorAction SilentlyContinue
-                        } catch {
-                            # Session-Cleanup fehlgeschlagen
-                        }
                     }
                 }
-            } else {
-                $stats['Offline'] = $stats['Offline'] + 1
+                catch {
+                    # Fehler bei CIM-Session, keine weiteren Aktionen
+                }
+                finally {
+                    if ($cimSession) {
+                        Remove-CimSession -CimSession $cimSession -ErrorAction SilentlyContinue
+                    }
+                }
+            }
+            else {
+                $stats.TryUpdate('Offline', $stats['Offline'] + 1, $stats['Offline'])
             }
             
             # Description aktualisieren - nur wenn neue Daten verfügbar sind
-            $userInfo = if ($result.CurrentUser) {
-                # Nur aktualisieren wenn tatsächlich ein Benutzer angemeldet ist
-                Update-UserListLocal -CurrentDescription $computer.Description -NewUser $result.CurrentUser -MaxUsers $maxUsers
-            } else {
-                # Kein Benutzer angemeldet - bestehende Struktur beibehalten
-                Update-UserListLocal -CurrentDescription $computer.Description -MaxUsers $maxUsers
-            }
+            $userInfo = Update-UserListLocal -CurrentDescription $computer.Description -NewUser $result.CurrentUser -MaxUsers $maxUsers
             
             # Seriennummer-Logik: Nur überschreiben wenn neue Seriennummer nicht leer/null ist
             $finalSerial = if ($result.SerialNumber -and $result.SerialNumber.Trim()) { 
                 $result.SerialNumber.Trim() 
-            } else { 
+            }
+            else { 
                 $userInfo.SerialNumber
             }
             
             $newDescription = Format-DescriptionLocal -Users $userInfo.Users -SerialNumber $finalSerial
             $result.NewDescription = $newDescription
             
-            # Prüfen ob Update erforderlich ist
-            if ($computer.Description -ne $newDescription) {
-                if (-not $testMode) {
-                    try {
-                        Set-ADComputer -Identity $computer.DistinguishedName -Description $newDescription -ErrorAction Stop
-                        $result.Updated = $true
-                        $result.Status = 'Updated'
-                        $stats['Updated'] = $stats['Updated'] + 1
-                    } catch {
-                        $result.Error = $_.Exception.Message
-                        $result.Status = 'Failed'
-                        $stats['Failed'] = $stats['Failed'] + 1
-                    }
-                } else {
-                    $result.Updated = $true
-                    $result.Status = 'TestMode-WouldUpdate'
-                    $stats['Updated'] = $stats['Updated'] + 1
-                }
-            } else {
+            # Prüfen ob Update erforderlich ist ($null vs. '' sicherstellen)
+            if ("$($computer.Description)" -ne "$($newDescription)") {
+                $result.ShouldUpdate = $true
+                $result.Status = 'NeedsUpdate'
+                $stats.TryUpdate('NeedsUpdate', $stats['NeedsUpdate'] + 1, $stats['NeedsUpdate'])
+            }
+            else {
                 $result.Status = 'NoChange'
-                $stats['NoChange'] = $stats['NoChange'] + 1
+                $stats.TryUpdate('NoChange', $stats['NoChange'] + 1, $stats['NoChange'])
             }
             
-        } catch {
+        }
+        catch {
             $result.Error = $_.Exception.Message
             $result.Status = 'Error'
-            $stats['Failed'] = $stats['Failed'] + 1
+            $stats.TryUpdate('CollectionFailed', $stats['CollectionFailed'] + 1, $stats['CollectionFailed'])
         }
         
         return $result
@@ -410,7 +370,7 @@ function Invoke-ComputerInventory {
     $endTime = Get-Date
     $duration = $endTime - $startTime
     
-    Write-Log "Parallele Verarbeitung abgeschlossen in $($duration.TotalSeconds.ToString('F2')) Sekunden" -Level Success
+    Write-Log "Parallele Datensammlung abgeschlossen in $($duration.TotalSeconds.ToString('F2')) Sekunden" -Level Success
     
     return $results
 }
@@ -424,7 +384,7 @@ try {
     $userCache = Initialize-UserCache
     
     # LastLogon-Zeitpunkt berechnen
-    $lastLogonDate = (Get-Date).AddDays(-($WeeksBack * 7))
+    $lastLogonDate = (Get-Date).AddDays( - ($WeeksBack * 7))
     $lastLogonFileTime = $lastLogonDate.ToFileTime()
     
     Write-Log "Suche Computer mit LastLogon seit: $($lastLogonDate.ToString('yyyy-MM-dd'))" -Level Info
@@ -441,101 +401,73 @@ try {
     
     Write-Log "Gefundene Computer: $($computers.Count)" -Level Success
     
-    # Inventarisierung durchführen
+    # Inventarisierung (Datensammlung) durchführen
     $results = Invoke-ComputerInventory -Computers $computers -ThrottleLimit $ThrottleLimit -MaxUsers $MaxUsers -TestMode $TestMode -PingTimeout $PingTimeout -UserCache $userCache
     
+    # Serielle Aktualisierung der AD-Objekte
+    $computersToUpdate = $results | Where-Object { $_.ShouldUpdate -and !$_.Error }
+    
+    if (-not $TestMode) {
+        if ($computersToUpdate.Count -gt 0) {
+            Write-Log "=== Starte serielle Aktualisierung für $($computersToUpdate.Count) Computer ===" -Level Info
+            foreach ($item in $computersToUpdate) {
+                try {
+                    Set-ADComputer -Identity $item.DistinguishedName -Description $item.NewDescription -ErrorAction Stop
+                    $script:Stats['SucceededUpdates']++
+                    Write-Verbose "Aktualisiert: $($item.ComputerName)"
+                }
+                catch {
+                    $script:Stats['FailedUpdates']++
+                    Write-Log "Fehler bei Aktualisierung von '$($item.ComputerName)': $($_.Exception.Message)" -Level Error
+                }
+            }
+            Write-Log "Serielle Aktualisierung abgeschlossen." -Level Success
+        }
+    }
+    else {
+        if ($computersToUpdate.Count -gt 0) {
+            Write-Log "TESTMODUS: $($computersToUpdate.Count) Computer würden aktualisiert werden." -Level Warning
+        }
+    }
+
     # Statistiken ausgeben
     Write-Log "=== Verarbeitungsstatistiken ===" -Level Info
     Write-Log "Computer gesamt: $($script:Stats['Total'])" -Level Info
     Write-Log "Online: $($script:Stats['Online'])" -Level Success
     Write-Log "Offline: $($script:Stats['Offline'])" -Level Warning
-    Write-Log "Aktualisiert: $($script:Stats['Updated'])" -Level Success
+    Write-Log "Für Update identifiziert: $($script:Stats['NeedsUpdate'])" -Level Info
     Write-Log "Unverändert: $($script:Stats['NoChange'])" -Level Info
-    Write-Log "Fehlgeschlagen: $($script:Stats['Failed'])" -Level Error
+    if (-not $TestMode) {
+        Write-Log "Erfolgreich aktualisiert: $($script:Stats['SucceededUpdates'])" -Level Success
+        Write-Log "Fehler bei Aktualisierung: $($script:Stats['FailedUpdates'])" -Level Error
+    }
+    Write-Log "Fehler bei Datenerfassung: $($script:Stats['CollectionFailed'])" -Level Error
     
     # Detailergebnisse bei Bedarf
     if ($VerbosePreference -eq 'Continue' -or $TestMode) {
-        Write-Log "=== Detailergebnisse ===" -Level Info
+        Write-Log "=== Detailergebnisse (Änderungen) ===" -Level Info
         
-        $results | Where-Object { $_.Updated -or $_.Error } | ForEach-Object {
-            $status = if ($_.Error) { "ERROR: $($_.Error)" } else { $_.Status }
+        $results | Where-Object { $_.ShouldUpdate -or $_.Error } | ForEach-Object {
+            $status = if ($_.Error) { "FEHLER bei Sammlung: $($_.Error)" } elseif ($_.ShouldUpdate) { "Wird aktualisiert" } else { $_.Status }
             Write-Log "$($_.ComputerName): $status" -Level $(if ($_.Error) { 'Error' } else { 'Info' })
             
-            if ($_.Updated) {
-                # Benutzer für Anzeige in Anzeigenamen konvertieren
-                $oldUsers = @()
-                $newUsers = @()
-                
-                # Alte Description parsen für Anzeige
-                if ($_.OldDescription -match '^(.+?)\s*#(.+)#$') {
-                    $oldUserPart = $matches[1].Trim()
-                    if ($oldUserPart) {
-                        $oldSamAccounts = $oldUserPart -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
-                        foreach ($samAccount in $oldSamAccounts) {
-                            if ($userCache.ContainsKey($samAccount)) {
-                                $oldUsers += $userCache[$samAccount]
-                            } else {
-                                $oldUsers += $samAccount
-                            }
-                        }
-                    }
-                }
-                
-                # Neue Description parsen für Anzeige
-                if ($_.NewDescription -match '^(.+?)\s*#(.+)#$') {
-                    $newUserPart = $matches[1].Trim()
-                    $serialPart = $matches[2].Trim()
-                    if ($newUserPart) {
-                        $newSamAccounts = $newUserPart -split ';' | ForEach-Object { $_.Trim() } | Where-Object { $_ }
-                        foreach ($samAccount in $newSamAccounts) {
-                            if ($userCache.ContainsKey($samAccount)) {
-                                $newUsers += $userCache[$samAccount]
-                            } else {
-                                $newUsers += $samAccount
-                            }
-                        }
-                    }
-                    $displayNewDescription = if ($newUsers.Count -gt 0) { 
-                        ($newUsers -join ';') + " #$serialPart#" 
-                    } else { 
-                        "#$serialPart#" 
-                    }
-                } else {
-                    $displayNewDescription = $_.NewDescription
-                }
-                
-                $displayOldDescription = if ($oldUsers.Count -gt 0) { 
-                    if ($_.OldDescription -match '#(.+)#$') {
-                        ($oldUsers -join ';') + " #$($matches[1])#"
-                    } else {
-                        $oldUsers -join ';'
-                    }
-                } else { 
-                    $_.OldDescription 
-                }
-                
-                Write-Log "  Alt: '$displayOldDescription'" -Level Info
-                Write-Log "  Neu: '$displayNewDescription'" -Level Info
+            if ($_.ShouldUpdate) {
+                Write-Log "  Alt: '$($_.OldDescription)'" -Level Info
+                Write-Log "  Neu: '$($_.NewDescription)'" -Level Info
             }
         }
     }
-    
-    # Suchbeispiele ausgeben
-    Write-Log "=== Suchbeispiele nach Script-Ausführung ===" -Level Info
-    Write-Log "Nach Benutzer suchen:" -Level Info
-    Write-Log 'Get-ADComputer -Filter "Description -like ""*Mustermann*"""' -Level Info
-    Write-Log "Nach Seriennummer suchen:" -Level Info  
-    Write-Log 'Get-ADComputer -Filter "Description -like ""*#5TS052KL#*"""' -Level Info
-    Write-Log "Kombinierte Suche:" -Level Info
-    Write-Log 'Get-ADComputer -Filter "Description -like ""*Mustermann*"" -and Description -like ""*#5TS052KL#*"""' -Level Info
     
     if ($TestMode) {
         Write-Log "TESTMODUS: Keine tatsächlichen AD-Änderungen durchgeführt" -Level Warning
     }
     
-} catch {
-    Write-Log "Kritischer Fehler: $($_.Exception.Message)" -Level Error
+}
+catch {
+    Write-Log "Kritischer Fehler im Hauptskript: $($_.Exception.Message)" -Level Error
     throw
-} finally {
+}
+finally {
     Write-Log "Script beendet: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -Level Info
 }
+
