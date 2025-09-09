@@ -102,3 +102,8 @@ Aktiviert Tracing mit mittlerem Log-Level.
         NewLoggingLevel = $LoggingLevel
     }
 }
+
+# Example usage:
+# Set-WbemTracing -ReadOnly -Verbose
+# Set-WbemTracing -EnableEvents 1 -Logging 1 -LoggingLevel 3 -Verbose
+# Set-WbemTracing -DeactivateFull -Verbose
