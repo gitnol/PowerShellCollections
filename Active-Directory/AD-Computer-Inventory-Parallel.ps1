@@ -434,7 +434,8 @@ try {
     $results = Invoke-ComputerInventory -Computers $computers -ThrottleLimit $ThrottleLimit -MaxUsers $MaxUsers -TestMode $TestMode -PingTimeout $pingTimeout -UserCache $userCache
     
     # Serielle Aktualisierung der AD-Objekte
-    $computersToUpdate = $results | Where-Object { $_.ShouldUpdate -and !$_.Error }
+    # Das Ergebnis wird in @() eingeschlossen, um sicherzustellen, dass es immer ein Array ist.
+    $computersToUpdate = @($results | Where-Object { $_.ShouldUpdate -and !$_.Error })
     
     if (-not $TestMode) {
         if ($computersToUpdate.Count -gt 0) {
