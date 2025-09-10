@@ -366,7 +366,7 @@ function Invoke-ComputerInventory {
                 $result.NewDescription = $newDescription
                 
                 # Prüfen ob Update erforderlich ist ($null vs. '' sicherstellen)
-                if ("$($computer.Description)" -ne "$($newDescription)") {
+                if (("$($computer.Description)" -ne "$($newDescription)") -and ($newDescription -ne '') -and ($null -ne $newDescription)) {
                     $result.ShouldUpdate = $true
                     $result.Status = 'NeedsUpdate'
                     $stats.TryUpdate('NeedsUpdate', $stats['NeedsUpdate'] + 1, $stats['NeedsUpdate'])
