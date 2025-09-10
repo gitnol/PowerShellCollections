@@ -340,7 +340,8 @@ function Invoke-ComputerInventory {
                     }
                 }
                 catch {
-                    # Fehler bei CIM-Session, keine weiteren Aktionen
+                    # Fehler bei CIM-Session wird nun protokolliert
+                    $result.Error = "CIM/WMI Error: $($_.Exception.Message)"
                 }
                 finally {
                     if ($cimSession) {
@@ -352,29 +353,37 @@ function Invoke-ComputerInventory {
                 $stats.TryUpdate('Offline', $stats['Offline'] + 1, $stats['Offline'])
             }
             
-            # Description aktualisieren - nur wenn neue Daten verfügbar sind
-            $userInfo = Update-UserListLocal -CurrentDescription $computer.Description -NewUser $result.CurrentUser -MaxUsers $maxUsers
-            
-            # Seriennummer-Logik: Nur überschreiben wenn neue Seriennummer nicht leer/null ist
-            $finalSerial = if ($result.SerialNumber -and $result.SerialNumber.Trim()) { 
-                $result.SerialNumber.Trim() 
-            }
-            else { 
-                $userInfo.SerialNumber
-            }
-            
-            $newDescription = Format-DescriptionLocal -Users $userInfo.Users -SerialNumber $finalSerial
-            $result.NewDescription = $newDescription
-            
-            # Prüfen ob Update erforderlich ist ($null vs. '' sicherstellen)
-            if ("$($computer.Description)" -ne "$($newDescription)") {
-                $result.ShouldUpdate = $true
-                $result.Status = 'NeedsUpdate'
-                $stats.TryUpdate('NeedsUpdate', $stats['NeedsUpdate'] + 1, $stats['NeedsUpdate'])
+            # Nur fortfahren, wenn kein CIM-Fehler aufgetreten ist
+            if (-not $result.Error) {
+                # Description aktualisieren - nur wenn neue Daten verfügbar sind
+                $userInfo = Update-UserListLocal -CurrentDescription $computer.Description -NewUser $result.CurrentUser -MaxUsers $maxUsers
+                
+                # Seriennummer-Logik: Nur überschreiben wenn neue Seriennummer nicht leer/null ist
+                $finalSerial = if ($result.SerialNumber -and $result.SerialNumber.Trim()) { 
+                    $result.SerialNumber.Trim() 
+                }
+                else { 
+                    $userInfo.SerialNumber
+                }
+                
+                $newDescription = Format-DescriptionLocal -Users $userInfo.Users -SerialNumber $finalSerial
+                $result.NewDescription = $newDescription
+                
+                # Prüfen ob Update erforderlich ist ($null vs. '' sicherstellen)
+                if ("$($computer.Description)" -ne "$($newDescription)") {
+                    $result.ShouldUpdate = $true
+                    $result.Status = 'NeedsUpdate'
+                    $stats.TryUpdate('NeedsUpdate', $stats['NeedsUpdate'] + 1, $stats['NeedsUpdate'])
+                }
+                else {
+                    $result.Status = 'NoChange'
+                    $stats.TryUpdate('NoChange', $stats['NoChange'] + 1, $stats['NoChange'])
+                }
             }
             else {
-                $result.Status = 'NoChange'
-                $stats.TryUpdate('NoChange', $stats['NoChange'] + 1, $stats['NoChange'])
+                # Wenn ein CIM-Fehler aufgetreten ist, markieren wir dies
+                $result.Status = 'Error'
+                $stats.TryUpdate('CollectionFailed', $stats['CollectionFailed'] + 1, $stats['CollectionFailed'])
             }
             
         }
@@ -422,7 +431,7 @@ try {
     Write-Log "Gefundene Computer: $($computers.Count)" -Level Success
     
     # Inventarisierung (Datensammlung) durchführen
-    $results = Invoke-ComputerInventory -Computers $computers -ThrottleLimit $ThrottleLimit -MaxUsers $MaxUsers -TestMode $TestMode -PingTimeout $PingTimeout -UserCache $userCache
+    $results = Invoke-ComputerInventory -Computers $computers -ThrottleLimit $ThrottleLimit -MaxUsers $MaxUsers -TestMode $TestMode -PingTimeout $pingTimeout -UserCache $userCache
     
     # Serielle Aktualisierung der AD-Objekte
     $computersToUpdate = $results | Where-Object { $_.ShouldUpdate -and !$_.Error }
@@ -431,6 +440,7 @@ try {
         if ($computersToUpdate.Count -gt 0) {
             Write-Log "=== Starte serielle Aktualisierung für $($computersToUpdate.Count) Computer ===" -Level Info
             foreach ($item in $computersToUpdate) {
+                Write-Log "=== Aktueller Computer: $($item) ===" -Level Info
                 try {
                     Set-ADComputer -Identity $item.DistinguishedName -Description $item.NewDescription -ErrorAction Stop
                     $script:Stats['SucceededUpdates']++
@@ -465,7 +475,7 @@ try {
     
     # Detailergebnisse bei Bedarf
     if ($VerbosePreference -eq 'Continue' -or $TestMode) {
-        Write-Log "=== Detailergebnisse (Änderungen) ===" -Level Info
+        Write-Log "=== Detailergebnisse (Änderungen & Fehler) ===" -Level Info
         
         $results | Where-Object { $_.ShouldUpdate -or $_.Error } | ForEach-Object {
             $status = if ($_.Error) { "FEHLER bei Sammlung: $($_.Error)" } elseif ($_.ShouldUpdate) { "Wird aktualisiert" } else { $_.Status }
