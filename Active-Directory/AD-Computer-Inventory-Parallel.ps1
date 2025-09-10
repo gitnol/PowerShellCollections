@@ -313,21 +313,17 @@ function Invoke-ComputerInventory {
                         # Aktuellen Benutzer über den Besitzer des explorer.exe Prozesses ermitteln
                         $explorerProcess = Get-CimInstance -CimSession $cimSession -ClassName Win32_Process -Filter "Name = 'explorer.exe'" | Select-Object -First 1
                         if ($explorerProcess) {
-                            $owner = Invoke-CimMethod -InputObject $explorerProcess -MethodName GetOwner
-                            if ($owner.ReturnValue -eq 0 -and $owner.User) {
-                                $domain = $owner.Domain
-                                $user = $owner.User
+                            # SID des Prozess-Besitzers direkt abfragen. Dies umgeht das Double-Hop-Problem.
+                            $ownerSidInfo = Invoke-CimMethod -InputObject $explorerProcess -MethodName GetOwnerSid
+                            
+                            # Prüfen, ob die Methode erfolgreich war und eine SID zurückgegeben wurde
+                            if ($ownerSidInfo.ReturnValue -eq 0 -and $ownerSidInfo.Sid) {
+                                $userSid = $ownerSidInfo.Sid
                                 
-                                # Anhand von Domain und User die SID über Win32_UserAccount ermitteln
-                                $userAccount = Get-CimInstance -CimSession $cimSession -ClassName Win32_UserAccount -Filter "Domain = '$domain' AND Name = '$user'" | Select-Object -First 1
-                                if ($userAccount) {
-                                    $userSid = $userAccount.SID
-                                    
-                                    # Vollen Namen aus dem SID-basierten Cache nachschlagen.
-                                    # Wenn die SID nicht gefunden wird, ist es ein lokaler Benutzer und wird ignoriert.
-                                    if ($userSid -and $userCache.ContainsKey($userSid)) {
-                                        $result.CurrentUser = $userCache[$userSid]
-                                    }
+                                # Vollen Namen aus dem SID-basierten Cache nachschlagen.
+                                # Wenn die SID nicht gefunden wird, ist es ein lokaler Benutzer und wird ignoriert.
+                                if ($userSid -and $userCache.ContainsKey($userSid)) {
+                                    $result.CurrentUser = $userCache[$userSid]
                                 }
                             }
                         }
