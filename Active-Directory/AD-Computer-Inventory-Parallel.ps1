@@ -9,6 +9,7 @@
     Inventarisiert Computer im Active Directory parallel und speichert Benutzer- und Hardware-Informationen
     im Description-Feld für einfache Suche. Nutzt PowerShell 7 Parallelisierung für optimale Performance.
     Die Datensammlung erfolgt parallel, die Aktualisierung der AD-Objekte seriell.
+    Die Benutzererkennung erfolgt über die eindeutige SID, um lokale von Domänenbenutzern zu unterscheiden.
     
 .PARAMETER WeeksBack
     Anzahl Wochen zurück für LastLogon-Filter (Standard: 6)
@@ -44,7 +45,7 @@ param(
     
     [Parameter(Mandatory = $false)]
     [ValidateRange(1, 50)]
-    [int]$ThrottleLimit = 10,
+    [int]$ThrottleLimit = 30,
     
     [Parameter(Mandatory = $false)]
     [switch]$TestMode,
@@ -87,16 +88,17 @@ function Write-Log {
     Write-Host "[$timestamp] [$Level] $Message" -ForegroundColor $colors[$Level]
 }
 
-# User-Cache für Name-Auflösung
+# User-Cache für Name-Auflösung (SID-basiert)
 function Initialize-UserCache {
-    Write-Log "Lade AD-Benutzer für Name-Auflösung..." -Level Info
+    Write-Log "Lade AD-Benutzer für SID-basierte Name-Auflösung..." -Level Info
     
     try {
-        $users = Get-ADUser -Filter * -Properties Name, SamAccountName
+        $users = Get-ADUser -Filter * -Properties Name, SID
         $userCache = @{}
         
         foreach ($user in $users) {
-            $userCache[$user.SamAccountName] = $user.Name
+            # SID-String als Schlüssel und Anzeigename als Wert speichern
+            $userCache[$user.SID.Value] = $user.Name
         }
         
         Write-Log "AD-Benutzer-Cache erstellt: $($userCache.Count) Benutzer" -Level Success
@@ -217,7 +219,6 @@ function Invoke-ComputerInventory {
         # Variablen in Parallel-Block importieren
         $computer = $_
         $maxUsers = $using:MaxUsers
-        $testMode = $using:TestMode
         $pingTimeout = $using:PingTimeout
         $stats = $using:script:Stats
         $userCache = $using:UserCache
@@ -305,11 +306,26 @@ function Invoke-ComputerInventory {
                     $cimSession = New-CimSession -ComputerName $computer.Name -SessionOption $cimSessionOption -OperationTimeoutSec 15 -ErrorAction SilentlyContinue
                     
                     if ($cimSession) {
-                        # Aktueller Benutzer ermitteln
-                        $computerSystem = Get-CimInstance -CimSession $cimSession -ClassName Win32_ComputerSystem -ErrorAction SilentlyContinue
-                        if ($computerSystem.UserName) {
-                            $user = $computerSystem.UserName.Split('\')[-1]
-                            $result.CurrentUser = $user
+                        # Aktuellen Benutzer über den Besitzer des explorer.exe Prozesses ermitteln
+                        $explorerProcess = Get-CimInstance -CimSession $cimSession -ClassName Win32_Process -Filter "Name = 'explorer.exe'" | Select-Object -First 1
+                        if ($explorerProcess) {
+                            $owner = Invoke-CimMethod -InputObject $explorerProcess -MethodName GetOwner
+                            if ($owner.ReturnValue -eq 0 -and $owner.User) {
+                                $domain = $owner.Domain
+                                $user = $owner.User
+                                
+                                # Anhand von Domain und User die SID über Win32_UserAccount ermitteln
+                                $userAccount = Get-CimInstance -CimSession $cimSession -ClassName Win32_UserAccount -Filter "Domain = '$domain' AND Name = '$user'" | Select-Object -First 1
+                                if ($userAccount) {
+                                    $userSid = $userAccount.SID
+                                    
+                                    # Vollen Namen aus dem SID-basierten Cache nachschlagen.
+                                    # Wenn die SID nicht gefunden wird, ist es ein lokaler Benutzer und wird ignoriert.
+                                    if ($userSid -and $userCache.ContainsKey($userSid)) {
+                                        $result.CurrentUser = $userCache[$userSid]
+                                    }
+                                }
+                            }
                         }
                         
                         # BIOS-Seriennummer ermitteln
