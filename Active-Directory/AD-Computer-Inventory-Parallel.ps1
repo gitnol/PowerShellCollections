@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-#Requires -Modules ActiveDirectory
+#-- #Requires -Modules ActiveDirectory
 
 <#
 .SYNOPSIS
@@ -98,7 +98,12 @@ function Initialize-UserCache {
         
         foreach ($user in $users) {
             # SID-String als Schlüssel und Anzeigename als Wert speichern
-            $userCache[$user.SID.Value] = $user.Name
+            # Sicherstellen, dass das Benutzerobjekt eine SID hat, bevor es dem Cache hinzugefügt wird
+            if ($null -ne $user.SID) {
+                # SID-String als Schlüssel und Anzeigename als Wert speichern. 
+                # PowerShell konvertiert das SID-Objekt für den Hashtable-Schlüssel automatisch in einen String.
+                $userCache[$user.SID] = $user.Name
+            }
         }
         
         Write-Log "AD-Benutzer-Cache erstellt: $($userCache.Count) Benutzer" -Level Success
