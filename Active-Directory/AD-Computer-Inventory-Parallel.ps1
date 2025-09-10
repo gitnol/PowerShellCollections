@@ -440,7 +440,7 @@ try {
         if ($computersToUpdate.Count -gt 0) {
             Write-Log "=== Starte serielle Aktualisierung für $($computersToUpdate.Count) Computer ===" -Level Info
             foreach ($item in $computersToUpdate) {
-                Write-Log "=== Aktueller Computer: $($item) ===" -Level Info
+                Write-Log "=== Aktueller Computer: $($item.DistinguishedName) // NewDescription $($item.NewDescription) ===" -Level Info
                 try {
                     Set-ADComputer -Identity $item.DistinguishedName -Description $item.NewDescription -ErrorAction Stop
                     $script:Stats['SucceededUpdates']++
