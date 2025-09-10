@@ -3,7 +3,7 @@
 
 <#
 .SYNOPSIS
-    Active Directory Computer Inventory mit automatischer Aktualisierung (PowerShell 7)
+    Inventarisiert AD-Computer parallel und aktualisiert Benutzer- sowie Hardware-Informationen im Description-Feld.
     
 .DESCRIPTION
     Inventarisiert Computer im Active Directory parallel und speichert Benutzer- und Hardware-Informationen
@@ -18,7 +18,7 @@
     Maximale Anzahl Benutzer im Description-Feld (Standard: 3)
     
 .PARAMETER ThrottleLimit
-    Anzahl parallele Threads für die Datensammlung (Standard: 10)
+    Anzahl parallele Threads für die Datensammlung (Standard: 30)
     
 .PARAMETER TestMode
     Simulation ohne AD-Änderungen (Standard: $false)
@@ -97,7 +97,6 @@ function Initialize-UserCache {
         $userCache = @{}
         
         foreach ($user in $users) {
-            # SID-String als Schlüssel und Anzeigename als Wert speichern
             # Sicherstellen, dass das Benutzerobjekt eine SID hat, bevor es dem Cache hinzugefügt wird
             if ($null -ne $user.SID) {
                 # SID-String als Schlüssel und Anzeigename als Wert speichern. 
