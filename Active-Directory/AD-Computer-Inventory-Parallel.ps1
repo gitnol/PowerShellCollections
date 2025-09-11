@@ -10,6 +10,7 @@
     im Description-Feld für einfache Suche. Nutzt PowerShell 7 Parallelisierung für optimale Performance.
     Die Datensammlung erfolgt parallel, die Aktualisierung der AD-Objekte seriell.
     Die Benutzererkennung erfolgt über die eindeutige SID, um lokale von Domänenbenutzern zu unterscheiden.
+    Änderungen werden in einer täglichen Logdatei protokolliert.
     
 .PARAMETER WeeksBack
     Anzahl Wochen zurück für LastLogon-Filter (Standard: 6)
@@ -405,6 +406,17 @@ try {
     Write-Log "=== Active Directory Computer Inventory (PowerShell 7) ===" -Level Info
     Write-Log "Parameter: WeeksBack=$WeeksBack, MaxUsers=$MaxUsers, ThrottleLimit=$ThrottleLimit, TestMode=$TestMode" -Level Info
     
+    # Logdatei-Konfiguration
+    if (-not $TestMode) {
+        $scriptPath = $PSScriptRoot
+        $logDirectory = Join-Path -Path $scriptPath -ChildPath "logs"
+        if (-not (Test-Path $logDirectory)) {
+            New-Item -Path $logDirectory -ItemType Directory | Out-Null
+        }
+        $logDate = Get-Date -Format 'yyyy-MM-dd'
+        $logFile = Join-Path -Path $logDirectory -ChildPath "AD-Inventory-Changes_$logDate.log"
+    }
+    
     # Benutzer-Cache initialisieren
     $userCache = Initialize-UserCache
     
@@ -437,11 +449,16 @@ try {
         if ($computersToUpdate.Count -gt 0) {
             Write-Log "=== Starte serielle Aktualisierung für $($computersToUpdate.Count) Computer ===" -Level Info
             foreach ($item in $computersToUpdate) {
-                Write-Log "=== Aktueller Computer: $($item.DistinguishedName) // NewDescription $($item.NewDescription) ===" -Level Info
                 try {
                     Set-ADComputer -Identity $item.DistinguishedName -Description $item.NewDescription -ErrorAction Stop
                     $script:Stats['SucceededUpdates']++
                     Write-Verbose "Aktualisiert: $($item.ComputerName)"
+                    
+                    # Logeintrag in Datei schreiben
+                    $logTimestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+                    $logMessage = "[$logTimestamp] [UPDATE] Computer: $($item.ComputerName) | Old: '$($item.OldDescription)' | New: '$($item.NewDescription)'"
+                    Add-Content -Path $logFile -Value $logMessage
+
                 }
                 catch {
                     $script:Stats['FailedUpdates']++
@@ -467,6 +484,9 @@ try {
     if (-not $TestMode) {
         Write-Log "Erfolgreich aktualisiert: $($script:Stats['SucceededUpdates'])" -Level Success
         Write-Log "Fehler bei Aktualisierung: $($script:Stats['FailedUpdates'])" -Level Error
+        if (Test-Path $logFile) {
+            Write-Log "Änderungen protokolliert in: $logFile" -Level Info
+        }
     }
     Write-Log "Fehler bei Datenerfassung: $($script:Stats['CollectionFailed'])" -Level Error
     
