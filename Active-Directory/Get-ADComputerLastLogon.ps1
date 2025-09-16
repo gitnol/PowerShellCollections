@@ -34,5 +34,10 @@ function Get-ADComputerLastLogon {
 }
 
 # Beispiel: nur aktive Windows 10 Computer
-Get-ADComputerLastLogon -Filter 'Enabled -eq $True -and OperatingSystem -like "*Windows*10*"' |
-Out-GridView
+Get-ADComputerLastLogon -Filter 'Enabled -eq $True -and OperatingSystem -like "*Windows*10*"' | Out-GridView
+
+$erg = Get-ADComputerLastLogon -Filter 'Enabled -eq $True -and OperatingSystem -like "*Windows*"' 
+$thresholdDate = (Get-Date).AddMonths((-1))
+$erg | Where-Object { $_.LastLogon -lt $thresholdDate } | Out-GridView -Title "Aktive Computer mit letztem Logon älter als 1 Monat"
+$erg | Where-Object { $_.LastLogon -gt $thresholdDate } | Out-GridView -Title "Aktive Computer mit letztem Logon neuer als 1 Monat"
+$myhosts = ($erg | Where-Object { $_.LastLogon -gt $thresholdDate }).Name
