@@ -445,8 +445,12 @@ try {
     
     Write-Log "Gefundene Computer: $($computers.Count)" -Level Success
     
+    # Serialisierung, da ansonsten bei der Parallisierung Probleme mit dem AD-Objekt auftreten können
+    # Nur die benötigten Eigenschaften extrahieren
+    $computerData = $computers | Select-Object Name, Description, DistinguishedName
+
     # Inventarisierung (Datensammlung) durchführen
-    $results = Invoke-ComputerInventory -Computers $computers -ThrottleLimit $ThrottleLimit -MaxUsers $MaxUsers -TestMode $TestMode -PingTimeout $pingTimeout -UserCache $userCache
+    $results = Invoke-ComputerInventory -Computers $computerData -ThrottleLimit $ThrottleLimit -MaxUsers $MaxUsers -TestMode $TestMode -PingTimeout $pingTimeout -UserCache $userCache
     
     # Serielle Aktualisierung der AD-Objekte
     # Das Ergebnis wird in @() eingeschlossen, um sicherzustellen, dass es immer ein Array ist.
