@@ -1,6 +1,6 @@
 ﻿<#PSScriptInfo
 
-.VERSION 1.5.0
+.VERSION 1.6.0
 
 .GUID eb791b3e-fbbe-4685-8c92-5eb0f05688b6
 
@@ -25,11 +25,8 @@
 .EXTERNALSCRIPTDEPENDENCIES
 
 .RELEASENOTES
-Kudos to jbpaux for contributing improvements and fixes on GitHub!
-- New switch parameter "AddCNinSAN" to automatically populate SAN with the CN. (PR #15)
-- Fixes an issue with naming ot the file when a wildcard (*) certificate is requested. (PR #14)
-- Improved outputs when requesting SAN certificate. (PR #13)
-- Fixes an issue where the request .inf file was not correctly formated when requesting a SAN certificate. (Kudos to smanross, PR #5)
+* Fix SAN request by @bruckect in https://github.com/J0F3/PowerShell/pull/23
+* Add option for friendly name by @jmcook1 in https://github.com/J0F3/PowerShell/pull/26
 #>
 
 <#
@@ -178,6 +175,14 @@ test3.test.ch;DNS=test3san1.test.ch,DNS=test3san2.test.ch
 
 .NOTES
 
+Version    : 1.5.0
+Changes    :
+    Kudos to jbpaux for contributing improvements and fixes on GitHub!
+    - New switch parameter "AddCNinSAN" to automatically populate SAN with the CN. (PR #15)
+    - Fixes an issue with naming ot the file when a wildcard (*) certificate is requested. (PR #14)
+    - Improved outputs when requesting SAN certificate. (PR #13)
+    - Fixes an issue where the request .inf file was not correctly formated when requesting a SAN certificate. (Kudos to smanross, PR #5)
+
 Version    : 1.4, 01/31/2019
 Changes    :
 	Thanks to David Allsopp c/o dra27 on GitHub
@@ -199,16 +204,16 @@ www.jfe.cloud
 
 #>
 
-[CmdletBinding(DefaultParametersetname = "NoExport")]
+[CmdletBinding(DefaultParametersetname="NoExport")]
 Param(
     [Parameter(Mandatory = $True, ValueFromPipeline = $True, ValueFromPipelineByPropertyName = $True)]
     [string]$CN,
     [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True)]
     [string[]]$SAN,
     [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True)]
-    [String]$TemplateName = "Webserver",
+    [String]$TemplateName = "WebServer",
     [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True)]
-    [ValidateSet(1024, 2048, 3072, 4096, 15360)]
+    [ValidateSet(1024,2048,3072,4096,15360)]
     [int]$keyLength = 2048,
     [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True)]
     [string]$CAName,
@@ -226,13 +231,13 @@ Param(
     [string]$FriendlyName = "<None>" ,
     [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True)]
     [switch]$AddCNinSAN,
-    [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $True, ParameterSetName = 'Export')]
+    [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $True, ParameterSetName='Export')]
     [switch]$Export,
-    [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $True, ParameterSetName = 'Export')]
-    [ValidateScript( { Resolve-Path -Path $_ })]
+    [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $True, ParameterSetName='Export')]
+    [ValidateScript( {Resolve-Path -Path $_})]
     [string]$ExportPath,
-    [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True, ParameterSetName = 'Export')]
-    [ValidateScript( { $_.getType().name -eq "SecureString" -or $_.getType().name -eq "String" })]
+    [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True, ParameterSetName='Export')]
+    [ValidateScript( {$_.getType().name -eq "SecureString" -or $_.getType().name -eq "String"})]
     $Password
 
 )
@@ -266,14 +271,13 @@ BEGIN {
 
 PROCESS {
     #disable debug confirmation messages
-    if ($PSBoundParameters['Debug']) { $DebugPreference = "Continue" }
+    if ($PSBoundParameters['Debug']) {$DebugPreference = "Continue"}
 
     Write-Verbose "Generating request inf file"
     $file = @"
 [NewRequest]
-Subject = "CN=$CN,C=$Country, S=$State, L=$City, O=$Organisation, OU=$Department"
+Subject = "CN=$CN,c=$Country, s=$State, l=$City, o=$Organisation, ou=$Department"
 MachineKeySet = TRUE
-Hashalgorithm = SHA256
 KeyLength = $KeyLength
 KeySpec=1
 Exportable = TRUE
@@ -295,11 +299,12 @@ CertificateTemplate = "$TemplateName"
     }
 
     if ($AddCNinSAN) {
-        $SAN = @("dns=$CN") + $SAN #Add CN as first SAN entry
+        $SAN = @("DNS=$CN") + $SAN #Add CN as first SAN entry
     }
 
     # Remove Potential duplicates (if CN was already provided in SAN list)
-    $SAN = ($SAN | ForEach-Object {$_.tolower()} | Select-Object -Unique)
+    $SAN = $SAN | Select-Object -Unique
+
 
     if ($SAN.Count -gt 0) {
 
@@ -309,7 +314,7 @@ CertificateTemplate = "$TemplateName"
         Write-Verbose "A value for the SAN is specified. Requesting a SAN certificate."
         Write-Debug "Add Extension for SAN to the inf file..."
         $file +=
-        @'
+@'
 
 [Extensions]
 ; If your client operating system is Windows Server 2008, Windows Server 2008 R2, Windows Vista, or Windows 7
@@ -322,7 +327,8 @@ CertificateTemplate = "$TemplateName"
         foreach ($an in $SAN) {
             $file += "_continue_ = `"$($an)&`"`n"
         }
-    }    else {
+    }
+    else {
         Write-Host "Requesting certificate with subject $CN" -ForegroundColor Green
         Write-Debug "Parameter values: CN = $CN, TemplateName = $TemplateName, CAName = $CAName"
     }
@@ -333,7 +339,7 @@ CertificateTemplate = "$TemplateName"
         #create temp files
         $inf = [System.IO.Path]::GetTempFileName()
         $req = [System.IO.Path]::GetTempFileName()
-        $filename = $CN -replace "^\*", "wildcard"
+        $filename = $CN -replace "^\*","wildcard"
         $cer = Join-Path -Path $env:TEMP -ChildPath "$filename.cer"
         $rsp = Join-Path -Path $env:TEMP -ChildPath "$filename.rsp"
 
@@ -359,11 +365,10 @@ CertificateTemplate = "$TemplateName"
         if (!$PSBoundParameters.ContainsKey('CAName')) {
             $rootDSE = [System.DirectoryServices.DirectoryEntry]'LDAP://RootDSE'
             $searchBase = [System.DirectoryServices.DirectoryEntry]"LDAP://$($rootDSE.configurationNamingContext)"
-            $CAs = [System.DirectoryServices.DirectorySearcher]::new($searchBase, 'objectClass=pKIEnrollmentService').FindAll()
+            $CAs = [System.DirectoryServices.DirectorySearcher]::new($searchBase,'objectClass=pKIEnrollmentService').FindAll()
 
-            if($CAs.Count -ge 1){
-                $newestCA = $CAs | Sort-Object -Property {$_.Properties.whenchanged} -Descending | Select-Object -First 1
-                $CAName = "$($newestCA.Properties.dnshostname)\$($newestCA.Properties.cn)"
+            if($CAs.Count -eq 1){
+                $CAName = "$($CAs[0].Properties.dnshostname)\$($CAs[0].Properties.cn)"
             }
             else {
                 $CAName = ""
@@ -392,7 +397,8 @@ CertificateTemplate = "$TemplateName"
         if (($LastExitCode -eq 0) -and ($? -eq $true)) {
             Write-Host "Certificate request successfully finished!" -ForegroundColor Green
 
-        }        else {
+        }
+        else {
             throw "Request failed with unknown error. Try with -verbose -debug parameter"
         }
 
@@ -400,14 +406,14 @@ CertificateTemplate = "$TemplateName"
         if ($export) {
             Write-Debug "export parameter is set. => export certificate"
             Write-Verbose "exporting certificate and private key"
-            $cert = Get-Childitem "cert:\LocalMachine\My" | where-object { $_.Thumbprint -eq (New-Object System.Security.Cryptography.X509Certificates.X509Certificate2((Get-Item $cer).FullName, "")).Thumbprint }
+            $cert = Get-Childitem "cert:\LocalMachine\My" | where-object {$_.Thumbprint -eq (New-Object System.Security.Cryptography.X509Certificates.X509Certificate2((Get-Item $cer).FullName, "")).Thumbprint}
             Write-Debug "Certificate found in computer store: $cert"
 
             #create a pfx export as a byte array
-            if ($Password) {
+            if($Password) {
                 Write-Debug "Exporting with password"
                 $certbytes = $cert.export([System.Security.Cryptography.X509Certificates.X509ContentType]::pfx, $Password)
-            }            else {
+            }  else {
                 Write-Debug "Exporting without password"
                 $certbytes = $cert.export([System.Security.Cryptography.X509Certificates.X509ContentType]::pfx)
             }
@@ -416,12 +422,11 @@ CertificateTemplate = "$TemplateName"
             #write pfx file
             if ($PSBoundParameters.ContainsKey('ExportPath')) {
                 $pfxPath = Join-Path -Path (Resolve-Path -Path $ExportPath) -ChildPath "$filename.pfx"
-            }            else {
+            }
+            else {
                 $pfxPath = ".\$filename.pfx"
             }
-            # $certbytes | Set-Content -Encoding Byte -Path $pfxPath -ea Stop#
-            [System.IO.File]::WriteAllBytes($pfxPath, $certbytes)
-            
+            $certbytes | Set-Content -Encoding Byte -Path $pfxPath -ea Stop
             Write-Host "Certificate successfully exported to `"$pfxPath`"!" -ForegroundColor Green
 
             Write-Verbose "deleting exported certificate from computer store"
@@ -431,7 +436,8 @@ CertificateTemplate = "$TemplateName"
             $certstore.Remove($cert)
             $certstore.close()
 
-        }        else {
+        }
+        else {
             Write-Debug "export parameter is not set. => script finished"
             Write-Host "The certificate with the subject $CN is now installed in the computer store !" -ForegroundColor Green
         }
