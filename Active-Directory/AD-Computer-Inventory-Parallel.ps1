@@ -100,9 +100,16 @@ function Initialize-UserCache {
         foreach ($user in $users) {
             # Sicherstellen, dass das Benutzerobjekt eine SID hat, bevor es dem Cache hinzugefügt wird
             if ($null -ne $user.SID) {
-                # SID-String als Schlüssel und Anzeigename als Wert speichern. 
-                # PowerShell konvertiert das SID-Objekt für den Hashtable-Schlüssel automatisch in einen String.
-                $userCache[$user.SID] = $user.Name
+                # SID prüfen: falls Value existiert und mit S-1-5-21 beginnt, diesen nehmen
+                $sidString = if ($user.SID.Value -like 'S-1-5-21*') { 
+                    $user.SID.Value 
+                }
+                else { 
+                    $user.SID 
+                }
+
+                # In Hashtable ablegen
+                $userCache[$sidString] = $user.Name
             }
         }
         
