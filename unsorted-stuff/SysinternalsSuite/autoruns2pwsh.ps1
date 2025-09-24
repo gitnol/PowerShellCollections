@@ -1,176 +1,294 @@
-# Requires -RunAsAdministrator
-# PowerShell script to run Autoruns from Sysinternals and display results in a grid view.
-# Allows enabling/disabling entries directly from the grid view.
-# Lädt Autoruns, zeigt Einträge und ermöglicht Deaktivieren/Aktivieren/Beenden
+#Requires -RunAsAdministrator
 
-# Time           : 19.07.1935 17:32
-# Entry Location : HKLM\System\CurrentControlSet\Services\WinSock2\Parameters\NameSpace_Catalog5\Catalog_Entries64
-# Entry          : Bluetooth Namespace
-# Enabled        : enabled
-# Category       : Network Providers
-# Profile        : System-wide
-# Description    : Windows Sockets Helper DLL
-# Company        : Microsoft Corporation
-# Image Path     : c:\windows\system32\wshbth.dll
-# Version        : 10.0.26100.5074
-# Launch String  : %SystemRoot%\system32\wshbth.dll
+<#
+.SYNOPSIS
+    PowerShell script to manage Windows startup entries using Sysinternals Autoruns
+.DESCRIPTION
+    Displays autorun entries in a grid view and allows enabling/disabling them directly
+.PARAMETER PathToSysinternals
+    Path to the Sysinternals suite directory
+.PARAMETER WithMicrosoftEntries
+    Include Microsoft-signed entries in the output
+#>
 
-# Time           : 14.10.2024 13:02
-# Entry Location : Task Scheduler
-# Entry          : \redacted\redacted
-# Enabled        : enabled
-# Category       : Tasks
-# Profile        : System-wide
-# Description    : redacted
-# Company        : redacted
-# Image Path     : redacted
-# Version        : redacted
-# Launch String  : redacted
+[CmdletBinding()]
+param(
+    [string]$PathToSysinternals = "C:\install\sysinternalssuite",
+    [switch]$WithMicrosoftEntries
+)
 
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONFIGURATION
+# ═══════════════════════════════════════════════════════════════════════════════
 
-function Get-Autoruns {
-    param (
-        [string]$pathToSysinternals = "C:\install\sysinternalssuite",
-        [switch]$WithMicrosoftEntries
+$Script:Config = @{
+    AutorunsPath     = Join-Path $PathToSysinternals "autorunsc64.exe"
+    OutputFile       = Join-Path $PathToSysinternals "autoruns.txt"
+    DisabledKeyName  = "AutorunsDisabled"
+}
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# HELPER FUNCTIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+function Test-Prerequisites {
+    <#
+    .SYNOPSIS
+        Validates that required tools and permissions are available
+    #>
+    if (-not (Test-Path $Script:Config.AutorunsPath)) {
+        throw "Autorunsc64.exe nicht gefunden unter: $($Script:Config.AutorunsPath)"
+    }
+    
+    if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+        throw "Dieses Script erfordert Administratorrechte"
+    }
+}
+
+function Write-DebugInfo {
+    <#
+    .SYNOPSIS
+        Writes debug information with consistent formatting
+    #>
+    param([string]$Message)
+    Write-Host "[DEBUG] $Message" -ForegroundColor Yellow
+}
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# CORE FUNCTIONS
+# ═══════════════════════════════════════════════════════════════════════════════
+
+function Get-AutorunEntries {
+    <#
+    .SYNOPSIS
+        Retrieves autorun entries using Sysinternals Autoruns
+    #>
+    param([switch]$IncludeMicrosoftEntries)
+    
+    Write-DebugInfo "Sammle Autorun-Einträge$(if (-not $IncludeMicrosoftEntries) {' (ohne Microsoft-Einträge)'})"
+    
+    $arguments = @(
+        '-accepteula'
+        '-a', '*'
+        '-ct'
+        '-nobanner'
+        '-o', $Script:Config.OutputFile
     )
     
-    if ($WithMicrosoftEntries) {
-        Start-Process "$pathToSysinternals\autorunsc64.exe" -ArgumentList @( '-accepteula ', '-a', '*', '-ct', '-nobanner', '-o', ($pathToSysinternals + '\autoruns.txt') ) -Wait -NoNewWindow
+    if (-not $IncludeMicrosoftEntries) {
+        $arguments += '-m'
     }
-    else {
-        Start-Process "$pathToSysinternals\autorunsc64.exe" -ArgumentList @( '-accepteula ', '-a', '*', '-ct', '-nobanner', '-m', '-o', ($pathToSysinternals + '\autoruns.txt') ) -Wait -NoNewWindow
+    
+    try {
+        $null = & $Script:Config.AutorunsPath @arguments
+        
+        if (-not (Test-Path $Script:Config.OutputFile)) {
+            throw "Autoruns-Ausgabedatei wurde nicht erstellt"
+        }
+        
+        return Get-Content $Script:Config.OutputFile -Encoding Default | ConvertFrom-Csv -Delimiter "`t"
     }
-    return (Get-Content "$pathToSysinternals\autoruns.txt" -Encoding ansi | ConvertFrom-Csv -Delimiter "`t")
+    catch {
+        throw "Fehler beim Ausführen von Autoruns: $($_.Exception.Message)"
+    }
 }
 
-function Get-AutorunsAlternative {
-    param (
-        [string]$pathToSysinternals = "C:\install\sysinternalssuite",
-        [switch]$WithMicrosoftEntries
+function Set-AutorunEntryState {
+    <#
+    .SYNOPSIS
+        Enables or disables an autorun entry
+    #>
+    param(
+        [Parameter(Mandatory)]$Entry,
+        [Parameter(Mandatory)][ValidateSet('Enable', 'Disable')][string]$Action
     )
-    # Alternative ohne Start-Process
-    if ($WithMicrosoftEntries) {
-        # $null (or another variable) is needed to suppress output from the command because of pipeline pollution
-        Write-Host "[DEBUG] Starte Autoruns mit Microsoft-Einträgen"
-        $null = & "$pathToSysinternals\autorunsc64.exe" -accepteula -a * -ct -nobanner -o "$pathToSysinternals\autoruns.txt"
-        return (Get-Content "$pathToSysinternals\autoruns.txt" -Encoding ansi | ConvertFrom-Csv -Delimiter "`t")
-    }
-    else {
-        Write-Host "[DEBUG] Starte Autoruns ohne Microsoft-Einträge"
-        $null = & "$pathToSysinternals\autorunsc64.exe" -accepteula -a * -ct -nobanner -m -o "$pathToSysinternals\autoruns.txt"
-        return (Get-Content "$pathToSysinternals\autoruns.txt" -Encoding ansi | ConvertFrom-Csv -Delimiter "`t")
-    }
-}
-
-function Disable-AutorunEntry {
-    param($Entry)
-    Write-Host("[DEBUG] Deaktiviere Eintrag: $($Entry.Entry) in $($Entry.'Entry Location') (derzeit: $($Entry.Enabled))")
-    if ($Entry.Enabled -eq "disabled") {
-        Write-Host "[DEBUG] Eintrag ist bereits deaktiviert."
+    
+    $currentState = $Entry.Enabled
+    $targetState = if ($Action -eq 'Enable') { 'enabled' } else { 'disabled' }
+    
+    Write-DebugInfo "$Action Eintrag: '$($Entry.Entry)' in '$($Entry.'Entry Location')' (aktuell: $currentState)"
+    
+    if ($currentState -eq $targetState) {
+        Write-DebugInfo "Eintrag ist bereits im gewünschten Zustand ($targetState)"
         return
     }
-    $loc = $Entry.'Entry Location'
+    
+    switch -Regex ($Entry.'Entry Location') {
+        '^(HKLM|HKCU)\\' { 
+            Set-RegistryAutorunEntry -Entry $Entry -Action $Action 
+        }
+        'Task Scheduler' { 
+            Set-TaskAutorunEntry -Entry $Entry -Action $Action 
+        }
+        default { 
+            Write-Warning "Nicht unterstützter Entry-Typ: $($Entry.'Entry Location')" 
+        }
+    }
+}
+
+function Set-RegistryAutorunEntry {
+    <#
+    .SYNOPSIS
+        Handles registry-based autorun entries
+    #>
+    param(
+        [Parameter(Mandatory)]$Entry,
+        [Parameter(Mandatory)][string]$Action
+    )
+    
+    $registryPath = $Entry.'Entry Location'
     $valueName = $Entry.Entry
-
-    if ($loc -match '^(HKLM|HKCU)\\') {
-        $path = $loc
-        $disabledPath = Join-Path $path "AutorunsDisabled"
-
-        if (-not (Test-Path "Registry::$disabledPath")) {
-            Write-Host "[DEBUG] Erstelle Unterschlüssel: $disabledPath"
-            New-Item -Path "Registry::$disabledPath" -Force | Out-Null
-        }
-
-        # Wert auslesen
-        $val = Get-ItemPropertyValue -Path "Registry::$path" -Name $valueName -ErrorAction SilentlyContinue
-        if ($null -ne $val) {
-            $prop = (Get-ItemProperty "Registry::$path").PSObject.Properties[$valueName]
-            Write-Host "[DEBUG] Verschiebe Wert '$valueName' von $path → $disabledPath"
-
-            # Kopieren
-            New-ItemProperty -Path "Registry::$disabledPath" -Name $valueName -Value $val -PropertyType $prop.Type -Force | Out-Null
-            Write-Host "[DEBUG] Neuer Wert in AutorunsDisabled: $valueName = $val"
-
-            # Original löschen
-            Remove-ItemProperty -Path "Registry::$path" -Name $valueName -ErrorAction SilentlyContinue
-
-            # Nachkontrolle ohne Fehler
-            $check = (Get-ItemProperty -Path "Registry::$path" -ErrorAction SilentlyContinue).PSObject.Properties.Name
-            if ($check -notcontains $valueName) {
-                Write-Host "[DEBUG] Wert '$valueName' wurde erfolgreich aus $path entfernt."
-            }
-            else {
-                Write-Host "[DEBUG] Achtung: Wert '$valueName' ist noch in $path vorhanden!"
-            }
-        }
-        else {
-            Write-Host "[DEBUG] Kein Wert '$valueName' in $path gefunden."
+    $disabledPath = Join-Path $registryPath $Script:Config.DisabledKeyName
+    
+    try {
+        if ($Action -eq 'Disable') {
+            Move-RegistryValue -SourcePath $registryPath -TargetPath $disabledPath -ValueName $valueName
+        } else {
+            Move-RegistryValue -SourcePath $disabledPath -TargetPath $registryPath -ValueName $valueName
         }
     }
-    elseif ($loc -eq 'Task Scheduler') {
-        $taskName = $Entry.Entry
-        Write-Host "[DEBUG] Deaktiviere geplanten Task: $taskName"
-        schtasks /Change /TN "$taskName" /DISABLE | Out-Null
+    catch {
+        Write-Error "Fehler beim Bearbeiten des Registry-Eintrags: $($_.Exception.Message)"
     }
 }
 
-function Enable-AutorunEntry {
-    param($Entry)
-    Write-Host("[DEBUG] Aktiviere Eintrag: $($Entry.Entry) in $($Entry.'Entry Location') (derzeit: $($Entry.Enabled))")
-    if ($Entry.Enabled -eq "enabled") {
-        Write-Host "[DEBUG] Eintrag ist bereits aktiviert."
-        return
-    }
-    $loc = $Entry.'Entry Location'
-    $valueName = $Entry.Entry
-
-    if ($loc -match '^(HKLM|HKCU)\\') {
-        $path = $loc
-        $disabledPath = Join-Path $path "AutorunsDisabled"
-
-        # Prüfen, ob der Wert im AutorunsDisabled-Ordner existiert
-        $props = (Get-ItemProperty -Path "Registry::$disabledPath" -ErrorAction SilentlyContinue).PSObject.Properties.Name
-        if ($props -contains $valueName) {
-            $val = (Get-ItemProperty -Path "Registry::$disabledPath" -ErrorAction SilentlyContinue).PSObject.Properties[$valueName].Value
-            $prop = (Get-ItemProperty "Registry::$disabledPath").PSObject.Properties[$valueName]
-
-            Write-Host "[DEBUG] Verschiebe Wert '$valueName' zurück von $disabledPath → $path"
-            New-ItemProperty -Path "Registry::$path" -Name $valueName -Value $val -PropertyType $prop.Type -Force | Out-Null
-            Write-Host "[DEBUG] Neuer Wert in $path : $valueName = $val"
-
-            # Aus AutorunsDisabled löschen
-            Remove-ItemProperty -Path "Registry::$disabledPath" -Name $valueName -ErrorAction SilentlyContinue
-
-            # Nachkontrolle
-            $check = (Get-ItemProperty -Path "Registry::$path" -ErrorAction SilentlyContinue).PSObject.Properties.Name
-            if ($check -contains $valueName) {
-                Write-Host "[DEBUG] Wert '$valueName' wurde erfolgreich nach $path verschoben."
-            }
-            else {
-                Write-Host "[DEBUG] Achtung Wert '$valueName' konnte nicht nach $path verschoben werden!"
-            }
-        }
-        else {
-            Write-Host "[DEBUG] Kein Wert '$valueName' in $disabledPath gefunden."
+function Set-TaskAutorunEntry {
+    <#
+    .SYNOPSIS
+        Handles Task Scheduler autorun entries
+    #>
+    param(
+        [Parameter(Mandatory)]$Entry,
+        [Parameter(Mandatory)][string]$Action
+    )
+    
+    $taskName = $Entry.Entry
+    $operation = if ($Action -eq 'Enable') { '/ENABLE' } else { '/DISABLE' }
+    
+    Write-DebugInfo "$Action Task: $taskName"
+    
+    try {
+        $result = schtasks /Change /TN "$taskName" $operation 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            throw "schtasks beendet mit Fehlercode $LASTEXITCODE`: $result"
         }
     }
-    elseif ($loc -eq 'Task Scheduler') {
-        $taskName = $Entry.Entry
-        Write-Host "[DEBUG] Aktiviere geplanten Task $taskName"
-        schtasks /Change /TN "$taskName" /ENABLE | Out-Null
+    catch {
+        Write-Error "Fehler beim Bearbeiten des Tasks: $($_.Exception.Message)"
     }
 }
 
-do {
-    $a = Get-Autoruns
-    $selection = $a | Out-GridView -Title "Autoruns - Auswahl" -PassThru
-    if ($null -eq $selection) { break }
-
-    $action = @("Disable", "Enable", "End programm") | Out-GridView -Title "Choose Action" -PassThru
-    switch ($action) {
-        "Disable" { Disable-AutorunEntry -Entry $selection }
-        "Enable" { Enable-AutorunEntry -Entry $selection }
-        "End programm" { break }
+function Move-RegistryValue {
+    <#
+    .SYNOPSIS
+        Moves a registry value between keys
+    #>
+    param(
+        [string]$SourcePath,
+        [string]$TargetPath,
+        [string]$ValueName
+    )
+    
+    $sourceRegPath = "Registry::$SourcePath"
+    $targetRegPath = "Registry::$TargetPath"
+    
+    # Prüfe ob Quellwert existiert
+    $sourceValue = Get-ItemProperty -Path $sourceRegPath -Name $ValueName -ErrorAction SilentlyContinue
+    if (-not $sourceValue) {
+        throw "Wert '$ValueName' nicht gefunden in $SourcePath"
+    }
+    
+    # Erstelle Zielschlüssel falls nicht vorhanden
+    if (-not (Test-Path $targetRegPath)) {
+        Write-DebugInfo "Erstelle Registry-Schlüssel: $TargetPath"
+        New-Item -Path $targetRegPath -Force | Out-Null
+    }
+    
+    # Kopiere Wert
+    $propertyType = $sourceValue.PSObject.Properties[$ValueName].TypeNameOfValue
+    $value = $sourceValue.$ValueName
+    
+    Write-DebugInfo "Verschiebe '$ValueName' von $SourcePath → $TargetPath"
+    New-ItemProperty -Path $targetRegPath -Name $ValueName -Value $value -Force | Out-Null
+    
+    # Lösche Originalwert
+    Remove-ItemProperty -Path $sourceRegPath -Name $ValueName
+    
+    # Verifikation
+    $verification = Get-ItemProperty -Path $targetRegPath -Name $ValueName -ErrorAction SilentlyContinue
+    if (-not $verification) {
+        throw "Verschiebung fehlgeschlagen: Wert nicht im Ziel gefunden"
     }
 }
-while ($action -ne "Programm beenden")
+
+function Show-UserInterface {
+    <#
+    .SYNOPSIS
+        Main user interface loop
+    #>
+    do {
+        try {
+            Write-Host "Lade Autorun-Einträge..." -ForegroundColor Green
+            $autorunEntries = Get-AutorunEntries -IncludeMicrosoftEntries:$WithMicrosoftEntries
+            
+            if (-not $autorunEntries) {
+                Write-Warning "Keine Autorun-Einträge gefunden"
+                break
+            }
+            
+            Write-Host "Gefunden: $($autorunEntries.Count) Einträge" -ForegroundColor Green
+            
+            # Zeige Einträge zur Auswahl
+            $selectedEntry = $autorunEntries | Out-GridView -Title "Autoruns - Eintrag auswählen" -PassThru
+            if (-not $selectedEntry) {
+                Write-Host "Keine Auswahl getroffen. Beende..." -ForegroundColor Yellow
+                break
+            }
+            
+            # Zeige Aktionsoptionen
+            $availableActions = @('Enable', 'Disable', 'Beenden')
+            $selectedAction = $availableActions | Out-GridView -Title "Aktion auswählen" -PassThru
+            
+            switch ($selectedAction) {
+                { $_ -in @('Enable', 'Disable') } {
+                    Set-AutorunEntryState -Entry $selectedEntry -Action $_
+                    Write-Host "Aktion '$_' erfolgreich ausgeführt" -ForegroundColor Green
+                }
+                'Beenden' {
+                    Write-Host "Programm wird beendet..." -ForegroundColor Yellow
+                    return
+                }
+                default {
+                    Write-Host "Keine gültige Aktion ausgewählt" -ForegroundColor Yellow
+                }
+            }
+        }
+        catch {
+            Write-Error "Unerwarteter Fehler: $($_.Exception.Message)"
+            $continue = Read-Host "Fortfahren? (j/n)"
+            if ($continue -ne 'j') { break }
+        }
+    } while ($true)
+}
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN EXECUTION
+# ═══════════════════════════════════════════════════════════════════════════════
+
+try {
+    Write-Host "Autoruns PowerShell Manager" -ForegroundColor Cyan
+    Write-Host "═══════════════════════════════════════" -ForegroundColor Cyan
+    
+    Test-Prerequisites
+    Show-UserInterface
+}
+catch {
+    Write-Error "Kritischer Fehler: $($_.Exception.Message)"
+    exit 1
+}
+finally {
+    # Cleanup
+    if (Test-Path $Script:Config.OutputFile) {
+        Remove-Item $Script:Config.OutputFile -Force -ErrorAction SilentlyContinue
+    }
+}
