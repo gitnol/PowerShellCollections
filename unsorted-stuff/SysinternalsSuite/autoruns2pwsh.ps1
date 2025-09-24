@@ -40,7 +40,7 @@ function Get-Autoruns {
     else {
         Start-Process "$pathToSysinternals\autorunsc64.exe" -ArgumentList @( '-accepteula ', '-a', '*', '-ct', '-nobanner', '-m', '-o', ($pathToSysinternals + '\autoruns.txt') ) -Wait -NoNewWindow
     }
-    return (Get-Content .\autoruns.txt -Encoding ansi | ConvertFrom-Csv -Delimiter "`t")
+    return (Get-Content "$pathToSysinternals\autoruns.txt" -Encoding ansi | ConvertFrom-Csv -Delimiter "`t")
 }
 
 function Get-AutorunsAlternative {
