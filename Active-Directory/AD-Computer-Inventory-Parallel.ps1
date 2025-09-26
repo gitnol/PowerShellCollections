@@ -53,7 +53,10 @@ param(
     
     [Parameter(Mandatory = $false)]
     [ValidateRange(1, 10)]
-    [int]$PingTimeout = 2
+    [int]$PingTimeout = 2,
+	
+    [Parameter(Mandatory = $false)]
+    [switch]$OutputOnlinePCsWithLoggedOnUsers
 )
 
 # Thread-sichere Collections für Statistiken
@@ -290,7 +293,7 @@ function Invoke-ComputerInventory {
             }
         }
         
-        $result = @{
+        $result = [PSCustomObject]@{
             ComputerName      = $computer.Name
             DistinguishedName = $computer.DistinguishedName
             Status            = 'Processing'
@@ -309,7 +312,7 @@ function Invoke-ComputerInventory {
             $result.Online = $pingResult
             
             if ($pingResult) {
-                $stats.TryUpdate('Online', $stats['Online'] + 1, $stats['Online'])
+                [void]$stats.TryUpdate('Online', $stats['Online'] + 1, $stats['Online'])
                 
                 # CIM-Session erstellen für bessere Performance
                 $cimSession = $null
@@ -319,6 +322,7 @@ function Invoke-ComputerInventory {
                     
                     if ($cimSession) {
                         # Aktuellen Benutzer über den Besitzer des explorer.exe Prozesses ermitteln
+                        # Write-Host($computer.Name)
                         $explorerProcess = Get-CimInstance -CimSession $cimSession -ClassName Win32_Process -Filter "Name = 'explorer.exe'" | Select-Object -First 1
                         if ($explorerProcess) {
                             # SID des Prozess-Besitzers direkt abfragen. Dies umgeht das Double-Hop-Problem.
@@ -332,6 +336,22 @@ function Invoke-ComputerInventory {
                                 # Wenn die SID nicht gefunden wird, ist es ein lokaler Benutzer und wird ignoriert.
                                 if ($userSid -and $userCache.ContainsKey($userSid)) {
                                     $result.CurrentUser = $userCache[$userSid]
+                                }
+                                # NEU: Wenn nicht im Cache, nach lokalem Benutzer suchen.
+                                else {
+                                    try {
+                                        # Per CIM den lokalen Benutzer anhand der SID auf dem Zielcomputer suchen.
+                                        $localUser = Get-CimInstance -CimSession $cimSession -ClassName Win32_UserAccount -Filter "SID = '$userSid'" -ErrorAction Stop
+										
+                                        if ($localUser) {
+                                            # Benutzer im Format <Hostname>\<Username> formatieren.
+                                            $result.CurrentUser = "$($computer.Name)\$($localUser.Name)"
+                                        }
+                                    }
+                                    catch {
+                                        # Fehler protokollieren, falls die Abfrage des lokalen Benutzers fehlschlägt.
+                                        $result.Error = "Konnte lokalen Benutzer mit SID $userSid nicht abfragen. Fehler: $($_.Exception.Message)"
+                                    }
                                 }
                             }
                         }
@@ -354,7 +374,7 @@ function Invoke-ComputerInventory {
                 }
             }
             else {
-                $stats.TryUpdate('Offline', $stats['Offline'] + 1, $stats['Offline'])
+                [void]$stats.TryUpdate('Offline', $stats['Offline'] + 1, $stats['Offline'])
             }
             
             # Nur fortfahren, wenn kein CIM-Fehler aufgetreten ist
@@ -377,24 +397,24 @@ function Invoke-ComputerInventory {
                 if (("$($computer.Description)" -ne "$($newDescription)") -and ($newDescription -ne '') -and ($null -ne $newDescription)) {
                     $result.ShouldUpdate = $true
                     $result.Status = 'NeedsUpdate'
-                    $stats.TryUpdate('NeedsUpdate', $stats['NeedsUpdate'] + 1, $stats['NeedsUpdate'])
+                    [void]$stats.TryUpdate('NeedsUpdate', $stats['NeedsUpdate'] + 1, $stats['NeedsUpdate'])
                 }
                 else {
                     $result.Status = 'NoChange'
-                    $stats.TryUpdate('NoChange', $stats['NoChange'] + 1, $stats['NoChange'])
+                    [void]$stats.TryUpdate('NoChange', $stats['NoChange'] + 1, $stats['NoChange'])
                 }
             }
             else {
                 # Wenn ein CIM-Fehler aufgetreten ist, markieren wir dies
                 $result.Status = 'Error'
-                $stats.TryUpdate('CollectionFailed', $stats['CollectionFailed'] + 1, $stats['CollectionFailed'])
+                [void]$stats.TryUpdate('CollectionFailed', $stats['CollectionFailed'] + 1, $stats['CollectionFailed'])
             }
             
         }
         catch {
             $result.Error = $_.Exception.Message
             $result.Status = 'Error'
-            $stats.TryUpdate('CollectionFailed', $stats['CollectionFailed'] + 1, $stats['CollectionFailed'])
+            [void]$stats.TryUpdate('CollectionFailed', $stats['CollectionFailed'] + 1, $stats['CollectionFailed'])
         }
         
         return $result
@@ -461,14 +481,14 @@ try {
             Write-Log "=== Starte serielle Aktualisierung für $($computersToUpdate.Count) Computer ===" -Level Info
             foreach ($item in $computersToUpdate) {
                 try {
-                    Set-ADComputer -Identity $item.DistinguishedName -Description $item.NewDescription -ErrorAction Stop
+                    $null = Set-ADComputer -Identity $item.DistinguishedName -Description $item.NewDescription -ErrorAction Stop
                     $script:Stats['SucceededUpdates']++
                     Write-Verbose "Aktualisiert: $($item.ComputerName)"
                     
                     # Logeintrag in Datei schreiben
                     $logTimestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
                     $logMessage = "[$logTimestamp] [UPDATE] Computer: $($item.ComputerName) | Old: '$($item.OldDescription)' | New: '$($item.NewDescription)'"
-                    Add-Content -Path $logFile -Value $logMessage
+                    $null = Add-Content -Path $logFile -Value $logMessage
 
                 }
                 catch {
@@ -519,7 +539,15 @@ try {
     if ($TestMode) {
         Write-Log "TESTMODUS: Keine tatsächlichen AD-Änderungen durchgeführt" -Level Warning
     }
-    
+	
+    if ($OutputOnlinePCsWithLoggedOnUsers) {
+        Write-Verbose 'foreach ($myresult in ($myresults | Where-Object { ($_.Online -eq $true) -and !$_.Error })) {Write-Verbose ($myresult.ComputerName + ":" + $myresult.CurrentUser) -Verbose}'
+        Write-Verbose '$myresults | Where-Object { ($_.Online -eq $true) -and !$_.Error } | Select ComputerName,CurrentUser | Out-GridView -Title "Online Computers with loggedOn Users"'
+        Write-Verbose '$myresults | Where-Object { ($_.Online -eq $true) -and !$_.Error } | Select ComputerName,CurrentUser,NewDescription | Out-GridView -Title "Online Computers with loggedOn Users" -PassThru | % {Invoke-Command -ComputerName $_.ComputerName -ScriptBlock {Stop-Computer -Force -WhatIf -Verbose}}'
+    }
+	
+    return $results
+	
 }
 catch {
     Write-Log "Kritischer Fehler im Hauptskript: $($_.Exception.Message)" -Level Error
