@@ -1,0 +1,24 @@
+# filepath: requirements.txt
+
+# Core AI Libraries (CUDA 12.4 compatible)
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch>=2.1.0
+torchvision>=0.16.0
+torchaudio>=2.1.0
+
+# Audio & Speech Processing
+pyannote.audio==3.1.1
+speechbrain
+transformers>=4.35.0
+openai-whisper
+huggingface_hub  
+
+# Helper & UI Libraries
+streamlit
+sounddevice
+scipy
+numpy
+
+# Optional: Additional utilities
+pydub
+librosa
