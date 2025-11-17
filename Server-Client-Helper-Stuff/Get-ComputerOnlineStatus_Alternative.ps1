@@ -19,8 +19,20 @@ $null = & ipconfig /flushdns
 $DoWhatIf = $true   # $true = nur Simulation / $false = echter Neustart
 $OnlineServer = [System.Collections.Concurrent.ConcurrentBag[object]]::new()
 
+# Server finden
+# $Server = Get-ADComputer -Filter {OperatingSystem -like "*Server*"} -Properties OperatingSystem | Where Name -notlike "*cx*" |
+#    Select-Object -ExpandProperty Name
+
+# Clients finden
+# $Server = Get-ADComputer -Filter {OperatingSystem -notlike "*Server*"} -Properties OperatingSystem | Where Name -notlike "*cx*" |
+# Select-Object -ExpandProperty Name
+	
+# Server CX finden
+# $Server = Get-ADComputer -Filter {OperatingSystem -like "*Server*"} -Properties OperatingSystem | Where Name -like "*cx*" |
+#    Select-Object -ExpandProperty Name
+
 # Alle
-$Server = Get-ADComputer -Filter $Filter -Properties OperatingSystem |
+$Server = Get-ADComputer -Filter { OperatingSystem -like "*Windows*" } -Properties OperatingSystem |
 Select-Object -ExpandProperty Name
 
 # Parallel prüfen und ggf. neustarten
@@ -41,6 +53,7 @@ $Server | ForEach-Object -Parallel {
                 Server    = $Name
                 IPAddress = $IP
                 Timestamp = (Get-Date)
+                Online    = $true
             })
 
         Write-Host "$Name ($IP) ist online."
@@ -51,11 +64,18 @@ $Server | ForEach-Object -Parallel {
     }
     else {
         Write-Host "$Name ist offline."
+        $OnlineServer.Add([pscustomobject]@{
+                Server    = $Name
+                IPAddress = $IP
+                Timestamp = (Get-Date)
+                Online    = $false
+            })
     }
-} -ThrottleLimit $ThrottleLimit
+} -ThrottleLimit 30
 
 # Ausgabe
-$OnlineServer | Sort-Object Server
+# Online 
+$Online = $OnlineServer | Where-Object Online -eq $true | Sort-Object Server
+# Offline
+$Offline = $OnlineServer | Where-Object Online -eq $false | Sort-Object Server
 
-
-$OnlineServer | Out-GridView
