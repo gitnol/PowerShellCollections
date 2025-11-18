@@ -79,3 +79,6 @@ $Online = $OnlineServer | Where-Object Online -eq $true | Sort-Object Server
 # Offline
 $Offline = $OnlineServer | Where-Object Online -eq $false | Sort-Object Server
 
+$Online | Out-GridView -Title "Online Computer am $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+
+$Offline | Out-GridView -Title "Offline Computer am $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
