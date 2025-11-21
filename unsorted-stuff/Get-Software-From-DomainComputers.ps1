@@ -10,7 +10,8 @@ foreach ($computer in $computers) {
                 Name = "PSComputerName"; Expression = { $env:COMPUTERNAME }
             }, DisplayName, @{Name = "Version"; Expression = { $_.Version } }
         }
-    } catch {
+    }
+    catch {
         $errorMessage = $_.Exception.Message
         Write-Output ("Fehler bei {0}: {1}" -f $computer, $errorMessage)
     }
@@ -18,8 +19,13 @@ foreach ($computer in $computers) {
 
 
 function Get-InstalledSoftware {
+    <#
+.SYNOPSIS
+Liest installierte Software (Registry-basiert, ohne Win32_Product)
+#>
+    [CmdletBinding()]
     param(
-        [string]$ComputerName = 'localhost'
+        [string]$ComputerName = $env:COMPUTERNAME
     )
 
     $hives = @(
@@ -27,20 +33,30 @@ function Get-InstalledSoftware {
         @{ Path = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'; Architecture = '32-bit' }
     )
 
-    $result = foreach ($entry in $hives) {
-        Get-ItemProperty -Path $entry.Path -ErrorAction SilentlyContinue | Where-Object {
-            $_.DisplayName -and $_.UninstallString
-        } | ForEach-Object {
-            [PSCustomObject]@{
-                Name            = $_.DisplayName
-                Version         = $_.DisplayVersion
-                Publisher       = $_.Publisher
-                InstallDate     = $_.InstallDate
-                UninstallString = $_.UninstallString
-                Architektur     = $entry.Architecture
+    $scriptBlock = {
+        param($hives)
+        $apps = foreach ($entry in $hives) {
+            Get-ItemProperty -Path $entry.Path -ErrorAction SilentlyContinue |
+            Where-Object { $_.DisplayName -and $_.UninstallString } |
+            ForEach-Object {
+                [PSCustomObject]@{
+                    Name            = $_.DisplayName
+                    Version         = $_.DisplayVersion
+                    Publisher       = $_.Publisher
+                    InstallDate     = $_.InstallDate
+                    UninstallString = $_.UninstallString
+                    Architektur     = $entry.Architecture
+                }
             }
         }
+        $apps | Sort-Object Name
     }
 
-    return $result | Sort-Object Name
+    if ($ComputerName -eq $env:COMPUTERNAME) {
+        & $scriptBlock $hives
+    }
+    else {
+        Invoke-Command -ComputerName $ComputerName -ScriptBlock $scriptBlock -ArgumentList $hives
+    }
 }
+
