@@ -8,8 +8,9 @@ function Get-ADComputerLastLogon {
     $DCs = Get-ADDomainController -Filter *
 
     $allResults = foreach ($DC in $DCs) {
-        Get-ADComputer -Filter $Filter -Server $DC.HostName -Properties lastLogon, pwdLastSet, OperatingSystem, Enabled, Description |
+        Get-ADComputer -Filter $Filter -Server $DC.HostName -Properties lastLogon, pwdLastSet, OperatingSystem, Enabled, Description, DistinguishedName, ms-Mcs-AdmPwd |
         Select-Object Name,
+        ms-Mcs-AdmPwd,
         DistinguishedName,
         OperatingSystem,
         Enabled,
@@ -28,7 +29,10 @@ function Get-ADComputerLastLogon {
             Enabled         = $latest.Enabled
             LastLogon       = $latest.LastLogon
             PwdLastSet      = $latest.PwdLastSet
+            LapsPwd    = $latest.'ms-Mcs-AdmPwd'
             Description     = $latest.Description
+            DistinguishedName = $latest.DistinguishedName
+            
         }
     }
 }
