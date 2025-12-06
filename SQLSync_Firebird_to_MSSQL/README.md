@@ -1,8 +1,9 @@
 # SQLSync: Firebird to MSSQL High-Performance Synchronizer
 
-<span style="color:red">**Dieses Projekt wurde in ein eigenes Repository verschoben!**
- [PSFirebirdToMSSQL](https://github.com/gitnol/PSFirebirdToMSSQL)
-</span>
+> [!CAUTION]
+> **Dieses Projekt wurde in ein eigenes Repository verschoben!**
+>
+> Das aktuelle Projekt findest du hier: [PSFirebirdToMSSQL](https://github.com/gitnol/PSFirebirdToMSSQL)
 
 Hochperformante, parallelisierte ETL-Lösung zur inkrementellen Synchronisation von Firebird-Datenbanken (z.B. AvERP) nach Microsoft SQL Server.
 
