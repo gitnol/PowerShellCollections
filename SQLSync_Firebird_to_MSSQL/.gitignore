@@ -1,0 +1,4 @@
+config*
+!config.sample.json
+Logs
+**/*.log
