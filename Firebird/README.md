@@ -1,5 +1,10 @@
 # Firebird Trace Log Parser & Analyzer
 
+> [!CAUTION]
+> **Dieses Projekt wurde in ein eigenes Repository verschoben!**
+>
+> Das aktuelle Projekt findest du hier: [PSFirebirdTraceParser](https://github.com/gitnol/PSFirebirdTraceParser.git)
+
 PowerShell-Tools zum **Parsen**, **Analysieren** und **Auswerten** von Firebird Trace Logs.
 Hilft, Performance-Engpässe, Transaktionsketten und ineffiziente SQLs schnell zu identifizieren.
 

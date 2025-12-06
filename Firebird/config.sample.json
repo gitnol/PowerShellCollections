@@ -1,8 +1,0 @@
-{
-  "Firebird": {
-    "Username": "SYSDBA",
-    "Password": "masterkey",
-    "FirebirdPath": "C:\\Program Files\\Firebird\\Firebird_4_0_3",
-    "TraceConfigFilename": "fbtrace30.conf"
-  }
-}
