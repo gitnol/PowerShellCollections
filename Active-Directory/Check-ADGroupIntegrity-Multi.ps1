@@ -158,7 +158,7 @@ Write-Host "    <channel>Gesamtstatus</channel>"
 Write-Host "    <value>$MasterErrorCount</value>"
 Write-Host "    <unit>Count</unit>"
 Write-Host "    <LimitMode>1</LimitMode>"
-Write-Host "    <LimitMaxError>0</LimitMaxError>"
+Write-Host "    <LimitMaxError>0.95</LimitMaxError>"
 Write-Host "    <LimitErrorMsg>Alarm bei privilegierten Gruppen</LimitErrorMsg>"
 Write-Host "  </result>"
 
@@ -170,7 +170,7 @@ foreach ($Res in $Results) {
     Write-Host "    <showchart>0</showchart>"
     Write-Host "    <showtable>1</showtable>"
     Write-Host "    <LimitMode>1</LimitMode>"
-    Write-Host "    <LimitMaxError>0</LimitMaxError>"
+    Write-Host "    <LimitMaxError>0.95</LimitMaxError>"
     # Keine Umlaute verwenden fuer maximale Sicherheit
     Write-Host "    <LimitErrorMsg>$($Res.Message)</LimitErrorMsg>"
     Write-Host "  </result>"
