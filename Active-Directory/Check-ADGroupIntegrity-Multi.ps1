@@ -32,6 +32,10 @@ $StandardNames = @(
 )
 $StandardNames | ForEach-Object { if (-not $CriticalGroups.Contains($_)) { $CriticalGroups.Add($_) } }
 
+# Rudimentäre Suche nach offensichtlichen Namen
+(Get-ADGroup -Filter * | Where-Object SamAccountName -like "*admin*").samAccountName | ForEach-Object { $CriticalGroups.Add($_) }
+(Get-ADGroup -Filter * | Where-Object SamAccountName -like "*operator*").samAccountName | ForEach-Object { $CriticalGroups.Add($_) }
+
 # Dynamische Suche nach adminCount=1
 try {
     $ProtectedGroups = Get-ADGroup -Filter "adminCount -eq 1" -Properties adminCount | Select-Object -ExpandProperty Name
