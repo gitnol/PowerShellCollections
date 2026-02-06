@@ -182,7 +182,7 @@ class KasSoapClient:
         # Interne Helper-Funktion zum Extrahieren der Keys aus der Antwort
         def extract_keys(res):
             if res and 'ssl_certificate_sni_key' in res and res['ssl_certificate_sni_key']:
-                 return {
+                return {
                     'key': res['ssl_certificate_sni_key'],
                     'crt': res['ssl_certificate_sni_crt'],
                     'bundle': res.get('ssl_certificate_sni_bundle', '')
@@ -199,8 +199,8 @@ class KasSoapClient:
         
         # Check ob ein Fehler vorliegt, der nicht "leer" bedeutet
         if res_sub and 'Error' in res_sub:
-             # Optional: Debugging ausgeben, falls nötig
-             pass
+            # Optional: Debugging ausgeben, falls nötig
+            pass
 
         # 2. Versuch: Als HAUPTDOMAIN abrufen
         res_dom = self._send_request('get_domains', {'domain_name': domain})
