@@ -1,6 +1,6 @@
 Import-Module ActiveDirectory
 
-$DomainName = "lewa-attendorn" # CaseSensitive
+$DomainName = "my-domain" # CaseSensitive
 $TopLevelDomainName = "local" # CaseSensitive
 # SearchScope should be limited to OneLevel if possible. (or limit by setting the SeachBase)
 # $SearchScope = "OneLevel" 

@@ -1,0 +1,321 @@
+# Domains & DNS Management
+
+## Table of Contents
+*   [DomainService](#domainservice)
+*   [SubdomainService](#subdomainservice)
+*   [DnsService](#dnsservice)
+*   [DdnsService](#ddnsservice)
+*   [SslService](#sslservice)
+
+---
+
+## DomainService
+Found at `client.domain`.
+
+### `get_domains(domain_name: str = None)`
+List domains.
+```python
+domains = client.domain.get_domains()
+```
+
+### `add_domain(...)`
+Add a domain to the account.
+```python
+client.domain.add_domain(
+    domain_name="new-example.com",
+    domain_tld="com",
+    domain_path="/www/new-example",
+    redirect_status=301
+)
+```
+
+### `update_domain(...)`
+Modify domain settings (e.g. path).
+```python
+client.domain.update_domain(
+    domain_name="new-example.com",
+    domain_path="/www/updated_path",
+    is_active="Y"
+)
+```
+
+### `delete_domain(domain_name: str)`
+Remove a domain.
+```python
+client.domain.delete_domain("new-example.com")
+```
+
+### `move_domain(...)`
+Move domain to another customer (sub-account).
+```python
+client.domain.move_domain(
+    domain_name="example.com",
+    source_account="w0123456",
+    target_account="w0987654"
+)
+```
+
+### `get_topleveldomains()`
+List available TLDs.
+```python
+tlds = client.domain.get_topleveldomains()
+```
+
+---
+
+## SubdomainService
+Found at `client.subdomain`.
+
+### `get_subdomains(subdomain_name: str = None)`
+List subdomains.
+```python
+subs = client.subdomain.get_subdomains()
+```
+
+### `add_subdomain(...)`
+Create a subdomain.
+```python
+client.subdomain.add_subdomain(
+    subdomain_part1="shop",
+    subdomain_part2="example.com",
+    subdomain_path="/www/shop",
+    redirect_status=0
+)
+```
+
+### `update_subdomain(...)`
+Update subdomain path or redirect.
+```python
+client.subdomain.update_subdomain(
+    subdomain_name="shop.example.com",
+    subdomain_path="/new/path",
+    php_version="8.2"
+)
+```
+
+### `delete_subdomain(subdomain_name: str)`
+Delete a subdomain.
+```python
+client.subdomain.delete_subdomain("shop.example.com")
+```
+
+---
+
+## DnsService
+Found at `client.dns`.
+**Note:** Methods have been renamed to match API explicitly.
+
+### `get_dns_settings(zone_host: str, record_id: str = None)`
+List DNS records for a zone.
+```python
+records = client.dns.get_dns_settings(zone_host="example.com")
+```
+
+### `add_dns_settings(...)`
+Add a DNS record.
+```python
+client.dns.add_dns_settings(
+    zone_host="example.com",
+    record_type="A",
+    record_name="sub",       # sub.example.com
+    record_data="1.2.3.4",
+    record_aux="0"
+)
+```
+
+### `update_dns_settings(...)`
+Update a DNS record.
+```python
+client.dns.update_dns_settings(
+    record_id="12345",
+    record_data="5.6.7.8"
+)
+```
+
+### `delete_dns_settings(record_id: str)`
+Delete a record.
+```python
+client.dns.delete_dns_settings("12345")
+```
+
+### `reset_dns_settings(zone_host: str, nameserver: str)`
+Reset zone to default.
+```python
+client.dns.reset_dns_settings(zone_host="example.com")
+```
+
+---
+
+## DdnsService
+Found at `client.ddns`.
+
+### `get_ddnsusers(ddns_login: str = None)`
+List DynDNS users.
+
+### `add_ddnsuser(...)`
+Create a DynDNS user.
+```python
+client.ddns.add_ddnsuser(
+    dyndns_password="SecretPassword!",
+    dyndns_zone="example.com",
+    dyndns_label="home"
+)
+```
+
+### `update_ddnsuser(...)`
+Update DynDNS user.
+```python
+client.ddns.update_ddnsuser(
+    dyndns_login="dy12345",
+    dyndns_label="office"
+)
+```
+
+### `delete_ddnsuser(dyndns_login: str)`
+Delete DynDNS user.
+
+---
+
+## SslService
+Found at `client.ssl`.
+
+### `update_ssl(ssl_job: str, ssl_account: str)`
+Manage SSL certificates (e.g. Let's Encrypt).
+```python
+client.ssl.update_ssl(
+    ssl_job="letsencrypt_create", 
+    ssl_account="example.com"
+)
+```
+)
+```
+
+### `get_topleveldomains()`
+List available TLDs.
+```python
+tlds = client.domain.get_topleveldomains()
+```
+
+---
+
+## SubdomainService
+Found at `client.subdomain`.
+
+### `get_subdomains(subdomain_name=None)`
+List subdomains.
+```python
+subs = client.subdomain.get_subdomains()
+```
+
+### `add_subdomain(...)`
+Create a subdomain.
+```python
+client.subdomain.add_subdomain(
+    subdomain_part1="blog",
+    subdomain_part2="example.com",
+    subdomain_path="/www/blog"
+)
+```
+
+### `update_subdomain(...)`
+Update subdomain path.
+```python
+client.subdomain.update_subdomain(
+    subdomain_name="blog.example.com",
+    subdomain_path="/www/new_blog_path"
+)
+```
+
+### `delete_subdomain(subdomain_name)`
+```python
+client.subdomain.delete_subdomain("blog.example.com")
+```
+
+---
+
+## DnsService
+Found at `client.dns`. KAS allows editing zone records.
+
+### `get_dns_settings(zone_host=None)`
+Get records for a zone.
+```python
+records = client.dns.get_dns_settings(zone_host="example.com")
+```
+
+### `add_record(...)`
+Add a DNS record.
+```python
+client.dns.add_record(
+    zone_host="example.com",
+    record_type="A",
+    record_name="www",
+    record_data="1.2.3.4",
+    record_aux="0"
+)
+```
+
+### `update_record(...)`
+Update a record by ID.
+```python
+client.dns.update_record(
+    record_id="12345",
+    record_data="5.6.7.8"
+)
+```
+
+### `delete_record(record_id)`
+```python
+client.dns.delete_record(record_id="12345")
+```
+
+### `reset_zone(zone_host)`
+Reset to default records.
+```python
+client.dns.reset_zone("example.com")
+```
+
+---
+
+## DdnsService
+Found at `client.ddns`. Manage DynDNS users.
+
+### `get_ddnsusers()`
+```python
+users = client.ddns.get_ddnsusers()
+```
+
+### `add_ddnsuser(...)`
+```python
+client.ddns.add_ddnsuser(
+    ddns_label="HomeOffice",
+    ddns_plain="N"
+)
+```
+
+### `update_ddnsuser(...)`
+```python
+client.ddns.update_ddnsuser(
+    ddns_login="w012345_d1",
+    ddns_comment="New Location"
+)
+```
+
+### `delete_ddnsuser(ddns_login)`
+```python
+client.ddns.delete_ddnsuser("w012345_d1")
+```
+
+---
+
+## SslService
+Found at `client.ssl`. Manage Let's Encrypt certificates.
+
+### `update_ssl(...)`
+Enable/Disable SSL.
+```python
+# Enable Let's Encrypt
+client.ssl.update_ssl(
+    ssl_job="letsencrypt_create",
+    ssl_account="example.com"
+)
+```

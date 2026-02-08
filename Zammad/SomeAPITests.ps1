@@ -51,7 +51,7 @@ function Get-ZammadTicketDetails {
         $articles = Invoke-RestMethod -Uri $articlesUrl -Method Get -Headers $headers
 
         $ticketDetails += [PSCustomObject]@{
-            TicketID       = $ticket.id
+            TicketID      = $ticket.id
             Title         = $ticket.title
             State         = $ticket.state
             CreatedAt     = $ticket.created_at
@@ -82,5 +82,5 @@ $Statuses = @("open", "new", "pending close")
 $tickets = Get-ZammadTickets -ZammadUrl $ZammadUrl -ApiToken $ApiToken -Days $Days -Statuses $Statuses
 $tickets
 
-(Invoke-RestMethod -Uri https://helpdesk.lewa-attendorn.local/api/v1/tickets/9680?all=true -Method Get -Headers $headers).ticket_article_ids
-Invoke-RestMethod -Uri https://helpdesk.lewa-attendorn.local/api/v1/tickets/9680?all=true -Method Get -Headers $headers
+(Invoke-RestMethod -Uri https://helpdesk.my-domain.local/api/v1/tickets/9680?all=true -Method Get -Headers $headers).ticket_article_ids
+Invoke-RestMethod -Uri https://helpdesk.my-domain.local/api/v1/tickets/9680?all=true -Method Get -Headers $headers
