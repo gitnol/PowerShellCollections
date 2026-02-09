@@ -84,7 +84,7 @@ def get_ssl_data(client: KasClient, domain: str):
     return None
 
 def set_hsts(client: KasClient, domain: str, max_age: int):
-    print(f"\n--- Processing: {domain} ---")
+    print(f"--- Processing: {domain} ---")
     
     # 1. Fetch Keys
     ssl_data = get_ssl_data(client, domain)
