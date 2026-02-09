@@ -16,7 +16,7 @@ def main():
 
     try:
         # 2. Domain Service Example
-        print("\nFetching Domains...")
+        print("Fetching Domains...")
         domains = client.domain.get_domains()
         
         # Domains is now a list (from ReturnInfo) or empty list
@@ -27,7 +27,7 @@ def main():
 
         # 3. DNS Service Example (Handles Quirks safely)
         zone = "example.com"
-        print(f"\n[DEMO] Adding DNS Record to {zone}...")
+        print(f"[DEMO] Adding DNS Record to {zone}...")
         
         # Note: Integers need to be strings where required, though some might be auto-converted if typed in SDK.
         # This will fail if credentials are fake, so we catch it.
@@ -56,7 +56,7 @@ def main():
              print(f"API Call failed (Expected if using dummy creds): {api_err}")
 
         # 4. Other Services Demo
-        print("\n--- Other Services ---")
+        print("--- Other Services ---")
         
         # Cronjobs
         print("Cronjobs:", len(client.cronjob.get_cronjobs()))
@@ -70,13 +70,13 @@ def main():
         print(f"FTP Users: {len(ftp_users)}")
         
         # Software Packages
-        print("\nSoftware Packages:")
+        print("Software Packages:")
         packages = client.softwareinstall.get_softwareinstall()
         for pkg in packages[:3]:
              print(f"- {pkg.get('software_name')} (ID: {pkg.get('software_id')})")
         
         # System Stats
-        print("\nSpace Usage:", client.statistic.get_space())
+        print("Space Usage:", client.statistic.get_space())
         
         # Subdomains
         print("Subdomains:", len(client.subdomain.get_subdomains()))
