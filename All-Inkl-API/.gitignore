@@ -22,3 +22,5 @@ build/
 # KAS SDK Specific
 error.log
 verify_payloads.log
+
+debug_output.txt
