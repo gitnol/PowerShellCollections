@@ -80,11 +80,11 @@ class TestKasSdkPayloads(unittest.TestCase):
         self.assertEqual(params['protocol'], "http", "Protocol param check")
 
     @patch('kas_sdk.client.requests.post')
-    def test_dkim_settings(self, mock_post):
+    def test_dkim_add(self, mock_post):
         mock_post.return_value.content = b'<root><return><item><key>ReturnString</key><value>TRUE</value></item></return></root>'
         client = KasClient('user', 'pass')
         
-        client.dkim.update_dkim(dkim_domain='example.com', dkim_active='Y')
+        client.dkim.add_dkim(host='example.com', check_foreign_nameserver='Y')
         
         call_args = mock_post.call_args
         data = call_args[1]['data']
@@ -93,8 +93,8 @@ class TestKasSdkPayloads(unittest.TestCase):
         payload = json.loads(json_str)
         params = payload['KasRequestParams']
         
-        self.assertEqual(params['dkim_domain'], 'example.com')
-        self.assertEqual(params['dkim_active'], 'Y')
+        self.assertEqual(params['host'], 'example.com')
+        self.assertEqual(params['check_foreign_nameserver'], 'Y')
 
 if __name__ == '__main__':
     unittest.main()

@@ -9,8 +9,11 @@ def main():
     client = KasClient(
         kas_login=os.environ.get('KAS_LOGIN', 'w0123456'),
         kas_auth_data=os.environ.get('KAS_PASS', 'secret'),
-        kas_auth_type='plain'
+        kas_auth_type='plain',
+        # dry_run=True  # Uncomment to test without sending requests
     )
+    
+    # You can also set the environment variable KAS_DRY_RUN=1 to enable dry-run globally.
 
     print("--- KAS SDK Example ---")
 
@@ -82,12 +85,7 @@ def main():
         print("Subdomains:", len(client.subdomain.get_subdomains()))
         
         # DKIM (Check)
-        # Note: get_dkim_settings needs a domain if you want specific settings, 
-        # or checking list depending on implementation. 
-        # API usually requires a domain or returns a list? Documentation says 'dkim_domain' is invalid or valid?
-        # Actually API docs for get_dkim_settings imply getting settings for specific domain?
-        # Let's try getting for 'example.com' if we had it.
-        # client.dkim.get_dkim(dkim_domain="example.com")
+        # client.dkim.get_dkim(host="example.com")
         pass
 
     except Exception as e:

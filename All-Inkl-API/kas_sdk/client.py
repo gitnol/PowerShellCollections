@@ -3,9 +3,14 @@ import json
 import xml.etree.ElementTree as ET
 from typing import Dict, Any, Optional
 import time
+import os
+import logging
 
 # Official API Endpoint
 SOAP_URL = "https://kasapi.kasserver.com/soap/KasApi.php"
+
+# Configure logging for the client
+logger = logging.getLogger(__name__)
 
 class KasClient:
     """
@@ -14,7 +19,7 @@ class KasClient:
     Enforces quirks like 'No Integers' in parameters.
     """
 
-    def __init__(self, kas_login: str, kas_auth_data: str, kas_auth_type: str = "plain", api_url: str = SOAP_URL, flood_protection_delay: float = 2.0):
+    def __init__(self, kas_login: str, kas_auth_data: str, kas_auth_type: str = "plain", api_url: str = SOAP_URL, flood_protection_delay: float = 2.0, dry_run: bool = False):
         """
         Initialize the KAS Client.
 
@@ -23,15 +28,22 @@ class KasClient:
         :param kas_auth_type: Auth type, usually 'plain' or 'sha1'
         :param api_url: URL to the SOAP endpoint
         :param flood_protection_delay: Delay in seconds between requests to avoid flood protection errors.
+        :param dry_run: If True, do not send requests to the API.
         """
         self.kas_login = kas_login
         self.kas_auth_data = kas_auth_data
         self.kas_auth_type = kas_auth_type
         self.api_url = api_url
         self.flood_protection_delay = flood_protection_delay
+        
+        # Determine strict dry_run setting either from parameter or environment variable
+        self.dry_run = dry_run or os.getenv('KAS_DRY_RUN', '').lower() in ('true', '1', 'yes')
+        
+        if self.dry_run:
+            logger.warning("KAS SDK is running in DRY-RUN mode. No requests will be sent.")
+            
         self._last_request_time = 0.0
         
-        # Initialize Services (Lazy loaded or explicitly)
         # Initialize Services (Lazy loaded or explicitly)
         from .services.dns import DnsService
         from .services.account import AccountService
@@ -117,6 +129,19 @@ class KasClient:
             </ns1:KasApi>
         </SOAP-ENV:Body>
         </SOAP-ENV:Envelope>"""
+
+        if self.dry_run:
+            logger.info(f"[DRY-RUN] Action: {action}")
+            logger.info(f"[DRY-RUN] Params: {clean_params}")
+            logger.debug(f"[DRY-RUN] SOAP Body: {soap_body}")
+            
+            # Return a mock successful response
+            return {
+                'ReturnString': 'TRUE',
+                'ReturnInfo': 'DRY_RUN_ACTIVE', 
+                'RequestParams': clean_params,
+                'Response': {'ReturnString': 'TRUE', 'ReturnInfo': 'DRY_RUN_ACTIVE'} # Handles unwrapping logic
+            }
 
         headers = {
             'Content-Type': 'text/xml; charset=utf-8',

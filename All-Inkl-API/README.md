@@ -30,7 +30,19 @@ KAS_PASS = 'your_password'
 
 # Initialize
 client = KasClient(KAS_USER, KAS_PASS)
+# Or with Dry Run enabled:
+# client = KasClient(KAS_USER, KAS_PASS, dry_run=True)
 ```
+
+### Dry Run Mode
+
+You can enable `dry_run` mode to simulate requests without sending them to the API. This is useful for testing and debugging.
+
+- **Constructor**: Pass `dry_run=True` to the `KasClient` constructor.
+- **Environment Variable**: Set `KAS_DRY_RUN=1` (or `true`) in your environment.
+
+When enabled, the client will log the request details (Action, Params, XML) and return a mock success response.
+
 
 ### API Coverage Status
 
@@ -79,7 +91,7 @@ Here is a quick summary of available services on the `KasClient`:
 | `client.cronjob` | `CronjobService` | `get_cronjobs`, `add_cronjob`... |
 | `client.database` | `DatabaseService` | `get_databases`, `add_database`... |
 | `client.ftpuser` | `FtpUserService` | `get_ftpusers`, `add_ftpusers`... |
-| `client.dkim` | `DkimService` | `get_dkim_settings`, `update_dkim`... |
+| `client.dkim` | `DkimService` | `get_dkim`, `add_dkim`, `delete_dkim`... |
 | *(See detailed docs above for full list)* | | |
 
 
