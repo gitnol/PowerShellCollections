@@ -19,19 +19,29 @@ Allow the package to be imported by placing the `kas_sdk` folder in your project
 
 ## Usage
 
+### Credential Management (Secure)
+
+The SDK supports secure credential management via **Keyring** (System Vault) and **Environment Variables**, so you don't have to hardcode passwords in scripts.
+
+**Priority Order:**
+1.  **Explicit Arguments**: Passed directly to `KasClient`.
+2.  **Environment Variables**: `KAS_LOGIN` and `KAS_PASS`.
+3.  **System Keyring**: Looks for service `kas_api` and your login user.
+
 ### Initialization
 
 ```python
 from kas_sdk import KasClient
 
-# Credentials
-KAS_USER = 'w0123456'
-KAS_PASS = 'your_password'
+# 1. Automatic Discovery (Recommended)
+# Looks in Env Vars or Keyring
+client = KasClient(kas_login='w0123456') 
 
-# Initialize
-client = KasClient(KAS_USER, KAS_PASS)
-# Or with Dry Run enabled:
-# client = KasClient(KAS_USER, KAS_PASS, dry_run=True)
+# 2. Hardcoded (Not Recommended)
+client = KasClient('w0123456', 'secret_password')
+
+# 3. Dry Run Config
+# client = KasClient(dry_run=True)
 ```
 
 ### Dry Run Mode
