@@ -6,23 +6,31 @@ class SambaUserService(BaseService):
     Handles Samba User operations.
     """
 
-    def get_sambausers(self) -> List[Dict[str, Any]]:
+    def get_sambausers(self, samba_login: str = None) -> List[Dict[str, Any]]:
         """
         Auslesen der Netzlaufwerke
         """
-        res = self.client.request('get_sambausers', {})
+        params = {}
+        if samba_login:
+            params['samba_login'] = samba_login
+        res = self.client.request('get_sambausers', params)
         if res and 'ReturnInfo' in res:
             return res['ReturnInfo']
         return []
 
-    def add_sambauser(self, samba_path: str, samba_login: str, samba_password: str) -> str:
+    def add_sambauser(
+        self,
+        samba_path: str,
+        samba_new_password: str,
+        samba_comment: str
+    ) -> str:
         """
         Anlegen eines Netzlaufwerkes
         """
         params = {
             'samba_path': samba_path,
-            'samba_login': samba_login,
-            'samba_password': samba_password
+            'samba_new_password': samba_new_password,
+            'samba_comment': samba_comment,
         }
         res = self.client.request('add_sambauser', params)
         return res.get('ReturnInfo', 'TRUE')
@@ -36,10 +44,11 @@ class SambaUserService(BaseService):
         return res.get('ReturnString') == 'TRUE'
 
     def update_sambauser(
-        self, 
-        samba_login: str, 
+        self,
+        samba_login: str,
         samba_new_password: str = None,
-        samba_path: str = None
+        samba_path: str = None,
+        samba_comment: str = None
     ) -> bool:
         """
         Bearbeiten eines Netzlaufwerkes
@@ -49,6 +58,8 @@ class SambaUserService(BaseService):
             params['samba_new_password'] = samba_new_password
         if samba_path:
             params['samba_path'] = samba_path
-        
+        if samba_comment:
+            params['samba_comment'] = samba_comment
+
         res = self.client.request('update_sambauser', params)
         return res.get('ReturnString') == 'TRUE'

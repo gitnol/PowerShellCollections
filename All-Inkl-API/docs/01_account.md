@@ -126,12 +126,18 @@ info = client.account.get_server_information()
 ## SessionService
 Found at `client.session`. Handles KAS SSO tokens.
 
-### `add_session(session_lifetime: int = 1800, session_update_lifetime: str = "N")`
+### `add_session(session_lifetime: int = 1800, session_update_lifetime: str = "N", session_2fa: str = None)`
 Create a session token for single-sign-on.
 ```python
 token = client.session.add_session(
-    session_lifetime=3600, 
+    session_lifetime=3600,
     session_update_lifetime="Y"
 )
 # Use token in URL: https://kas.all-inkl.com/login.php?kas_login=w012345&session_id={token}
+
+# With 2-factor auth OTP pin:
+token = client.session.add_session(
+    session_lifetime=1800,
+    session_2fa="123456"
+)
 ```

@@ -131,10 +131,12 @@ subs = client.subdomain.get_subdomains()
 Create a subdomain.
 ```python
 client.subdomain.add_subdomain(
-    subdomain_part1="shop",
-    subdomain_part2="example.com",
+    subdomain_name="shop",
+    domain_name="example.com",
     subdomain_path="/www/shop",
-    redirect_status=0
+    redirect_status=0,
+    statistic_language="de",
+    php_version="8.2"
 )
 ```
 
@@ -223,21 +225,23 @@ users = client.ddns.get_ddnsusers()
 ```
 
 ### `add_ddnsuser(...)`
-Create a DynDNS user.
+Create a DynDNS user. All parameters are required.
 ```python
 client.ddns.add_ddnsuser(
+    dyndns_comment="Home DDNS",
     dyndns_password="SecretPassword!",
     dyndns_zone="example.com",
-    dyndns_label="home"
+    dyndns_label="home",
+    dyndns_target_ip="1.2.3.4"
 )
 ```
 
 ### `update_ddnsuser(...)`
-Update DynDNS user.
+Update DynDNS user password or comment.
 ```python
 client.ddns.update_ddnsuser(
     dyndns_login="dy12345",
-    dyndns_label="office"
+    dyndns_password="NewPassword!"
 )
 ```
 
@@ -247,14 +251,38 @@ Delete DynDNS user.
 ---
 
 ## SslService
-Found at `client.ssl`. Manage Let's Encrypt certificates.
+Found at `client.ssl`. Manage SSL certificates for a hostname.
 
-### `update_ssl(ssl_job: str, ssl_account: str)`
-Manage SSL certificates (e.g. Let's Encrypt).
+### `update_ssl(...)`
+Update SSL settings for a hostname.
 ```python
-# Enable Let's Encrypt
+# Enable SSL and force HTTPS with HSTS
 client.ssl.update_ssl(
-    ssl_job="letsencrypt_create", 
-    ssl_account="example.com"
+    hostname="example.com",
+    ssl_certificate_is_active="Y",
+    ssl_certificate_force_https="Y",
+    ssl_certificate_hsts_max_age=31536000
+)
+
+# Upload a custom certificate
+client.ssl.update_ssl(
+    hostname="example.com",
+    ssl_certificate_is_active="Y",
+    ssl_certificate_sni_key="-----BEGIN PRIVATE KEY-----\n...",
+    ssl_certificate_sni_crt="-----BEGIN CERTIFICATE-----\n...",
+    ssl_certificate_sni_bundle="-----BEGIN CERTIFICATE-----\n..."
 )
 ```
+
+**Parameters:**
+
+| Parameter | Description |
+|---|---|
+| `hostname` | The hostname to configure |
+| `ssl_certificate_is_active` | `Y`\|`N` (optional) |
+| `ssl_certificate_sni_csr` | CSR (optional) |
+| `ssl_certificate_sni_key` | Private Key |
+| `ssl_certificate_sni_crt` | Certificate |
+| `ssl_certificate_sni_bundle` | CA Bundle / Intermediate (optional) |
+| `ssl_certificate_force_https` | `Y`\|`N` — HTTP 301 redirect (optional) |
+| `ssl_certificate_hsts_max_age` | Seconds for HSTS, `-1` to disable (optional) |

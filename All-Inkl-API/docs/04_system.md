@@ -75,7 +75,7 @@ Create a database. User/Name is assigned automatically.
 client.database.add_database(
     database_password="SecureDBPassword!",
     database_comment="App DB",
-    database_ip="%"
+    database_allowed_hosts="%"
 )
 ```
 
@@ -118,10 +118,10 @@ users = client.ftpuser.get_ftpusers()
 | `ftp_passwort`         | Password (plaintext, legacy field)         |
 | `in_progress`          | Operation pending (`TRUE`/`FALSE`)         |
 
-### `add_ftpuser(...)`
+### `add_ftpusers(...)`
 Create FTP user.
 ```python
-client.ftpuser.add_ftpuser(
+client.ftpuser.add_ftpusers(
     ftp_password="FtpPassword!",
     ftp_comment="Dev User",
     ftp_path="/www/dev",
@@ -147,7 +147,7 @@ Delete FTP user.
 ## SoftwareInstallService
 Found at `client.softwareinstall`.
 
-### `get_softwareinstall(software_lang: str = "de")`
+### `get_softwareinstall(software_id: str = None)`
 List available software packages.
 ```python
 installs = client.softwareinstall.get_softwareinstall()
@@ -175,9 +175,15 @@ Install software.
 ```python
 client.softwareinstall.add_softwareinstall(
     software_id="wordpress",
-    domain_name="example.com",
+    software_database="d012345",
+    software_database_password="DBPassword!",
+    software_hostname="example.com",
+    software_path="/www/wordpress",
     software_admin_mail="admin@example.com",
-    software_database="d012345"
+    software_admin_user="admin",
+    software_admin_pass="AdminPassword!",
+    software_install_example_data="N",
+    language="de"
 )
 ```
 
@@ -189,10 +195,13 @@ Remove installation.
 ## StatisticService
 Found at `client.statistic`.
 
-### `get_space()`
-Get disk usage.
+### `get_space(show_subaccounts: str = None, show_details: str = None)`
+Get webspace usage.
 ```python
 usage = client.statistic.get_space()
+
+# With options
+usage = client.statistic.get_space(show_subaccounts="Y", show_details="Y")
 ```
 
 **Response Fields** — returns a list of dicts:
@@ -208,10 +217,20 @@ usage = client.statistic.get_space()
 | `used_webspace`          | Total webspace used (bytes)                |
 | `max_webspace`           | Maximum webspace allowed (bytes)           |
 
-### `get_traffic()`
+### `get_space_usage(directory: str)`
+Get usage for a specific directory.
+```python
+usage = client.statistic.get_space_usage("/www/example")
+```
+
+### `get_traffic(year: int = None, month: int = None)`
 Get traffic usage.
 ```python
+# Current month
 traffic = client.statistic.get_traffic()
+
+# Specific period
+traffic = client.statistic.get_traffic(year=2026, month=1)
 ```
 
 **Response Fields** — returns a list of dicts:
@@ -283,10 +302,13 @@ client.directoryprotection.delete_directoryprotection(
 ## SambaUserService
 Found at `client.sambauser`. Manage network drive users.
 
-### `get_sambausers()`
+### `get_sambausers(samba_login: str = None)`
 List Samba users.
 ```python
 users = client.sambauser.get_sambausers()
+
+# Filter by login:
+user = client.sambauser.get_sambausers(samba_login="office")
 ```
 
 **Response Fields** — returns a list of dicts:
@@ -299,12 +321,13 @@ users = client.sambauser.get_sambausers()
 | `samba_comment`  | Comment                                  |
 | `in_progress`    | Operation pending (`TRUE`/`FALSE`)       |
 
-### `add_sambauser(...)`
+### `add_sambauser(samba_path: str, samba_new_password: str, samba_comment: str)`
+All three parameters are required.
 ```python
 client.sambauser.add_sambauser(
     samba_path="/data/share",
-    samba_login="office",
-    samba_password="SharePassword!"
+    samba_new_password="SharePassword!",
+    samba_comment="Office Share"
 )
 ```
 
@@ -312,7 +335,8 @@ client.sambauser.add_sambauser(
 ```python
 client.sambauser.update_sambauser(
     samba_login="office",
-    samba_password="NewSharePassword!"
+    samba_new_password="NewSharePassword!",
+    samba_comment="Updated Comment"
 )
 ```
 
@@ -347,8 +371,8 @@ Found at `client.symlink`.
 ### `add_symlink(...)`
 ```python
 client.symlink.add_symlink(
-    symlink_source="/www/source",
-    symlink_target="/www/link_name"
+    symlink_name="/www/link_name",
+    symlink_target="/www/source"
 )
 ```
 

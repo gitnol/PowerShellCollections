@@ -19,6 +19,9 @@ build/
 .vscode/
 .idea/
 
+# Windows reserved device names (created by shell redirects)
+nul
+
 # KAS SDK Specific
 error.log
 verify_payloads.log

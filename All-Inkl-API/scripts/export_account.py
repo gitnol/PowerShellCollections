@@ -4,11 +4,11 @@ All-Inkl KAS Configuration Export
 Exports a complete configuration report of the KAS account to a Markdown file.
 All response columns are detected dynamically from the API response data.
 
-Covered Services (21 get methods):
+Covered Services (22 get methods):
 - Account (accounts, resources, settings, server info)
 - Domains & DNS Zones (with per-domain DNS detail)
 - Subdomains
-- Mail (accounts, forwards, lists)
+- Mail (accounts, forwards, lists, filters)
 - Databases
 - FTP Users
 - Cronjobs
@@ -19,8 +19,8 @@ Covered Services (21 get methods):
 - Samba Users
 - DKIM (per-domain)
 
-Note: mailfilter and symlink services are excluded because the KAS API
-does not support get_mailfilters / get_symlinks actions.
+Note: symlink service is excluded because the KAS API does not support
+get_symlinks. Mail filters use get_mailstandardfilter (included).
 
 Output:
 - Generates a file: output/kas_export_YYYY-MM-DD_HHMM.md
@@ -223,9 +223,8 @@ def main():
     data = fetch_safe("Mailing Lists", client.mailinglist.get_mailinglists)
     md.append(format_section(data, "Mailing Lists"))
 
-    # NOTE: get_mailfilters does not exist in the KAS API (returns unkown_action)
-    # data = fetch_safe("Mail Filters", client.mailfilter.get_mailfilters)
-    # md.append(format_section(data, "Mail Filters"))
+    data = fetch_safe("Mail Filters", client.mailfilter.get_mailstandardfilter)
+    md.append(format_section(data, "Mail Filters"))
 
     # -----------------------------------------------------------------------
     # 5. DATABASES

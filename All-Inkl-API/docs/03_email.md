@@ -49,7 +49,7 @@ client.mailaccount.delete_mailaccount("m0123456")
 ## MailForwardService
 Found at `client.mailforward`.
 
-### `get_mailforwards()`
+### `get_mailforwards(mail_forward: str = None)`
 List forwarders.
 ```python
 forwards = client.mailforward.get_mailforwards()
@@ -70,23 +70,23 @@ forwards = client.mailforward.get_mailforwards()
 Create a forwarder (e.g. `support@example.com` -> `alice@example.com`).
 ```python
 client.mailforward.add_mailforward(
-    mail_forward_part1="support",
-    mail_forward_part2="example.com",
-    mail_forward_target="alice@example.com, bob@example.com"
+    local_part="support",
+    domain_part="example.com",
+    targets=["alice@example.com", "bob@example.com"]
 )
 ```
 
 ### `update_mailforward(...)`
 ```python
 client.mailforward.update_mailforward(
-    mail_forward_id="12345",
-    mail_forward_target="new_target@example.com"
+    mail_forward="support@example.com",
+    targets=["new_target@example.com"]
 )
 ```
 
-### `delete_mailforward(mail_forward_id)`
+### `delete_mailforward(mail_forward: str)`
 ```python
-client.mailforward.delete_mailforward("123456")
+client.mailforward.delete_mailforward("support@example.com")
 ```
 
 ---
@@ -94,24 +94,27 @@ client.mailforward.delete_mailforward("123456")
 ## MailFilterService
 Found at `client.mailfilter`. Manage server-side mail filter rules.
 
-> [!WARNING]
-> The `get_mailfilters` action does **not** exist in the KAS API (returns `unkown_action`).
-> Only `add_mailfilter` and `delete_mailfilter` are supported.
-
-### `add_mailfilter(...)`
-Add a mail filter rule.
+### `get_mailstandardfilter(mail_login: str = None)`
+List mail filter rules.
 ```python
-client.mailfilter.add_mailfilter(
-    filter_mail="info@example.com",
-    filter_status="subject",
-    filter_text="[SPAM]",
-    filter_description="Block Spam Subject"
+filters = client.mailfilter.get_mailstandardfilter()
+
+# For a specific mailbox:
+filters = client.mailfilter.get_mailstandardfilter(mail_login="m0123456")
+```
+
+### `add_mailstandardfilter(mail_login: str, filter: str)`
+Add a mail filter rule for a mailbox.
+```python
+client.mailfilter.add_mailstandardfilter(
+    mail_login="m0123456",
+    filter="greyl;rbl_cbl:mark"
 )
 ```
 
-### `delete_mailfilter(filter_id)`
+### `delete_mailstandardfilter(mail_login: str)`
 ```python
-client.mailfilter.delete_mailfilter("98765")
+client.mailfilter.delete_mailstandardfilter("m0123456")
 ```
 
 ---
@@ -139,17 +142,14 @@ client.mailinglist.add_mailinglist(
 ```python
 client.mailinglist.update_mailinglist(
     mailinglist_name="newsletter",
-    mailinglist_domain="example.com",
-    mailinglist_password="NewListPassword!"
+    config="# Full Mailman config text...",
+    is_active="Y"
 )
 ```
 
-### `delete_mailinglist(mailinglist_name, mailinglist_domain)`
+### `delete_mailinglist(mailinglist_name: str)`
 ```python
-client.mailinglist.delete_mailinglist(
-    mailinglist_name="newsletter",
-    mailinglist_domain="example.com"
-)
+client.mailinglist.delete_mailinglist("newsletter")
 ```
 
 ---
@@ -157,13 +157,9 @@ client.mailinglist.delete_mailinglist(
 ## DkimService
 Found at `client.dkim`. Manage DKIM signing for email domains.
 
-### `get_dkim(dkim_domain=None)`
-Get DKIM status for domains.
+### `get_dkim(host: str)`
+Get DKIM status for a host.
 ```python
-# List all
-dkim_status = client.dkim.get_dkim()
-
-# Check specific
 status = client.dkim.get_dkim("example.com")
 ```
 
@@ -175,13 +171,13 @@ status = client.dkim.get_dkim("example.com")
 | `public_key` | RSA public key (Base64)                  |
 | `valid_to`   | Expiry date (`YYYY-MM-DD`)               |
 
-### `add_dkim(dkim_domain: str)`
+### `add_dkim(host: str, check_foreign_nameserver: str = "Y")`
 Enable DKIM signing for a domain.
 ```python
 client.dkim.add_dkim("example.com")
 ```
 
-### `delete_dkim(dkim_domain: str)`
+### `delete_dkim(host: str)`
 Remove DKIM signing for a domain.
 ```python
 client.dkim.delete_dkim("example.com")

@@ -6,25 +6,16 @@ class SymlinkService(BaseService):
     Handles Symlink (Link) operations.
     """
 
-    def get_symlinks(self) -> List[Dict[str, Any]]:
-        """
-        List symlinks.
-        """
-        res = self.client.request('get_symlinks', {})
-        if res and 'ReturnInfo' in res:
-            return res['ReturnInfo']
-        return []
-
-    def add_symlink(self, symlink_source: str, symlink_target: str) -> str:
+    def add_symlink(self, symlink_name: str, symlink_target: str) -> str:
         """
         Add a symlink.
 
         Args:
-            symlink_source (str): Source path.
-            symlink_target (str): Target path.
+            symlink_name (str): The symlink name (source path).
+            symlink_target (str): The symlink target (destination path).
         """
         params = {
-            'symlink_source': symlink_source,
+            'symlink_name': symlink_name,
             'symlink_target': symlink_target
         }
         res = self.client.request('add_symlink', params)

@@ -3,19 +3,23 @@ from typing import Dict, Any, List
 
 class MailFilterService(BaseService):
     """
-    Handles MailFilter operations.
+    Handles MailFilter (standard filter) operations.
+    Real API functions: add_mailstandardfilter, delete_mailstandardfilter, get_mailstandardfilter
     """
 
-    def get_mailfilters(self) -> List[Dict[str, Any]]:
+    def get_mailstandardfilter(self, mail_login: str = None) -> List[Dict[str, Any]]:
         """
         Auslesen der Mailfilter
         """
-        res = self.client.request('get_mailfilters', {})
+        params = {}
+        if mail_login:
+            params['mail_login'] = mail_login
+        res = self.client.request('get_mailstandardfilter', params)
         if res and 'ReturnInfo' in res:
             return res['ReturnInfo']
         return []
 
-    def add_mailfilter(self, mail_login: str, filter: str) -> bool:
+    def add_mailstandardfilter(self, mail_login: str, filter: str) -> bool:
         """
         Anlegen eines Mailfilters
         """
@@ -23,13 +27,13 @@ class MailFilterService(BaseService):
             'mail_login': mail_login,
             'filter': filter
         }
-        res = self.client.request('add_mailfilter', params)
+        res = self.client.request('add_mailstandardfilter', params)
         return res.get('ReturnString') == 'TRUE'
 
-    def delete_mailfilter(self, mail_login: str) -> bool:
+    def delete_mailstandardfilter(self, mail_login: str) -> bool:
         """
         Löschen eines Mailfilters
         """
         params = {'mail_login': mail_login}
-        res = self.client.request('delete_mailfilter', params)
+        res = self.client.request('delete_mailstandardfilter', params)
         return res.get('ReturnString') == 'TRUE'

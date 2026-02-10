@@ -20,24 +20,23 @@ class DdnsService(BaseService):
         return []
 
     def add_ddnsuser(
-        self, 
-        dyndns_password: str, 
-        dyndns_zone: str, 
-        dyndns_label: str, 
-        dyndns_target_ip: str, 
-        dyndns_comment: str = None
+        self,
+        dyndns_comment: str,
+        dyndns_password: str,
+        dyndns_zone: str,
+        dyndns_label: str,
+        dyndns_target_ip: str
     ) -> str:
         """
         Anlegen eines DDNS Benutzers
         """
         params = {
+            'dyndns_comment': dyndns_comment,
             'dyndns_password': dyndns_password,
             'dyndns_zone': dyndns_zone,
             'dyndns_label': dyndns_label,
             'dyndns_target_ip': dyndns_target_ip
         }
-        if dyndns_comment:
-            params['dyndns_comment'] = dyndns_comment
             
         res = self.client.request('add_ddnsuser', params)
         return res.get('ReturnInfo', 'TRUE')

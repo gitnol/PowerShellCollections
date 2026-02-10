@@ -7,7 +7,7 @@ class SslService(BaseService):
     """
 
     def update_ssl(
-        self, 
+        self,
         hostname: str = None,
         ssl_certificate_is_active: str = None,
         ssl_certificate_sni_csr: str = None,
@@ -16,27 +16,22 @@ class SslService(BaseService):
         ssl_certificate_sni_bundle: str = None,
         ssl_certificate_force_https: str = None,
         ssl_certificate_hsts_max_age: int = None,
-        ssl_job: str = None,          # Legacy/LE support
-        ssl_account: str = None       # Legacy/LE support
     ) -> bool:
         """
-        Update SSL settings. Supports both manual certificate upload/config 
-        and Let's Encrypt jobs (via ssl_job).
+        Update SSL settings.
 
         Args:
-            hostname (str): The hostname to update (Standard API).
-            ssl_certificate_is_active (str): 'Y'|'N'.
+            hostname (str): The hostname to update.
+            ssl_certificate_is_active (str): 'Y'|'N' (optional).
+            ssl_certificate_sni_csr (str): SSL CSR (optional).
             ssl_certificate_sni_key (str): Private Key.
             ssl_certificate_sni_crt (str): Certificate.
-            ssl_certificate_sni_bundle (str): CA Bundle.
-            ssl_certificate_force_https (str): 'Y'|'N'.
-            ssl_certificate_hsts_max_age (int): Seconds for HSTS (-1 to disable).
-            ssl_job (str): LE Job (e.g. 'letsencrypt_create').
-            ssl_account (str): Account for LE Job.
+            ssl_certificate_sni_bundle (str): CA Bundle (optional).
+            ssl_certificate_force_https (str): 'Y'|'N' (optional).
+            ssl_certificate_hsts_max_age (int): Seconds for HSTS (-1 to disable, optional).
         """
         params = {}
-        
-        # Standard API params
+
         if hostname: params['hostname'] = hostname
         if ssl_certificate_is_active: params['ssl_certificate_is_active'] = ssl_certificate_is_active
         if ssl_certificate_sni_csr: params['ssl_certificate_sni_csr'] = ssl_certificate_sni_csr
@@ -45,10 +40,6 @@ class SslService(BaseService):
         if ssl_certificate_sni_bundle: params['ssl_certificate_sni_bundle'] = ssl_certificate_sni_bundle
         if ssl_certificate_force_https: params['ssl_certificate_force_https'] = ssl_certificate_force_https
         if ssl_certificate_hsts_max_age is not None: params['ssl_certificate_hsts_max_age'] = ssl_certificate_hsts_max_age
-        
-        # Legacy/LE params
-        if ssl_job: params['ssl_job'] = ssl_job
-        if ssl_account: params['ssl_account'] = ssl_account
 
         res = self.client.request('update_ssl', params)
         

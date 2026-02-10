@@ -19,14 +19,14 @@ class FtpUserService(BaseService):
             return res['ReturnInfo']
         return []
 
-    def add_ftpuser(
-        self, 
-        ftp_password: str, 
-        ftp_comment: str, 
-        ftp_path: str = "/", 
-        ftp_permission_read: str = "Y", 
-        ftp_permission_write: str = "Y", 
-        ftp_permission_list: str = "Y", 
+    def add_ftpusers(
+        self,
+        ftp_password: str,
+        ftp_comment: str,
+        ftp_path: str = "/",
+        ftp_permission_read: str = "Y",
+        ftp_permission_write: str = "Y",
+        ftp_permission_list: str = "Y",
         ftp_virus_clamav: str = "Y"
     ) -> str:
         """
@@ -41,8 +41,8 @@ class FtpUserService(BaseService):
             'ftp_permission_list': ftp_permission_list,
             'ftp_virus_clamav': ftp_virus_clamav
         }
-            
-        res = self.client.request('add_ftpuser', params)
+
+        res = self.client.request('add_ftpusers', params)
         return res.get('ReturnInfo', 'TRUE')
 
     def delete_ftpuser(self, ftp_login: str) -> bool:
