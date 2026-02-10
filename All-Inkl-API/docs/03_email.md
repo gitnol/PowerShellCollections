@@ -5,6 +5,7 @@
 *   [MailForwardService](#mailforwardservice)
 *   [MailFilterService](#mailfilterservice)
 *   [MailingListService](#mailinglistservice)
+*   [DkimService](#dkimservice)
 
 ---
 
@@ -54,6 +55,17 @@ List forwarders.
 forwards = client.mailforward.get_mailforwards()
 ```
 
+**Response Fields** — returns a list of dicts:
+
+| Field                     | Description                                 |
+|---------------------------|---------------------------------------------|
+| `mail_forward_adress`     | Forward address (legacy spelling)           |
+| `mail_forward_address`    | Forward address                             |
+| `mail_forward_comment`    | Comment for the forwarder                   |
+| `mail_forward_targets`    | Comma-separated target addresses            |
+| `mail_forward_spamfilter` | Active spam filters (e.g. `kasgreyl,kaspdw`) |
+| `in_progress`             | Operation pending (`TRUE`/`FALSE`)          |
+
 ### `add_mailforward(...)`
 Create a forwarder (e.g. `support@example.com` -> `alice@example.com`).
 ```python
@@ -80,30 +92,20 @@ client.mailforward.delete_mailforward("123456")
 ---
 
 ## MailFilterService
-Found at `client.mailfilter`. Manage server-side rules (e.g. subject filtering).
+Found at `client.mailfilter`. Manage server-side mail filter rules.
 
-### `get_mailfilters(filter_mail)`
-List filters for a specific email address.
-```python
-filters = client.mailfilter.get_mailfilters(filter_mail="info@example.com")
-```
+> [!WARNING]
+> The `get_mailfilters` action does **not** exist in the KAS API (returns `unkown_action`).
+> Only `add_mailfilter` and `delete_mailfilter` are supported.
 
 ### `add_mailfilter(...)`
-Add a rule.
+Add a mail filter rule.
 ```python
 client.mailfilter.add_mailfilter(
     filter_mail="info@example.com",
     filter_status="subject",
     filter_text="[SPAM]",
     filter_description="Block Spam Subject"
-)
-```
-
-### `update_mailfilter(...)`
-```python
-client.mailfilter.update_mailfilter(
-    filter_id="987",
-    filter_text="[JUNK]"
 )
 ```
 
@@ -153,23 +155,34 @@ client.mailinglist.delete_mailinglist(
 ---
 
 ## DkimService
-Found at `client.dkim`.
+Found at `client.dkim`. Manage DKIM signing for email domains.
 
-### `get_dkim_settings(dkim_domain=None)`
-Check DKIM status.
+### `get_dkim(dkim_domain=None)`
+Get DKIM status for domains.
 ```python
 # List all
-dkim_status = client.dkim.get_dkim_settings()
+dkim_status = client.dkim.get_dkim()
 
 # Check specific
-status = client.dkim.get_dkim_settings("example.com")
+status = client.dkim.get_dkim("example.com")
 ```
 
-### `update_dkim_settings(...)`
-Enable or disable DKIM.
+**Response Fields** — returns a list of dicts:
+
+| Field        | Description                              |
+|--------------|------------------------------------------|
+| `selector`   | DKIM selector name (e.g. `kas202512162044`) |
+| `public_key` | RSA public key (Base64)                  |
+| `valid_to`   | Expiry date (`YYYY-MM-DD`)               |
+
+### `add_dkim(dkim_domain: str)`
+Enable DKIM signing for a domain.
 ```python
-client.dkim.update_dkim_settings(
-    dkim_domain="example.com",
-    dkim_active="Y"
-)
+client.dkim.add_dkim("example.com")
+```
+
+### `delete_dkim(dkim_domain: str)`
+Remove DKIM signing for a domain.
+```python
+client.dkim.delete_dkim("example.com")
 ```

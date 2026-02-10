@@ -57,6 +57,25 @@ Get resource usage for an account.
 res = client.account.get_accountresources("w0123456")
 ```
 
+**Response Fields** — returns a dict where each key maps to a resource object:
+
+| Key                | Sub-fields                                           |
+|--------------------|------------------------------------------------------|
+| `max_subdomain`    | `max`, `exceeded`, `reserved`, `created`, `used`     |
+| `max_domain`       | `max`, `exceeded`, `reserved`, `created`, `used`     |
+| `max_wbk`          | `max`, `exceeded`, `reserved`, `created`, `used`     |
+| `max_ftpuser`      | `max`, `exceeded`, `reserved`, `created`, `used`     |
+| `max_sambauser`    | `max`, `exceeded`, `reserved`, `created`, `used`     |
+| `max_account`      | `max`, `exceeded`, `reserved`, `created`, `used`     |
+| `max_webspace`     | `max`, `exceeded`, `reserved`, `created`, `used`     |
+| `max_database`     | `max`, `exceeded`, `reserved`, `created`, `used`     |
+| `max_mail_account` | `max`, `exceeded`, `reserved`, `created`, `used`     |
+| `max_mail_forward` | `max`, `exceeded`, `reserved`, `created`, `used`     |
+| `max_mailinglist`  | `max`, `exceeded`, `reserved`, `created`, `used`     |
+| `max_cronjobs`     | `max`, `exceeded`, `reserved`, `created`, `used`     |
+
+> A `max` value of `-1` means unlimited.
+
 ### `get_accountsettings(account_login: str)`
 Get settings for an account.
 ```python
@@ -83,6 +102,25 @@ client.account.update_superusersettings(
 )
 ```
 
+### `get_server_information()`
+Get host server info.
+```python
+info = client.account.get_server_information()
+```
+
+**Response Fields** — returns a list of dicts:
+
+| Field              | Description                                |
+|--------------------|--------------------------------------------|
+| `service`          | Service type (`mysql`, `php`, `os`, `information`) |
+| `version`          | Version string (e.g. `10.11.14`, `8.3`)    |
+| `version_type`     | Version type (e.g. `server`)               |
+| `interface`        | Interface type (e.g. `cgi-fcgi`)           |
+| `file_extension`   | PHP file extension (e.g. `php83`)          |
+| `distribution`     | OS distribution (e.g. `ubuntu`)            |
+| `ipv4_address`     | Server IPv4 address                        |
+| `server_name`      | Server hostname                            |
+
 ---
 
 ## SessionService
@@ -95,59 +133,5 @@ token = client.session.add_session(
     session_lifetime=3600, 
     session_update_lifetime="Y"
 )
-# Use token in URL: https://kas.all-inkl.com/kam/login.php?session_id={token}
-```
-
-
-### `get_accountresources(account_login)`
-Get resource limits (space, traffic, etc).
-```python
-res = client.account.get_accountresources("w0123456")
-```
-
-### `get_accountsettings(account_login)`
-Get account configuration.
-```python
-settings = client.account.get_accountsettings("w0123456")
-```
-
-### `update_accountsettings(...)`
-Modify account settings (e.g. enable SSH).
-```python
-client.account.update_accountsettings(
-    account_login="w0123456",
-    ssh_access="Y"
-)
-```
-
-### `update_superusersettings(...)`
-Update settings for the logged-in superuser.
-```python
-client.account.update_superusersettings(
-    superuser_login="w0123456",
-    kas_password="NewSecureMasterPassword!"
-)
-```
-
-### `get_server_information()`
-Get host server info.
-```python
-info = client.account.get_server_information()
-```
-
----
-
-## SessionService
-Found at `client.session`. Handles KAS SSO tokens.
-
-### `add_session(...)`
-Generate a session ID for Single Sign-On URL generation.
-```python
-session_id = client.session.add_session(
-    session_lifetime=1800,       # 30 minutes
-    session_update_lifetime="N"
-)
-
-# Usage: Construct URL
-# https://kas.all-inkl.com/login.php?kas_login=w012345&session_id={session_id}
+# Use token in URL: https://kas.all-inkl.com/login.php?kas_login=w012345&session_id={token}
 ```

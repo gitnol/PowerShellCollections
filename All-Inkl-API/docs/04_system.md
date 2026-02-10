@@ -54,9 +54,23 @@ Found at `client.database`.
 
 ### `get_databases(database_login: str = None)`
 List databases.
+```python
+dbs = client.database.get_databases()
+```
+
+**Response Fields** — returns a list of dicts:
+
+| Field                    | Description                                |
+|--------------------------|--------------------------------------------|
+| `database_name`          | Database name                              |
+| `database_login`         | Database login / username                  |
+| `database_password`      | Password (masked in export)                |
+| `database_comment`       | Comment                                    |
+| `database_allowed_hosts` | Allowed hosts (e.g. `localhost`)           |
+| `used_database_space`    | Disk space used (bytes)                    |
 
 ### `add_database(...)`
-Create a database.
+Create a database. User/Name is assigned automatically.
 ```python
 client.database.add_database(
     database_password="SecureDBPassword!",
@@ -84,6 +98,25 @@ Found at `client.ftpuser`.
 
 ### `get_ftpusers(ftp_login: str = None)`
 List FTP users.
+```python
+users = client.ftpuser.get_ftpusers()
+```
+
+**Response Fields** — returns a list of dicts:
+
+| Field                  | Description                                |
+|------------------------|--------------------------------------------|
+| `ftp_login`            | FTP login name                             |
+| `ftp_password`         | Password (masked in export)                |
+| `ftp_path`             | FTP root path                              |
+| `ftp_comment`          | Comment                                    |
+| `ftp_is_main_user`     | Main account user (`Y`/`N`)               |
+| `ftp_permission_list`  | Can list directories (`Y`/`N`)             |
+| `ftp_permission_write` | Can write (`Y`/`N`)                        |
+| `ftp_permission_read`  | Can read (`Y`/`N`)                         |
+| `ftp_virus_clamav`     | ClamAV virus scanning active (`Y`/`N`)     |
+| `ftp_passwort`         | Password (plaintext, legacy field)         |
+| `in_progress`          | Operation pending (`TRUE`/`FALSE`)         |
 
 ### `add_ftpuser(...)`
 Create FTP user.
@@ -116,6 +149,26 @@ Found at `client.softwareinstall`.
 
 ### `get_softwareinstall(software_lang: str = "de")`
 List available software packages.
+```python
+installs = client.softwareinstall.get_softwareinstall()
+```
+
+**Response Fields** — returns a list of dicts:
+
+| Field                             | Description                                      |
+|-----------------------------------|--------------------------------------------------|
+| `software_name`                   | Name (e.g. `WordPress`, `TYPO3`)                 |
+| `software_category`              | Category (`CMS`, `Blog`, `Forum`, `Shop`, etc.)  |
+| `software_has_example_data`       | Includes sample data (`Y`/`N`)                   |
+| `software_version`                | Version string                                   |
+| `software_licence`                | License URL                                      |
+| `software_id`                     | Internal install ID                              |
+| `software_version_php`            | Minimum PHP version                              |
+| `software_version_php_upto`       | Maximum PHP version                              |
+| `software_version_mysql`          | Minimum MySQL version                            |
+| `software_version_mysql_upto`     | Maximum MySQL version                            |
+| `software_version_mariadb`        | Minimum MariaDB version                          |
+| `software_version_mariadb_upto`   | Maximum MariaDB version                          |
 
 ### `add_softwareinstall(...)`
 Install software.
@@ -136,16 +189,65 @@ Remove installation.
 ## StatisticService
 Found at `client.statistic`.
 
-- `get_space()`
-- `get_traffic()`
+### `get_space()`
+Get disk usage.
+```python
+usage = client.statistic.get_space()
+```
+
+**Response Fields** — returns a list of dicts:
+
+| Field                    | Description                                |
+|--------------------------|--------------------------------------------|
+| `account_login`          | Account login                              |
+| `last_calculation`       | Unix timestamp of last calculation         |
+| `used_htdocs_space`      | Web content disk usage (bytes)             |
+| `used_chroot_space`      | Chroot disk usage (bytes)                  |
+| `used_database_space`    | Database disk usage (bytes)                |
+| `used_mailaccount_space` | Mailbox disk usage (bytes)                 |
+| `used_webspace`          | Total webspace used (bytes)                |
+| `max_webspace`           | Maximum webspace allowed (bytes)           |
+
+### `get_traffic()`
+Get traffic usage.
+```python
+traffic = client.statistic.get_traffic()
+```
+
+**Response Fields** — returns a list of dicts:
+
+| Field            | Description                                    |
+|------------------|------------------------------------------------|
+| `account_login`  | Account login                                  |
+| `year`           | Year                                           |
+| `month`          | Month                                          |
+| `http_traffic`   | HTTP traffic (bytes)                           |
+| `ftp_traffic`    | FTP traffic (bytes)                            |
+| `http_hits`      | Number of HTTP requests                        |
+| `ftp_hits`       | Number of FTP requests                         |
+| `comment`        | Summary label (e.g. `traffic summary for 2026-02`) |
+| `day`            | Day of month (empty for monthly summary)       |
 
 ---
 
 ## DirectoryProtectionService
-Found at `client.directoryprotection`.
+Found at `client.directoryprotection`. Setup `.htaccess` auth.
 
 ### `get_directoryprotection(directory_path: str = None)`
 List protections.
+```python
+dirs = client.directoryprotection.get_directoryprotection()
+```
+
+**Response Fields** — returns a list of dicts:
+
+| Field                | Description                              |
+|----------------------|------------------------------------------|
+| `directory_user`     | Auth username                            |
+| `directory_path`     | Protected directory path                 |
+| `directory_authname` | Auth realm name (e.g. `ByPassword`)      |
+| `directory_password` | Password (masked in export)              |
+| `in_progress`        | Operation pending (`TRUE`/`FALSE`)       |
 
 ### `add_directoryprotection(...)`
 Add protection.
@@ -179,182 +281,23 @@ client.directoryprotection.delete_directoryprotection(
 ---
 
 ## SambaUserService
-Found at `client.sambauser`.
-Manage network drive users.
-
-- `add_sambauser(...)`
-- `update_sambauser(...)`
-- `delete_sambauser(...)`
-
----
-
-## ChownService
-Found at `client.chown`.
-
-### `update_chown(...)`
-Recursive owner fix.
-```python
-client.chown.update_chown(
-    chown_path="/www/data",
-    recursive="Y"
-)
-```
-
----
-
-## SymlinkService
-Found at `client.symlink`.
-
-- `get_symlinks()`
-- `add_symlink(source, target)`
-- `delete_symlink(symlink_id)`
-Create a MySQL database. User/Name is assigned automatically.
-```python
-db_name = client.database.add_database(
-    database_password="SecureDbPass!",
-    database_comment="Wordpress DB"
-)
-print(f"Created DB: {db_name}")
-```
-
-### `get_databases()`
-```python
-dbs = client.database.get_databases()
-```
-
-### `update_database(...)`
-```python
-client.database.update_database(
-    database_login="w0123456_db1",
-    database_password="NewPassword!"
-)
-```
-
-### `delete_database(database_login)`
-```python
-client.database.delete_database("w0123456_db1")
-```
-
----
-
-## FtpUserService
-Found at `client.ftpuser`.
-
-### `get_ftpusers()`
-List FTP users.
-```python
-users = client.ftpuser.get_ftpusers()
-```
-
-### `add_ftpusers(...)`
-Create an FTP user.
-```python
-client.ftpuser.add_ftpusers(
-    ftp_password="FtpPass2024!",
-    ftp_comment="Dev Access",
-    ftp_path="/www/dev",
-    ftp_permission_read="Y",
-    ftp_permission_write="Y"
-)
-```
-
-### `update_ftpuser(...)`
-```python
-client.ftpuser.update_ftpuser(
-    ftp_login="w0123456_f1",
-    ftp_path="/www/new_path"
-)
-```
-
-### `delete_ftpuser(ftp_login)`
-```python
-client.ftpuser.delete_ftpuser("w0123456_f1")
-```
-
----
-
-## SoftwareInstallService
-Found at `client.softwareinstall`.
-
-### `get_softwareinstall()`
-List available installs (like WordPress).
-```python
-installs = client.softwareinstall.get_softwareinstall()
-```
-
-### `add_softwareinstall(...)`
-Install a package.
-```python
-client.softwareinstall.add_softwareinstall(
-    domain_name="example.com",
-    software_id="wordpress_de",
-    admin_mail="admin@example.com",
-    database_update="N"
-)
-```
-
----
-
-## StatisticService
-Found at `client.statistic`.
-
-### `get_space()`
-Get disk usage.
-```python
-usage = client.statistic.get_space()
-print(f"Used: {usage.get('used_space')} / {usage.get('available_space')}")
-```
-
-### `get_traffic()`
-Get traffic usage.
-```python
-traffic = client.statistic.get_traffic()
-```
-
----
-
-## DirectoryProtectionService
-Found at `client.directoryprotection`. Setup `.htaccess` auth.
-
-### `get_directoryprotection()`
-List protected directories.
-```python
-dirs = client.directoryprotection.get_directoryprotection()
-```
-
-### `add_directoryprotection(...)`
-```python
-client.directoryprotection.add_directoryprotection(
-    directory_path="/www/secret",
-    directory_user="admin",
-    directory_password="AdminPassword!",
-    directory_authname="Private Area"
-)
-```
-
-### `update_directoryprotection(...)`
-```python
-client.directoryprotection.update_directoryprotection(
-    directory_login="w012345_p1", # ID of protection
-    directory_user="new_admin"
-)
-```
-
-### `delete_directoryprotection(directory_login)`
-```python
-client.directoryprotection.delete_directoryprotection("w012345_p1")
-```
-
----
-
-## SambaUserService
-Found at `client.sambauser`. Network storage access.
+Found at `client.sambauser`. Manage network drive users.
 
 ### `get_sambausers()`
 List Samba users.
 ```python
 users = client.sambauser.get_sambausers()
 ```
+
+**Response Fields** — returns a list of dicts:
+
+| Field            | Description                              |
+|------------------|------------------------------------------|
+| `samba_login`    | Samba login name                         |
+| `samba_password` | Password (masked in export)              |
+| `samba_path`     | Share path                               |
+| `samba_comment`  | Comment                                  |
+| `in_progress`    | Operation pending (`TRUE`/`FALSE`)       |
 
 ### `add_sambauser(...)`
 ```python
@@ -384,11 +327,11 @@ client.sambauser.delete_sambauser("office")
 Found at `client.chown`. Reset file ownership permissions.
 
 ### `update_chown(...)`
+Recursive owner fix.
 ```python
 client.chown.update_chown(
-    chown_path="/www/wordpress",
-    chown_user="w0123456",
-    chown_recursive="Y"
+    chown_path="/www/data",
+    recursive="Y"
 )
 ```
 
@@ -397,11 +340,9 @@ client.chown.update_chown(
 ## SymlinkService
 Found at `client.symlink`.
 
-### `get_symlinks()`
-List symlinks.
-```python
-links = client.symlink.get_symlinks()
-```
+> [!WARNING]
+> The `get_symlinks` action does **not** exist in the KAS API (returns `unkown_action`).
+> Only `add_symlink` and `delete_symlink` are supported.
 
 ### `add_symlink(...)`
 ```python

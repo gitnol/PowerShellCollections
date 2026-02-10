@@ -18,6 +18,30 @@ List domains.
 domains = client.domain.get_domains()
 ```
 
+**Response Fields** — returns a list of dicts:
+
+| Field                               | Description                                    |
+|--------------------------------------|------------------------------------------------|
+| `domain_name`                        | Domain name                                    |
+| `domain_redirect_status`             | HTTP redirect code (`0` = no redirect, `301`)  |
+| `domain_path`                        | Target path or redirect URL                    |
+| `dummy_host`                         | Whether this is a dummy host (`Y`/`N`)         |
+| `fpse_active`                        | FrontPage extensions active (`Y`/`N`)          |
+| `dkim_selector`                      | Active DKIM selector                           |
+| `statistic_language`                 | Statistics language (`de`, `en`)                |
+| `statistic_version`                  | Statistics version (e.g. `4`, `5`)             |
+| `ssl_proxy`                          | SSL proxy active (`Y`/`N`)                     |
+| `ssl_certificate_ip`                 | IP-based SSL certificate (`Y`/`N`)             |
+| `ssl_certificate_sni`                | SNI SSL certificate (`Y`/`N`)                  |
+| `ssl_certificate_sni_is_active`      | SNI cert currently active (`j`/`n`)            |
+| `ssl_certificate_sni_type`           | Certificate type (e.g. `unknown`)              |
+| `ssl_certificate_sni_force_https`    | Force HTTPS redirect                           |
+| `ssl_certificate_sni_hsts_max_age`   | HSTS max-age value                             |
+| `php_version`                        | Active PHP version (e.g. `8.3`)                |
+| `php_deprecated`                     | PHP version deprecated (`Y`/`N`)               |
+| `is_active`                          | Domain active (`Y`/`N`)                        |
+| `in_progress`                        | Operation pending (`TRUE`/`FALSE`)             |
+
 ### `add_domain(...)`
 Add a domain to the account.
 ```python
@@ -61,6 +85,14 @@ List available TLDs.
 tlds = client.domain.get_topleveldomains()
 ```
 
+**Response Fields** — returns a list of dicts:
+
+| Field        | Description                        |
+|--------------|------------------------------------|
+| `tld_name`   | TLD string (e.g. `de`, `com`)      |
+| `tld_minlen` | Minimum label length               |
+| `tld_maxlen` | Maximum label length               |
+
 ---
 
 ## SubdomainService
@@ -71,6 +103,29 @@ List subdomains.
 ```python
 subs = client.subdomain.get_subdomains()
 ```
+
+**Response Fields** — returns a list of dicts:
+
+| Field                               | Description                                    |
+|--------------------------------------|------------------------------------------------|
+| `subdomain_name`                     | Full subdomain name                            |
+| `subdomain_redirect_status`          | HTTP redirect code (`0` = no redirect)         |
+| `subdomain_path`                     | Target path or redirect URL                    |
+| `subdomain_account`                  | Owning account login                           |
+| `subdomain_server`                   | Server hostname                                |
+| `ssl_proxy`                          | SSL proxy active (`Y`/`N`)                     |
+| `ssl_certificate_sni`                | SNI SSL certificate (`Y`/`N`)                  |
+| `ssl_certificate_sni_is_active`      | SNI cert active (`j`/`n`)                      |
+| `ssl_certificate_sni_type`           | Certificate type                               |
+| `ssl_certificate_sni_force_https`    | Force HTTPS redirect                           |
+| `ssl_certificate_sni_hsts_max_age`   | HSTS max-age value                             |
+| `fpse_active`                        | FrontPage extensions active (`Y`/`N`)          |
+| `statistic_version`                  | Statistics version                             |
+| `statistic_language`                 | Statistics language                            |
+| `php_version`                        | Active PHP version                             |
+| `php_deprecated`                     | PHP version deprecated (`Y`/`N`)               |
+| `is_active`                          | Subdomain active (`Y`/`N`)                     |
+| `in_progress`                        | Operation pending (`TRUE`/`FALSE`)             |
 
 ### `add_subdomain(...)`
 Create a subdomain.
@@ -103,13 +158,25 @@ client.subdomain.delete_subdomain("shop.example.com")
 
 ## DnsService
 Found at `client.dns`.
-**Note:** Methods have been renamed to match API explicitly.
 
 ### `get_dns_settings(zone_host: str, record_id: str = None)`
 List DNS records for a zone.
 ```python
 records = client.dns.get_dns_settings(zone_host="example.com")
 ```
+
+**Response Fields** — returns a list of dicts:
+
+| Field               | Description                              |
+|---------------------|------------------------------------------|
+| `record_zone`       | Zone hostname                            |
+| `record_name`       | Record name (subdomain part)             |
+| `record_type`       | Record type (`A`, `MX`, `NS`, `TXT`, `CNAME`, `SRV`) |
+| `record_data`       | Record value / target                    |
+| `record_aux`        | Auxiliary value (e.g. MX priority)       |
+| `record_id`         | Record ID (0 = system-managed)           |
+| `record_changeable` | Can be edited (`Y`/`N`)                  |
+| `record_deleteable` | Can be deleted (`Y`/`N`)                 |
 
 ### `add_dns_settings(...)`
 Add a DNS record.
@@ -151,6 +218,9 @@ Found at `client.ddns`.
 
 ### `get_ddnsusers(ddns_login: str = None)`
 List DynDNS users.
+```python
+users = client.ddns.get_ddnsusers()
+```
 
 ### `add_ddnsuser(...)`
 Create a DynDNS user.
@@ -177,145 +247,14 @@ Delete DynDNS user.
 ---
 
 ## SslService
-Found at `client.ssl`.
+Found at `client.ssl`. Manage Let's Encrypt certificates.
 
 ### `update_ssl(ssl_job: str, ssl_account: str)`
 Manage SSL certificates (e.g. Let's Encrypt).
 ```python
-client.ssl.update_ssl(
-    ssl_job="letsencrypt_create", 
-    ssl_account="example.com"
-)
-```
-)
-```
-
-### `get_topleveldomains()`
-List available TLDs.
-```python
-tlds = client.domain.get_topleveldomains()
-```
-
----
-
-## SubdomainService
-Found at `client.subdomain`.
-
-### `get_subdomains(subdomain_name=None)`
-List subdomains.
-```python
-subs = client.subdomain.get_subdomains()
-```
-
-### `add_subdomain(...)`
-Create a subdomain.
-```python
-client.subdomain.add_subdomain(
-    subdomain_part1="blog",
-    subdomain_part2="example.com",
-    subdomain_path="/www/blog"
-)
-```
-
-### `update_subdomain(...)`
-Update subdomain path.
-```python
-client.subdomain.update_subdomain(
-    subdomain_name="blog.example.com",
-    subdomain_path="/www/new_blog_path"
-)
-```
-
-### `delete_subdomain(subdomain_name)`
-```python
-client.subdomain.delete_subdomain("blog.example.com")
-```
-
----
-
-## DnsService
-Found at `client.dns`. KAS allows editing zone records.
-
-### `get_dns_settings(zone_host=None)`
-Get records for a zone.
-```python
-records = client.dns.get_dns_settings(zone_host="example.com")
-```
-
-### `add_record(...)`
-Add a DNS record.
-```python
-client.dns.add_record(
-    zone_host="example.com",
-    record_type="A",
-    record_name="www",
-    record_data="1.2.3.4",
-    record_aux="0"
-)
-```
-
-### `update_record(...)`
-Update a record by ID.
-```python
-client.dns.update_record(
-    record_id="12345",
-    record_data="5.6.7.8"
-)
-```
-
-### `delete_record(record_id)`
-```python
-client.dns.delete_record(record_id="12345")
-```
-
-### `reset_zone(zone_host)`
-Reset to default records.
-```python
-client.dns.reset_zone("example.com")
-```
-
----
-
-## DdnsService
-Found at `client.ddns`. Manage DynDNS users.
-
-### `get_ddnsusers()`
-```python
-users = client.ddns.get_ddnsusers()
-```
-
-### `add_ddnsuser(...)`
-```python
-client.ddns.add_ddnsuser(
-    ddns_label="HomeOffice",
-    ddns_plain="N"
-)
-```
-
-### `update_ddnsuser(...)`
-```python
-client.ddns.update_ddnsuser(
-    ddns_login="w012345_d1",
-    ddns_comment="New Location"
-)
-```
-
-### `delete_ddnsuser(ddns_login)`
-```python
-client.ddns.delete_ddnsuser("w012345_d1")
-```
-
----
-
-## SslService
-Found at `client.ssl`. Manage Let's Encrypt certificates.
-
-### `update_ssl(...)`
-Enable/Disable SSL.
-```python
 # Enable Let's Encrypt
 client.ssl.update_ssl(
-    ssl_job="letsencrypt_create",
+    ssl_job="letsencrypt_create", 
     ssl_account="example.com"
 )
 ```
