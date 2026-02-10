@@ -135,7 +135,7 @@ def main():
                     missing_after_update = [p for p in required_prefixes if p not in updated_names]
                     
                     if missing_after_update:
-                        print(f"\n    [ERROR] Verification FAILED! Missing records: {missing_after_update}")
+                        print(f"    [ERROR] Verification FAILED! Missing records: {missing_after_update}")
                         print("    [ABORT] Wildcard will NOT be deleted.")
                         can_delete = False
                     else:
