@@ -24,3 +24,7 @@ error.log
 verify_payloads.log
 
 debug_output.txt
+
+# KAS Export Reports
+kas_export_*.md
+kas_export_*.pdf
