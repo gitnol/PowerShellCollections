@@ -15,7 +15,11 @@ It handles known API quirks (like integer handling and trailing dots) automatica
 
 ## Installation
 
-Allow the package to be imported by placing the `kas_sdk` folder in your project root or `PYTHONPATH`.
+```bash
+pip install -e .
+```
+
+This installs `kas_sdk` as an editable package so all scripts in `scripts/`, `tests/`, and `debug/` can import it from any working directory.
 
 ## Usage
 
@@ -71,7 +75,7 @@ The API Documentation is split into logical sections for easier navigation.
 *   **SubdomainService**: Manage subdomains.
 *   **DnsService**: Edit zone records (A, MX, TXT, etc).
 *   **DdnsService**: Manage DynDNS users.
-*   **SslService**: Manage Let's Encrypt certificates.
+*   **SslService**: Manage SSL certificates (custom certs, HSTS, Force HTTPS).
 
 ### 📧 [3. Email Infrastructure](docs/03_email.md)
 *   **MailAccountService**: Manage POP3/IMAP mailboxes.
@@ -95,7 +99,7 @@ Here is a quick summary of available services on the `KasClient`:
 | Service Property | Class | Key Functions |
 | :--- | :--- | :--- |
 | `client.account` | `AccountService` | `get_accounts`, `add_account`... |
-| `client.dns` | `DnsService` | `get_dns_settings`, `add_record`... |
+| `client.dns` | `DnsService` | `get_dns_settings`, `add_dns_settings`... |
 | `client.domain` | `DomainService` | `get_domains`, `add_domain`... |
 | `client.mailaccount` | `MailAccountService` | `get_mailaccounts`... |
 | `client.cronjob` | `CronjobService` | `get_cronjobs`, `add_cronjob`... |
@@ -110,5 +114,7 @@ Here is a quick summary of available services on the `KasClient`:
 You can run the included verification script to check payload construction without actual API credentials:
 
 ```bash
-python verify_payloads.py
+pytest tests/
+# or without pytest:
+python tests/test_payloads.py
 ```

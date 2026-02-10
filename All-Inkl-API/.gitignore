@@ -23,8 +23,7 @@ build/
 nul
 
 # KAS SDK Specific
-error.log
-verify_payloads.log
+*.log
 
 debug_output.txt
 

@@ -6,6 +6,12 @@ import time
 import os
 import logging
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 # Official API Endpoint
 SOAP_URL = "https://kasapi.kasserver.com/soap/KasApi.php"
 
@@ -182,8 +188,9 @@ class KasClient:
         }
 
         try:
-            response = requests.post(self.api_url, data=soap_body, headers=headers)
+            response = requests.post(self.api_url, data=soap_body, headers=headers, timeout=30)
             self._last_request_time = time.time()
+            response.raise_for_status()
             return self._parse_soap_map(response.content)
         except Exception as e:
             # Re-raise as a more specific client error or let it bubble up
@@ -276,7 +283,7 @@ class KasClient:
                     # If keys are compact '0'..'N', return list
                     if int(sorted_keys[0]) == 0 and int(sorted_keys[-1]) == len(parsed_dict) - 1:
                         return [parsed_dict[k] for k in sorted_keys]
-                except:
+                except (ValueError, IndexError):
                     pass
             return parsed_dict
         
