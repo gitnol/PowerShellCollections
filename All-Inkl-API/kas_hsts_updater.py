@@ -16,11 +16,11 @@ import time
 import os
 import sys
 from kas_sdk import KasClient
+from kas_sdk.utils import get_kas_credentials
 
 # --- CONFIGURATION -----------------------------------------------------------
 
-KAS_USER = os.environ.get('KAS_LOGIN', 'DEIN_KAS_LOGIN')
-KAS_PASS = os.environ.get('KAS_PASS', 'DEIN_KAS_PASSWORT')
+TABLE_HEADERS = ["Domain", "Status"]
 
 # HSTS Max Age (31536000 = 1 Year)
 TARGET_MAX_AGE = 31536000 
@@ -110,13 +110,15 @@ def set_hsts(client: KasClient, domain: str, max_age: int):
         print("[FAILED] API reported error.")
 
 def main():
-    if "DEIN_KAS_LOGIN" in KAS_USER or "w0123456" in KAS_USER:
-        print("ERROR: Please configure KAS_USER and KAS_PASS environment variables!")
-        sys.exit(1)
-
     print(f"Starting KAS HSTS Update (Target Max Age: {TARGET_MAX_AGE}s)...")
     
-    client = KasClient(KAS_USER, KAS_PASS)
+    # 1. Get Credentials
+    login, auth_data = get_kas_credentials()
+    if not login or not auth_data:
+        print("Error: Missing credentials. Exiting.")
+        return
+
+    client = KasClient(kas_login=login, kas_auth_data=auth_data)
     
     for domain in DOMAINS:
         set_hsts(client, domain, TARGET_MAX_AGE)
