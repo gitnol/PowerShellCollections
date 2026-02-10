@@ -19,19 +19,52 @@ class KasClient:
     Enforces quirks like 'No Integers' in parameters.
     """
 
-    def __init__(self, kas_login: str, kas_auth_data: str, kas_auth_type: str = "plain", api_url: str = SOAP_URL, flood_protection_delay: float = 2.0, dry_run: bool = False):
+    def __init__(self, kas_login: Optional[str] = None, kas_auth_data: Optional[str] = None, kas_auth_type: str = "plain", api_url: str = SOAP_URL, flood_protection_delay: float = 2.0, dry_run: bool = False):
         """
         Initialize the KAS Client.
+        
+        Credentials Resolution Order:
+        1. Explicit Arguments
+        2. Environment Variables (KAS_LOGIN, KAS_PASS)
+        3. System Keyring (service='kas_api', username=kas_login)
 
-        :param kas_login: KAS Login (e.g. w012345)
-        :param kas_auth_data: KAS Password or Auth Token
+        :param kas_login: KAS Login (e.g. w012345). Optional if in Env.
+        :param kas_auth_data: KAS Password. Optional if in Env or Keyring.
         :param kas_auth_type: Auth type, usually 'plain' or 'sha1'
         :param api_url: URL to the SOAP endpoint
-        :param flood_protection_delay: Delay in seconds between requests to avoid flood protection errors.
+        :param flood_protection_delay: Delay in seconds between requests.
         :param dry_run: If True, do not send requests to the API.
         """
-        self.kas_login = kas_login
-        self.kas_auth_data = kas_auth_data
+        # 1. Resolve Login
+        self.kas_login = kas_login or os.getenv('KAS_LOGIN')
+        if not self.kas_login:
+             raise ValueError("KAS Login is required. Provide it as argument or set KAS_LOGIN environment variable.")
+
+        # 2. Resolve Password
+        self.kas_auth_data = kas_auth_data or os.getenv('KAS_PASS')
+        
+        # 3. Try Keyring if password missing
+        if not self.kas_auth_data:
+            try:
+                import keyring
+                # Try to get password from keyring for the resolved login
+                key_pass = keyring.get_password("kas_api", self.kas_login)
+                if key_pass:
+                    self.kas_auth_data = key_pass
+                    logger.info(f"Loaded password for {self.kas_login} from System Keyring.")
+            except ImportError:
+                logger.debug("Keyring module not installed, skipping credential lookup.")
+            except Exception as e:
+                logger.warning(f"Keyring lookup failed: {e}")
+
+        if not self.kas_auth_data:
+             # Just warn here? Or raise? KAS API will fail anyway.
+             # Better to raise early so user knows what's missing.
+             # But maybe dry_run allows missing pass?
+             if not dry_run and not os.getenv('KAS_DRY_RUN'): # Check effective dry_run later
+                  # Actually let's just log warning, maybe auth_type doesn't need data (unlikely)
+                  logger.warning("No KAS Password found. API calls will likely fail.")
+
         self.kas_auth_type = kas_auth_type
         self.api_url = api_url
         self.flood_protection_delay = flood_protection_delay
