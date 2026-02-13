@@ -1,6 +1,6 @@
 ﻿<#PSScriptInfo
 
-.VERSION 1.6.0
+.VERSION 1.6.0 modded for PS7 by gitnol
 
 .GUID eb791b3e-fbbe-4685-8c92-5eb0f05688b6
 
@@ -204,7 +204,7 @@ www.jfe.cloud
 
 #>
 
-[CmdletBinding(DefaultParametersetname="NoExport")]
+[CmdletBinding(DefaultParametersetname = "NoExport")]
 Param(
     [Parameter(Mandatory = $True, ValueFromPipeline = $True, ValueFromPipelineByPropertyName = $True)]
     [string]$CN,
@@ -213,7 +213,7 @@ Param(
     [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True)]
     [String]$TemplateName = "WebServer",
     [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True)]
-    [ValidateSet(1024,2048,3072,4096,15360)]
+    [ValidateSet(1024, 2048, 3072, 4096, 15360)]
     [int]$keyLength = 2048,
     [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True)]
     [string]$CAName,
@@ -231,13 +231,13 @@ Param(
     [string]$FriendlyName = "<None>" ,
     [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True)]
     [switch]$AddCNinSAN,
-    [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $True, ParameterSetName='Export')]
+    [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $True, ParameterSetName = 'Export')]
     [switch]$Export,
-    [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $True, ParameterSetName='Export')]
-    [ValidateScript( {Resolve-Path -Path $_})]
+    [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $True, ParameterSetName = 'Export')]
+    [ValidateScript( { Resolve-Path -Path $_ })]
     [string]$ExportPath,
-    [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True, ParameterSetName='Export')]
-    [ValidateScript( {$_.getType().name -eq "SecureString" -or $_.getType().name -eq "String"})]
+    [Parameter(Mandatory = $False, ValueFromPipelineByPropertyName = $True, ParameterSetName = 'Export')]
+    [ValidateScript( { $_.getType().name -eq "SecureString" -or $_.getType().name -eq "String" })]
     $Password
 
 )
@@ -271,7 +271,7 @@ BEGIN {
 
 PROCESS {
     #disable debug confirmation messages
-    if ($PSBoundParameters['Debug']) {$DebugPreference = "Continue"}
+    if ($PSBoundParameters['Debug']) { $DebugPreference = "Continue" }
 
     Write-Verbose "Generating request inf file"
     $file = @"
@@ -314,7 +314,7 @@ CertificateTemplate = "$TemplateName"
         Write-Verbose "A value for the SAN is specified. Requesting a SAN certificate."
         Write-Debug "Add Extension for SAN to the inf file..."
         $file +=
-@'
+        @'
 
 [Extensions]
 ; If your client operating system is Windows Server 2008, Windows Server 2008 R2, Windows Vista, or Windows 7
@@ -339,7 +339,7 @@ CertificateTemplate = "$TemplateName"
         #create temp files
         $inf = [System.IO.Path]::GetTempFileName()
         $req = [System.IO.Path]::GetTempFileName()
-        $filename = $CN -replace "^\*","wildcard"
+        $filename = $CN -replace "^\*", "wildcard"
         $cer = Join-Path -Path $env:TEMP -ChildPath "$filename.cer"
         $rsp = Join-Path -Path $env:TEMP -ChildPath "$filename.rsp"
 
@@ -365,9 +365,9 @@ CertificateTemplate = "$TemplateName"
         if (!$PSBoundParameters.ContainsKey('CAName')) {
             $rootDSE = [System.DirectoryServices.DirectoryEntry]'LDAP://RootDSE'
             $searchBase = [System.DirectoryServices.DirectoryEntry]"LDAP://$($rootDSE.configurationNamingContext)"
-            $CAs = [System.DirectoryServices.DirectorySearcher]::new($searchBase,'objectClass=pKIEnrollmentService').FindAll()
+            $CAs = [System.DirectoryServices.DirectorySearcher]::new($searchBase, 'objectClass=pKIEnrollmentService').FindAll()
 
-            if($CAs.Count -eq 1){
+            if ($CAs.Count -eq 1) {
                 $CAName = "$($CAs[0].Properties.dnshostname)\$($CAs[0].Properties.cn)"
             }
             else {
@@ -406,14 +406,15 @@ CertificateTemplate = "$TemplateName"
         if ($export) {
             Write-Debug "export parameter is set. => export certificate"
             Write-Verbose "exporting certificate and private key"
-            $cert = Get-Childitem "cert:\LocalMachine\My" | where-object {$_.Thumbprint -eq (New-Object System.Security.Cryptography.X509Certificates.X509Certificate2((Get-Item $cer).FullName, "")).Thumbprint}
+            $cert = Get-Childitem "cert:\LocalMachine\My" | where-object { $_.Thumbprint -eq (New-Object System.Security.Cryptography.X509Certificates.X509Certificate2((Get-Item $cer).FullName, "")).Thumbprint }
             Write-Debug "Certificate found in computer store: $cert"
 
             #create a pfx export as a byte array
-            if($Password) {
+            if ($Password) {
                 Write-Debug "Exporting with password"
                 $certbytes = $cert.export([System.Security.Cryptography.X509Certificates.X509ContentType]::pfx, $Password)
-            }  else {
+            }
+            else {
                 Write-Debug "Exporting without password"
                 $certbytes = $cert.export([System.Security.Cryptography.X509Certificates.X509ContentType]::pfx)
             }
@@ -426,7 +427,15 @@ CertificateTemplate = "$TemplateName"
             else {
                 $pfxPath = ".\$filename.pfx"
             }
-            $certbytes | Set-Content -Encoding Byte -Path $pfxPath -ea Stop
+            # $certbytes | Set-Content -Encoding Byte -Path $pfxPath -ea Stop
+            # PS5.1: -Encoding Byte, PS7+: -AsByteStream (oder WriteAllBytes)
+            if ($PSVersionTable.PSVersion.Major -ge 7) {
+                Set-Content -LiteralPath $pfxPath -Value $certbytes -AsByteStream -ErrorAction Stop
+            }
+            else {
+                Set-Content -LiteralPath $pfxPath -Value $certbytes -Encoding Byte -ErrorAction Stop
+            }
+
             Write-Host "Certificate successfully exported to `"$pfxPath`"!" -ForegroundColor Green
 
             Write-Verbose "deleting exported certificate from computer store"
