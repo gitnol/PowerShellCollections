@@ -1,3 +1,4 @@
 *.json
 !config.example.json
+!vmware-config.example.json
 *test*.ps1

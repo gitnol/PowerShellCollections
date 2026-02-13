@@ -13,10 +13,13 @@ Requests certificates from an Active Directory Certificate Services (ADCS) CA, e
 
 | File | Description |
 |------|-------------|
-| `Generate-Certificate.ps1` | Main script - orchestrates the full workflow |
+| `Generate-Certificate.ps1` | Main script - orchestrates certificate generation |
+| `Replace-VMWare-Certificates.ps1` | Deploys generated certificates to vCenter and ESXi hosts |
 | `Request-Certificate.ps1` | Low-level ADCS request via `certreq.exe` (by [J0F3](https://github.com/J0F3/PowerShell), modded for PS7) |
 | `config.json` | Your local certificate definitions (gitignored) |
 | `config.example.json` | Example config with the expected JSON schema |
+| `vmware-config.json` | Your local VMware topology (gitignored) |
+| `vmware-config.example.json` | Example VMware config with the expected schema |
 
 ## Workflow
 
@@ -210,3 +213,80 @@ The CN (hostname FQDN) is **always** automatically included as the first DNS SAN
 This produces the SAN string: `DNS=server.mycorp.local,DNS=server,DNS=alias.mycorp.local,IPAddress=10.0.1.50,IPAddress=192.168.1.50`
 
 Duplicates are automatically removed.
+
+## VMware certificate deployment
+
+### Additional prerequisites
+
+- **VMware.PowerCLI** module (`Install-Module VMware.PowerCLI -Scope CurrentUser`)
+- **vCenter credentials** - prompted at runtime for each vCenter
+
+### VMware config format
+
+Create `vmware-config.json` based on `vmware-config.example.json`:
+
+```json
+{
+  "vCenters": [
+    {
+      "hostname": "vcsa.mycorp.local",
+      "managedHosts": [
+        "esx01.mycorp.local",
+        "esx02.mycorp.local"
+      ]
+    },
+    {
+      "hostname": "replicavcsa.mycorp.local",
+      "managedHosts": [
+        "esx10.mycorp.local",
+        "esx11.mycorp.local"
+      ]
+    }
+  ]
+}
+```
+
+Each vCenter entry lists the ESXi hosts it manages. The `hostname` values must match the `hostnameFQDN` values in `config.json` so the script can find the matching certificate files.
+
+### Execution order
+
+The script follows a safe sequence:
+
+```
+Phase 1: Upload CA chain to ALL vCenter trusted stores
+Phase 2: Remove expired trusted certificates
+Phase 3: Replace ESXi host certificates (maintenance mode on/off)
+Phase 4: Replace vCenter machine certificates (LAST - services restart!)
+```
+
+vCenter certificates are replaced **last** because vCenter services restart after replacement, dropping the API connection. ESXi hosts are processed first while their managing vCenter is still operational.
+
+### Usage examples
+
+```powershell
+# Step 1: Generate all certificates
+$certs = .\Generate-Certificate.ps1
+
+# Step 2a: Dry run - review what would happen (RECOMMENDED FIRST)
+.\Replace-VMWare-Certificates.ps1 -CertificateResults $certs -WhatIf
+
+# Step 2b: Full deployment (prompts for confirmation at each step)
+.\Replace-VMWare-Certificates.ps1 -CertificateResults $certs
+
+# Only replace vCenter certs, skip ESXi hosts
+.\Replace-VMWare-Certificates.ps1 -CertificateResults $certs -SkipEsxi
+
+# Only replace ESXi certs, skip vCenter
+.\Replace-VMWare-Certificates.ps1 -CertificateResults $certs -SkipVcenter
+
+# Skip CA chain upload (already done in a previous run)
+.\Replace-VMWare-Certificates.ps1 -CertificateResults $certs -SkipCaChainUpload
+```
+
+### Safety features
+
+- **`-WhatIf`** - shows all planned actions without making changes
+- **`-Confirm` (default)** - prompts before each destructive action (`ConfirmImpact = High`). Answer `A` (Yes to All) to skip remaining prompts.
+- **`-SkipEsxi` / `-SkipVcenter`** - selectively skip parts of the deployment
+- **`-SkipCaChainUpload` / `-SkipExpiredCleanup`** - skip CA chain and cleanup phases
+- If a certificate is not found in the results for a configured hostname, that host is skipped with a warning

@@ -1,0 +1,18 @@
+{
+  "vCenters": [
+    {
+      "hostname": "vcsa.mycorp.local",
+      "managedHosts": [
+        "esx01.mycorp.local",
+        "esx02.mycorp.local"
+      ]
+    },
+    {
+      "hostname": "replicavcsa.mycorp.local",
+      "managedHosts": [
+        "esx10.mycorp.local",
+        "esx11.mycorp.local"
+      ]
+    }
+  ]
+}
