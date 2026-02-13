@@ -1,0 +1,23 @@
+{
+  "defaults": {
+    "templateName": "Webserver",
+    "department": "IT",
+    "country": "DE",
+    "exportPath": "C:\\temp\\certs"
+  },
+  "certificates": [
+    {
+      "hostnameFQDN": "myserver.mycorp.local",
+      "sanDns": ["myserver", "myserver.mycorp.local"],
+      "sanIpAddress": ["10.0.5.170"],
+      "exportPassword": null
+    },
+    {
+      "hostnameFQDN": "webapp.mycorp.local",
+      "sanDns": ["webapp"],
+      "sanIpAddress": [],
+      "templateName": "CustomWebTemplate",
+      "exportPassword": null
+    }
+  ]
+}

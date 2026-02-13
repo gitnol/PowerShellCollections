@@ -1,4 +1,3 @@
-# Tests mit .gitignore
-config.json
 *.json
+!config.example.json
 *test*.ps1
