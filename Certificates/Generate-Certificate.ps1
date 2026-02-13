@@ -299,9 +299,10 @@ function New-Certificate {
 
 #region Helpers for config resolution
 
-function Resolve-Value {
-    param($Value, $Default)
-    if ($Value) { $Value } else { $Default }
+function Get-PropertyOrDefault {
+    param([psobject]$Object, [string]$Property, $Default)
+    $p = $Object.PSObject.Properties[$Property]
+    if ($p -and $p.Value) { $p.Value } else { $Default }
 }
 
 #endregion
@@ -333,7 +334,7 @@ if ($PSCmdlet.ParameterSetName -eq 'Config') {
     }
 
     $results = foreach ($cert in $config.certificates) {
-        $pw = $cert.exportPassword
+        $pw = Get-PropertyOrDefault $cert 'exportPassword' $null
         if (-not $pw) {
             $pw = Read-ExportPassword -Hostname $cert.hostnameFQDN
         }
@@ -341,12 +342,12 @@ if ($PSCmdlet.ParameterSetName -eq 'Config') {
         New-Certificate `
             -HostnameFQDN $cert.hostnameFQDN `
             -ExportPassword $pw `
-            -SanDns @($cert.sanDns ?? @()) `
-            -SanIpAddress @($cert.sanIpAddress ?? @()) `
-            -TemplateName (Resolve-Value $cert.templateName $defaults.TemplateName) `
-            -Department (Resolve-Value $cert.department $defaults.Department) `
-            -Country (Resolve-Value $cert.country $defaults.Country) `
-            -ExportPath (Resolve-Value $cert.exportPath $defaults.ExportPath)
+            -SanDns @(Get-PropertyOrDefault $cert 'sanDns' @()) `
+            -SanIpAddress @(Get-PropertyOrDefault $cert 'sanIpAddress' @()) `
+            -TemplateName (Get-PropertyOrDefault $cert 'templateName' $defaults.TemplateName) `
+            -Department (Get-PropertyOrDefault $cert 'department' $defaults.Department) `
+            -Country (Get-PropertyOrDefault $cert 'country' $defaults.Country) `
+            -ExportPath (Get-PropertyOrDefault $cert 'exportPath' $defaults.ExportPath)
     }
 
     $results
@@ -362,8 +363,8 @@ else {
         -ExportPassword $ExportPassword `
         -SanDns $SanDns `
         -SanIpAddress $SanIpAddress `
-        -TemplateName (Resolve-Value $TemplateName $script:Defaults.TemplateName) `
-        -Department (Resolve-Value $Department $script:Defaults.Department) `
-        -Country (Resolve-Value $Country $script:Defaults.Country) `
-        -ExportPath (Resolve-Value $ExportPath $script:Defaults.ExportPath)
+        -TemplateName $(if ($TemplateName) { $TemplateName } else { $script:Defaults.TemplateName }) `
+        -Department $(if ($Department) { $Department } else { $script:Defaults.Department }) `
+        -Country $(if ($Country) { $Country } else { $script:Defaults.Country }) `
+        -ExportPath $(if ($ExportPath) { $ExportPath } else { $script:Defaults.ExportPath })
 }
