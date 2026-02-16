@@ -46,3 +46,8 @@ function Test-OleDbConnection {
 $baseConnectionString = 'Provider=SQLOLEDB.1;Persist Security Info=False;User ID=sa;Initial Catalog=MDM_DB;Data Source=MYSERVER\MYINSTANCE'
 
 Test-OleDbConnection -BaseConnectionString $baseConnectionString
+
+# Alternativ könnte man den Basis-Connectionstring auch in einer INI-Datei / UDL Datei oder einem anderen Konfigurationsformat speichern, hier als udl z.B.:
+# [oledb]
+# ; Everything after this line is an OLE DB initstring
+# Provider=SQLOLEDB.1;Persist Security Info=False;User ID=sa;Initial Catalog=MDM_DB;Data Source=MYSERVER\MYINSTANCE
