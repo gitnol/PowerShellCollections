@@ -1,17 +1,17 @@
 ﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
-    Ueberwacht ALLE privilegierten AD-Gruppen (Multi-Channel) mittels SHA256.
+    Überwacht ALLE privilegierten AD-Gruppen (Multi-Channel) mittels SHA256.
     Kompatibel mit PowerShell 5.1 (Windows Server 2016/2019).
 
 .DESCRIPTION
     Funktionsweise:
     1. Ermittelt automatisch kritische Gruppen (adminCount=1 + Standardliste).
-    2. Erstellt einen SHA256-Hash ueber die sortierten GUIDs der Mitglieder.
+    2. Erstellt einen SHA256-Hash über die sortierten GUIDs der Mitglieder.
     3. Vergleicht Hash mit gespeicherter Baseline.
-    4. Bei Aenderung: Setzt "Breach"-Datei -> Sensor bleibt ROT bis zur manuellen Quittierung.
+    4. Bei Änderung: Setzt "Breach"-Datei -> Sensor bleibt ROT bis zur manuellen Quittierung.
     
-    Quittierung: Datei '%TEMP%\PRTG_BREACH_<Gruppenname>.txt' loeschen.
+    Quittierung: Datei '%TEMP%\PRTG_BREACH_<Gruppenname>.txt' löschen.
 #>
 
 [CmdletBinding()]
@@ -24,7 +24,7 @@ $TempPath = $env:TEMP
 # --- 1. GRUPPEN ERMITTELN (Auto-Discovery) ---
 $CriticalGroups = New-Object System.Collections.Generic.List[string]
 
-# Standard-Liste (wird immer geprueft)
+# Standard-Liste (wird immer geprüft)
 $StandardNames = @(
     "Domänen-Admins", "Organisations-Admins", "Schema-Admins", 
     "Administratoren", "Server-Operatoren", "Sicherungs-Operatoren", 
@@ -60,8 +60,8 @@ function Get-ADGroupHash {
         $m = @(Get-ADGroupMember -Identity $gid -Recursive -ErrorAction Stop)
         $count = $m.Count
         
-        # Sortieren ist PFLICHT fuer stabilen Hash.
-        # .ToString() ist PFLICHT fuer PS 5.1, da ObjectGUID dort kein String ist.
+        # Sortieren ist PFLICHT für stabilen Hash.
+        # .ToString() ist PFLICHT für PS 5.1, da ObjectGUID dort kein String ist.
         $sortedGuids = $m | Sort-Object -Property ObjectGUID | ForEach-Object { $_.ObjectGUID.ToString() }
         $dataString = $sortedGuids -join "`n"
         
@@ -70,7 +70,7 @@ function Get-ADGroupHash {
         $sha256 = [System.Security.Cryptography.SHA256]::Create()
         $hashBytes = $sha256.ComputeHash($bytes)
         
-        # Rueckgabe als Base64 String
+        # Rückgabe als Base64 String
         $resultHash = [Convert]::ToBase64String($hashBytes)
         
         return [PSCustomObject]@{ Hash = $resultHash; Count = $count; Error = $false }
@@ -103,7 +103,7 @@ foreach ($Group in $MonitoredGroups) {
     $Status = 0 
     $Msg = "OK"
 
-    # A) LATCH-PRUEFUNG (Breach File)
+    # A) LATCH-PRÜFUNG (Breach File)
     if (Test-Path -Path $BreachFile) {
         $Status = 1
         $Msg = "Vorfall nicht quittiert"
@@ -122,7 +122,7 @@ foreach ($Group in $MonitoredGroups) {
         else {
             # C) BASELINE VERGLEICH
             if (-not (Test-Path -Path $BaselineFile)) {
-                # Erste Ausfuehrung -> Baseline erstellen
+                # Erste Ausführung -> Baseline erstellen
                 $State.Hash | Out-File -FilePath $BaselineFile -Force -Encoding ASCII
                 $Msg = "Baseline erstellt"
             }
@@ -131,8 +131,8 @@ foreach ($Group in $MonitoredGroups) {
                 # String-Vergleich
                 if ("$($State.Hash)" -ne "$($OldHash)") {
                     $Status = 1
-                    $Msg = "Aenderung erkannt!"
-                    $BreachDetails += "$Group (Aenderung)"
+                    $Msg = "Änderung erkannt!"
+                    $BreachDetails += "$Group (Änderung)"
                     # Breach-Datei setzen (Alarm verriegeln)
                     "Breach detected at $(Get-Date)" | Out-File -FilePath $BreachFile -Force -Encoding ASCII
                 }
@@ -162,7 +162,7 @@ Write-Host "    <LimitMaxError>0.95</LimitMaxError>"
 Write-Host "    <LimitErrorMsg>Alarm bei privilegierten Gruppen</LimitErrorMsg>"
 Write-Host "  </result>"
 
-# Einzel-Kanaele
+# Einzel-Kanäle
 foreach ($Res in $Results) {
     Write-Host "  <result>"
     Write-Host "    <channel>$($Res.Name)</channel>"
@@ -171,7 +171,7 @@ foreach ($Res in $Results) {
     Write-Host "    <showtable>1</showtable>"
     Write-Host "    <LimitMode>1</LimitMode>"
     Write-Host "    <LimitMaxError>0.95</LimitMaxError>"
-    # Keine Umlaute verwenden fuer maximale Sicherheit
+    # Keine Umlaute verwenden für maximale Sicherheit
     Write-Host "    <LimitErrorMsg>$($Res.Message)</LimitErrorMsg>"
     Write-Host "  </result>"
 }
