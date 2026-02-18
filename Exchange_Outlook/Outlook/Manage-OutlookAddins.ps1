@@ -24,15 +24,15 @@
     Prüft das spezifische Add-in und repariert es bei Fehlern.
 #>
 
-[CmdletBinding(DefaultParameterSetName='ListAll')]
+[CmdletBinding(DefaultParameterSetName = 'ListAll')]
 param(
-    [Parameter(Mandatory=$true, ParameterSetName='ListAll')]
+    [Parameter(Mandatory = $true, ParameterSetName = 'ListAll')]
     [Switch]$List,
 
-    [Parameter(Mandatory=$true, ParameterSetName='SingleTarget')]
+    [Parameter(Mandatory = $true, ParameterSetName = 'SingleTarget')]
     [string]$TargetAddin,
 
-    [Parameter(ParameterSetName='SingleTarget')]
+    [Parameter(ParameterSetName = 'SingleTarget')]
     [Switch]$FixIssues
 )
 
@@ -48,10 +48,10 @@ function Get-AddinStatus {
     $p_Resiliency = "HKCU:\Software\Microsoft\Office\16.0\Outlook\Resiliency\DisabledItems"
     
     $statusObj = [PSCustomObject]@{
-        Name = $Name
-        LoadBehavior = "N/A"
-        Source = "Nicht gefunden"
-        StatusText = "Nicht installiert"
+        Name           = $Name
+        LoadBehavior   = "N/A"
+        Source         = "Nicht gefunden"
+        StatusText     = "Nicht installiert"
         IsHardDisabled = $false
     }
 
@@ -65,7 +65,8 @@ function Get-AddinStatus {
                 if ($decoded -match $Name) {
                     $statusObj.IsHardDisabled = $true
                 }
-            } catch {}
+            }
+            catch {}
         }
     }
 
@@ -92,13 +93,17 @@ function Get-AddinStatus {
     # 3. Finaler Status Text
     if ($statusObj.IsHardDisabled) {
         $statusObj.StatusText = "CRITICAL (Hard Disabled)"
-    } elseif ($lb -eq 3) {
+    }
+    elseif ($lb -eq 3) {
         $statusObj.StatusText = "OK (Aktiv)"
-    } elseif ($lb -eq 2) {
+    }
+    elseif ($lb -eq 2) {
         $statusObj.StatusText = "Inaktiv (Load on Demand)"
-    } elseif ($lb -eq 0) {
+    }
+    elseif ($lb -eq 0) {
         $statusObj.StatusText = "Deaktiviert"
-    } else {
+    }
+    else {
         $statusObj.StatusText = "Unbekannt ($lb)"
     }
 
@@ -122,7 +127,8 @@ function Repair-Addin {
                     Remove-ItemProperty -Path $p_Resiliency -Name $prop.Name
                     Write-Host " [FIX] Eintrag aus Absturzliste (Resiliency) entfernt." -ForegroundColor Green
                 }
-            } catch {}
+            }
+            catch {}
         }
     }
 
@@ -168,14 +174,16 @@ if ($PSCmdlet.ParameterSetName -eq 'ListAll') {
 if ($PSCmdlet.ParameterSetName -eq 'SingleTarget') {
     $status = Get-AddinStatus -Name $TargetAddin
     
-    Write-Host "`nAdd-in: " -NoNewline; Write-Host $TargetAddin -ForegroundColor Cyan
+    Write-Host "Add-in: " -NoNewline; Write-Host $TargetAddin -ForegroundColor Cyan
     Write-Host "Quelle: " -NoNewline; Write-Host $status.Source -ForegroundColor Gray
     
     if ($status.IsHardDisabled) {
         Write-Host "Status: " -NoNewline; Write-Host $status.StatusText -ForegroundColor Red
-    } elseif ($status.LoadBehavior -eq 3) {
+    }
+    elseif ($status.LoadBehavior -eq 3) {
         Write-Host "Status: " -NoNewline; Write-Host $status.StatusText -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-Host "Status: " -NoNewline; Write-Host $status.StatusText -ForegroundColor Yellow
     }
 
@@ -188,7 +196,8 @@ if ($PSCmdlet.ParameterSetName -eq 'SingleTarget') {
             if ($newStatus.LoadBehavior -eq 3 -and -not $newStatus.IsHardDisabled) {
                 Write-Host "ERGEBNIS: Add-in erfolgreich aktiviert." -ForegroundColor Green
             }
-        } else {
+        }
+        else {
             Write-Host "Keine Reparatur notwendig. Add-in ist bereits aktiv." -ForegroundColor Green
         }
     }
