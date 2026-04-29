@@ -19,11 +19,11 @@ $adComputers = Get-ADComputer -Filter 'OperatingSystem -like "*Windows Server*" 
 $OnlineComputers = Test-ConnectionInParallel -throttlelimit 20 -ComputerNames $adComputers.DNSHostName | Where-Object { $_.Online }
 $TargetHosts = $OnlineComputers.ComputerName
 
-#3. Skript auf den Zielhosts ausführen
+#3. Skript auf den Zielhosts ausführen (Invoke-Command ist bei mehreren Hosts bereits parallel, ThrottleLimit begrenzt gleichzeitige Sessions)
 $ScriptContent = Get-Content ".\Invoke-SecureBootCertUpdate.ps1" -Raw
-$FinalResults = Invoke-Command -ComputerName $TargetHosts -ScriptBlock {
+$FinalResults = Invoke-Command -ComputerName $TargetHosts -ThrottleLimit 20 -ScriptBlock {
     $sbi = [scriptblock]::Create($using:ScriptContent)
-    # Ausführung mit -Status, damit nur geprüft, aber nichts verändert wird
+    # Ausfuehrung mit -Status, damit nur geprueft, aber nichts veraendert wird
     & $sbi -Status
 } -ErrorAction SilentlyContinue
 $FinalResults | Out-GridView
