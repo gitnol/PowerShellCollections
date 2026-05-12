@@ -1,3 +1,5 @@
+# Veraltet. Bitte nutze Create-PublicSpotUsers.ps1, da es mehr Möglichkeiten bietet und einfacher zu bedienen ist.
+
 # This Script creates a new public spot user for LANCOM Public Spot
 # Tested with LANCOM WLC vRouter 10.80.xxxx
 # Keep in mind of "-SkipCertificateCheck" and that not every option in the documentation (search for MA_LCOS-1080-Public-Spot_DE.pdf) has been adapted. 

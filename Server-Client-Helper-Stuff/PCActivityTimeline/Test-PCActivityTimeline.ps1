@@ -7,9 +7,9 @@
     damit können die Property-Indices im Haupt-Script verifiziert werden.
 
 .USAGE
-    .\Test-PCActivityTimeline.ps1 -ComputerName "8A0228-D.lewa-attendorn.local"
-    .\Test-PCActivityTimeline.ps1 -ComputerName "8A0228-D.lewa-attendorn.local" -Credential (Get-Credential)
-    .\Test-PCActivityTimeline.ps1 -ComputerName "8A0228-D.lewa-attendorn.local" -AllePropertiesAusgeben
+    .\Test-PCActivityTimeline.ps1 -ComputerName "8A0228-D.mycorp.local"
+    .\Test-PCActivityTimeline.ps1 -ComputerName "8A0228-D.mycorp.local" -Credential (Get-Credential)
+    .\Test-PCActivityTimeline.ps1 -ComputerName "8A0228-D.mycorp.local" -AllePropertiesAusgeben
 #>
 [CmdletBinding()]
 param(
