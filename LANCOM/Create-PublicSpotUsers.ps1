@@ -36,8 +36,14 @@
     .\Create-PublicSpotUsers.ps1 -AdminUser "admin" -AdminPass $SecurePass -InputCsv ".\users.csv" -RouterIP "192.168.1.1" -SkipCertificateCheck $false
 
 .NOTES
-    Version : 1.4
+    Version : 1.5
     Autor   : IT-Administration MyCorp
+
+    Änderungen v1.5:
+      - BUGFIX: SSID in der Ausgabe-CSV wurde URL-kodiert zurückgegeben (z.B. "LANCOM%20VISITOR"
+                statt "LANCOM VISITOR"). Behoben durch UnescapeDataString() nach dem Regex-Matching.
+      - VolumeBudget-Typ von [int] auf [string] geändert, damit API-Suffixe (k/m/g) direkt
+                übergeben werden können (z.B. "1m" für 1 Megabyte).
 
     Änderungen v1.4:
       - BUGFIX (Hauptursache): Der Unit-Wert in der CSV muss englisch sein: 'Day', 'Hour', 'Minute'.
@@ -104,7 +110,7 @@ function Invoke-CmdPbSpotUser {
         [int]$MaxConcLogins,
         [int]$BandwidthProfile,
         [int]$TimeBudget,
-        [int]$VolumeBudget,
+        [string]$VolumeBudget,
         [int]$Active,
         [string]$Username,
         [securestring]$Password,
@@ -239,7 +245,7 @@ for ($i = 0; $i -lt $Total; $i++) {
         -MaxConcLogins    ([int]$Row.MaxConcLogins) `
         -BandwidthProfile ([int]$Row.BandwidthProfile) `
         -TimeBudget       ([int]$Row.TimeBudget) `
-        -VolumeBudget     ([int]$Row.VolumeBudget) `
+        -VolumeBudget     $Row.VolumeBudget `
         -Active           ([int]$Row.Active) `
         -Username         $AdminUser `
         -Password         $AdminPass `
@@ -265,7 +271,7 @@ for ($i = 0; $i -lt $Total; $i++) {
     if ($ApiResult -match $pattern) {
         $jsonRaw = $Matches[0]
 
-        $extSSID = if ($jsonRaw -match 'SSID:\s*"([^"]+)"') { $Matches[1] } else { "" }
+        $extSSID = if ($jsonRaw -match 'SSID:\s*"([^"]+)"') { [System.Uri]::UnescapeDataString($Matches[1]) } else { "" }
         $extUser = if ($jsonRaw -match 'USERID:\s*"([^"]+)"') { $Matches[1] } else { "" }
         $extPass = if ($jsonRaw -match 'PASSWORD:\s*"([^"]+)"') { $Matches[1] } else { "" }
         $extAccountEnd = if ($jsonRaw -match 'ACCOUNTEND:\s*"([^"]+)"') { $Matches[1] } else { "" }

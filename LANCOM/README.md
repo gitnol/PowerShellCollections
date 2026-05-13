@@ -105,7 +105,7 @@ Kodierung: **UTF-8**
 | `MaxConcLogins` | Integer | Max. gleichzeitige Anmeldungen (erfordert `multilogin`-Flag, der intern immer gesetzt wird) | `1`, `2`, `5` |
 | `BandwidthProfile` | Integer | Zeilennummer des Bandbreitenprofils in der LANCOM-Konfiguration | `1`, `2` |
 | `TimeBudget` | Integer | Zeitbudget in Minuten (`0` = LANCOM-Default) | `0`, `60` |
-| `VolumeBudget` | Integer | Volumenbudget in Byte (`0` = LANCOM-Default). Suffix `k/m/g` möglich (z.B. `100m`) | `0`, `1g` |
+| `VolumeBudget` | String | Volumenbudget (`0` = LANCOM-Default). Suffix `k/m/g` möglich (z.B. `1m`, `500k`, `2g`). Ohne Suffix = Byte. | `0`, `1m`, `500k`, `2g` |
 | `Active` | Integer | Konto aktiv (`1`) oder gesperrt (`0`) | `0`, `1` |
 
 **Beispieldatei** (wird automatisch erstellt, wenn `InputCsv` nicht existiert):
@@ -224,6 +224,11 @@ Beide Dateien erhalten **denselben Zeitstempel**, um Eingabe und Ergebnis eindeu
 ---
 
 ## Changelog
+
+### v1.5
+
+- **BUGFIX:** Die SSID in der Ausgabe-CSV wurde URL-kodiert zurückgegeben (z.B. `LANCOM%20VISITOR` statt `LANCOM VISITOR`). Behoben durch `[System.Uri]::UnescapeDataString()` nach dem Regex-Matching der API-Antwort.
+- **`VolumeBudget`-Typ:** Von `[int]` auf `[string]` geändert. Dadurch können LANCOM-Suffixe (`k`, `m`, `g`) direkt in der CSV verwendet werden (z.B. `1m` für 1 MB, `500k` für 500 kB). Ohne Suffix entspricht die Angabe weiterhin Byte.
 
 ### v1.4
 
