@@ -204,13 +204,14 @@ function Get-SystemState {
     catch { $state.SecureBootUnknown = $true }
 
     try {
-        # Primaer: Registry-Wert, den Windows selbst pflegt (1 = in DB, 2 = in DB + aktiv genutzt)
         $svcCheck = Get-ItemProperty -Path $REG_SVC_PATH -ErrorAction SilentlyContinue
-        if ($null -ne $svcCheck -and $null -ne $svcCheck.WindowsUEFICA2023Capable) {
-            $state.UEFICA2023InDB = ([int]$svcCheck.WindowsUEFICA2023Capable -ge 1)
+        if ($null -ne $svcCheck -and [int]$svcCheck.WindowsUEFICA2023Capable -ge 1) {
+            # Windows bestaetigt Capable >= 1: Zertifikat ist in DB
+            $state.UEFICA2023InDB = $true
         }
         else {
-            # Fallback: EFI_SIGNATURE_LIST korrekt parsen und X509Certificate2 pruefen
+            # Capable = 0 oder Registry fehlt: direkt per EFI_SIGNATURE_LIST pruefen,
+            # da Capable=0 auch bei manuell eingespieltem Zertifikat auftreten kann
             $db = Get-SecureBootUEFI -Name db -ErrorAction Stop
             $state.UEFICA2023InDB = (Test-UEFICA2023InDb -DbBytes $db.bytes)
         }
@@ -303,8 +304,9 @@ function Get-SystemState {
 function Get-CurrentPhase {
     param($SysState, $SavedState)
 
-    if ($SysState.UEFICA2023InDB -and -not $SysState.RebootPending) { return 8 }
-    if ($SysState.UEFICA2023InDB -and $SysState.RebootPending)      { return 6 }
+    # Zertifikat bestaetigt in DB → immer Phase 8; RebootPending kann von beliebigen
+    # anderen Updates stammen und ist kein Indiz fuer einen ausstehenden Secure-Boot-Reboot
+    if ($SysState.UEFICA2023InDB) { return 8 }
 
     if ($SysState.RegKeyExists -and $SysState.RegValue -eq $REG_VALUE) {
         if ($null -ne $SavedState -and $SavedState.Reboot1Done -and -not $SysState.TaskRanAfterBoot) {
@@ -315,7 +317,10 @@ function Get-CurrentPhase {
 
     if ($SysState.TaskRanAfterBoot -and -not $SysState.UEFICA2023InDB) { return 6 }
 
-    if ($SysState.TaskExists -and $SysState.TaskLastRunTime) {
+    # 2-Tage-Fallback nur wenn Reboot1Done=true im SavedState bekannt ist;
+    # sonst: fehlgeschlagener frueherer Versuch wuerde faelschlich Phase 6 ausloesen
+    if ($SysState.TaskExists -and $SysState.TaskLastRunTime -and
+        $null -ne $SavedState -and $SavedState.Reboot1Done) {
         if ($SysState.TaskLastRunTime -gt (Get-Date).AddDays(-2) -and -not $SysState.UEFICA2023InDB) {
             return 6
         }
@@ -462,7 +467,7 @@ function Invoke-Phase {
                     Write-Log "Phase 3: Capable-Workaround angewendet (0 -> 1)"
                 }
                 catch {
-                    Write-Verbose "WARNUNG: Capable konnte nicht gesetzt werden: $_"
+                    Write-Warning "Capable-Workaround fehlgeschlagen – Update wird wahrscheinlich nicht wirksam: $_"
                 }
             }
 
@@ -710,11 +715,13 @@ function Invoke-Phase {
         # ── Phase 8: Abgeschlossen ────────────────────────────────────────
         8 {
             Write-Log "Status-Check: System bereits abgeschlossen – kein Handlungsbedarf"
+            $msg = "'$CERT_PATTERN' ist in der Secure Boot DB. Das System ist vollstaendig aktualisiert."
+            if ($SysState.RebootPending) { $msg += " Ausstehender Reboot vorhanden (nicht Secure-Boot-bedingt)." }
             return @{
                 Action         = 'Kein Handlungsbedarf'
                 Success        = $true
-                Message        = "'$CERT_PATTERN' ist in der Secure Boot DB. Das System ist vollstaendig aktualisiert."
-                RebootRequired = $false
+                Message        = $msg
+                RebootRequired = $SysState.RebootPending
             }
         }
 
