@@ -129,7 +129,10 @@ function Confirm-Action {
 }
 
 function Test-UEFICA2023InDb {
-    param([byte[]]$DbBytes)
+    param(
+        [byte[]]$DbBytes,
+        [string]$SubjectPattern = $CERT_PATTERN
+    )
     if (-not $DbBytes -or $DbBytes.Length -lt 28) { return $false }
     # EFI_CERT_X509_GUID {a5c059a1-94e4-4aa7-87b5-ab155c2bf072}
     $x509Guid = [System.Guid]::new('a5c059a1-94e4-4aa7-87b5-ab155c2bf072')
@@ -147,7 +150,7 @@ function Test-UEFICA2023InDb {
                 try {
                     $certBytes = $DbBytes[($entry + 16)..($entry + [int]$sigSize - 1)]
                     $cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new([byte[]]$certBytes)
-                    if ($cert.Subject -match [regex]::Escape($CERT_PATTERN)) { return $true }
+                    if ($cert.Subject -match [regex]::Escape($SubjectPattern)) { return $true }
                 }
                 catch { }
                 $entry += [int]$sigSize
