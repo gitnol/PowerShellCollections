@@ -101,7 +101,7 @@ function Save-State {
     $State | ConvertTo-Json | Set-Content -Path $STATE_FILE -Encoding UTF8
 }
 
-function Load-State {
+function Import-State {
     if (Test-Path $STATE_FILE) {
         try {
             $raw = Get-Content $STATE_FILE -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -842,7 +842,7 @@ function New-ResultObject {
 # ─────────────────────────────────────────────────────────────────────────────
 Write-Verbose "Ermittle System-Zustand auf $env:COMPUTERNAME..."
 $sysState   = Get-SystemState
-$savedState = Load-State
+$savedState = Import-State
 $phase      = Get-CurrentPhase -SysState $sysState -SavedState $savedState
 
 Write-Verbose "Phase: $phase ($($PHASE_NAMES[$phase]))"
@@ -869,4 +869,7 @@ if ($Reset) {
 
 $result = Invoke-Phase -Phase $phase -SysState $sysState -SavedState $savedState
 Write-Log "Script beendet – Phase $phase auf $env:COMPUTERNAME"
+# Systemzustand nach Ausfuehrung neu einlesen: Phase 3 kann das Zertifikat waehrend
+# des Laufs eintragen; ohne Refresh zeigt das Ergebnisobjekt den Vor-Ausfuehrungs-Zustand
+$sysState = Get-SystemState
 New-ResultObject -SysState $sysState -Phase $phase -PhaseResult $result
