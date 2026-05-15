@@ -128,6 +128,36 @@ function Confirm-Action {
     return $answer -match "^[Jj]$"
 }
 
+function Test-UEFICA2023InDb {
+    param([byte[]]$DbBytes)
+    if (-not $DbBytes -or $DbBytes.Length -lt 28) { return $false }
+    # EFI_CERT_X509_GUID {a5c059a1-94e4-4aa7-87b5-ab155c2bf072}
+    $x509Guid = [System.Guid]::new('a5c059a1-94e4-4aa7-87b5-ab155c2bf072')
+    $pos = 0
+    while ($pos + 28 -le $DbBytes.Length) {
+        $listGuid = [System.Guid]::new([byte[]]$DbBytes[$pos..($pos + 15)])
+        $listSize = [BitConverter]::ToUInt32($DbBytes, $pos + 16)
+        $hdrSize  = [BitConverter]::ToUInt32($DbBytes, $pos + 20)
+        $sigSize  = [BitConverter]::ToUInt32($DbBytes, $pos + 24)
+        if ($listSize -eq 0 -or $sigSize -le 16) { break }
+        if ($listGuid -eq $x509Guid) {
+            $entry = $pos + 28 + [int]$hdrSize
+            $end   = $pos + [int]$listSize
+            while ($entry + [int]$sigSize -le $end) {
+                try {
+                    $certBytes = $DbBytes[($entry + 16)..($entry + [int]$sigSize - 1)]
+                    $cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new([byte[]]$certBytes)
+                    if ($cert.Subject -match [regex]::Escape($CERT_PATTERN)) { return $true }
+                }
+                catch { }
+                $entry += [int]$sigSize
+            }
+        }
+        $pos += [int]$listSize
+    }
+    return $false
+}
+
 # ─────────────────────────────────────────────────────────────────────────────
 # System-Zustandsermittlung
 # ─────────────────────────────────────────────────────────────────────────────
@@ -168,9 +198,16 @@ function Get-SystemState {
     catch { $state.SecureBootUnknown = $true }
 
     try {
-        $db = Get-SecureBootUEFI -Name db -ErrorAction Stop
-        $dbStr = [System.Text.Encoding]::ASCII.GetString($db.bytes)
-        $state.UEFICA2023InDB = $dbStr -match [regex]::Escape($CERT_PATTERN)
+        # Primaer: Registry-Wert, den Windows selbst pflegt (1 = in DB, 2 = in DB + aktiv genutzt)
+        $svcCheck = Get-ItemProperty -Path $REG_SVC_PATH -ErrorAction SilentlyContinue
+        if ($null -ne $svcCheck -and $null -ne $svcCheck.WindowsUEFICA2023Capable) {
+            $state.UEFICA2023InDB = ([int]$svcCheck.WindowsUEFICA2023Capable -ge 1)
+        }
+        else {
+            # Fallback: EFI_SIGNATURE_LIST korrekt parsen und X509Certificate2 pruefen
+            $db = Get-SecureBootUEFI -Name db -ErrorAction Stop
+            $state.UEFICA2023InDB = (Test-UEFICA2023InDb -DbBytes $db.bytes)
+        }
     }
     catch { $state.UEFICA2023CheckError = $true }
 
@@ -411,7 +448,7 @@ function Invoke-Phase {
             Write-Verbose "Phase 3 – Registry setzen + Task starten"
 
             if ($null -ne $SysState.ServicingCapable -and $SysState.ServicingCapable -eq 0) {
-                Write-Verbose "WindowsUEFICA2023Capable = 0 – Workaround wird angewendet."
+                Write-Warning "WindowsUEFICA2023Capable = 0: Workaround setzt Wert auf 1. Nur anwenden wenn Hardware tatsaechlich UEFI-CA-2023-faehig ist."
                 try {
                     if (-not (Test-Path $REG_SVC_PATH)) { New-Item -Path $REG_SVC_PATH -Force | Out-Null }
                     Set-ItemProperty -Path $REG_SVC_PATH -Name "WindowsUEFICA2023Capable" `
@@ -443,6 +480,7 @@ function Invoke-Phase {
 
             try {
                 Start-ScheduledTask -TaskName $TASK_NAME -TaskPath $TASK_PATH -ErrorAction Stop
+                # COM-Handler schreibt ins UEFI-NVRAM; 60 s Puffer fuer Firmware-Commit vor Verifikation
                 $waitSec = if ($SysState.ComHandlerRegistered) { 60 } else { 3 }
                 Write-Verbose "Warte $waitSec Sekunden auf Task-Ausfuehrung..."
                 Start-Sleep -Seconds $waitSec
@@ -472,7 +510,9 @@ function Invoke-Phase {
 
                     if ($inDB) {
                         if ($null -ne $SavedState) {
-                            $SavedState.Phase       = 7
+                            # Phase direkt auf 8 setzen: Get-CurrentPhase wuerde Phase 7 ohnehin ueberspringen
+                            # weil UEFICA2023InDB=true beim naechsten Aufruf sofort 8 liefert
+                            $SavedState.Phase       = 8
                             $SavedState.Reboot1Done = $true
                             $SavedState.Reboot2Done = $true
                             $SavedState.LastUpdated = (Get-Date -Format "yyyy-MM-dd HH:mm:ss")
