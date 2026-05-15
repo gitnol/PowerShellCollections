@@ -120,8 +120,11 @@ function Load-State {
 }
 
 function Confirm-Action {
-    param([string]$Question)
-    if ($AutoConfirm) { return $true }
+    param(
+        [string]$Question,
+        [bool]$Auto = $AutoConfirm.IsPresent
+    )
+    if ($Auto) { return $true }
     do {
         $answer = Read-Host "$Question (J/N)"
     } until ($answer -match "^[JjNn]$")
@@ -505,11 +508,7 @@ function Invoke-Phase {
                 Write-Verbose "Pruefe ob Zertifikat direkt eingetragen wurde (COM-Handler)..."
                 try {
                     $dbNow = Get-SecureBootUEFI -Name db -ErrorAction SilentlyContinue
-                    $inDB  = $false
-                    if ($dbNow) {
-                        $dbStr = [System.Text.Encoding]::ASCII.GetString($dbNow.bytes)
-                        $inDB  = $dbStr -match [regex]::Escape($CERT_PATTERN)
-                    }
+                    $inDB  = $dbNow -and (Test-UEFICA2023InDb -DbBytes $dbNow.bytes)
 
                     if ($inDB) {
                         if ($null -ne $SavedState) {
