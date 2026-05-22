@@ -96,9 +96,8 @@ Gibt ein Objekt zurück:
 | `OK` + `Cert2023Present = True` | System sicher, Zertifikat vorhanden |
 | `OK` + `SecureBootEnabled = False` | Secure Boot inaktiv, kurzfristig kein Boot-Risiko |
 | `GEFAHR` | Secure Boot aktiv, 2023er Zertifikat **fehlt** – Handlungsbedarf! |
-| `FEHLER` | UEFI-Variablen nicht lesbar (kein UEFI-System oder fehlende Rechte) |
-
-> **Hinweis:** Dieser Schnelltest verwendet eine vereinfachte ASCII-Suche im DB-Rohdaten-Buffer. Für zuverlässigere Ergebnisse `Invoke-SecureBootCertUpdate.ps1 -Status` verwenden (liest X.509-Zertifikate korrekt aus).
+| `KEIN_UEFI` | Legacy-BIOS-System, Secure Boot nicht verfügbar |
+| `FEHLER` | UEFI DB konnte trotz Adminrechten nicht gelesen werden |
 
 ### Detaillierter Status (lokal oder remote)
 
@@ -120,12 +119,16 @@ Invoke-Command -ComputerName "HOSTNAME" -ScriptBlock {
 > - VM-Snapshot erstellen (Quiesce: Ja, Memory: Nein)
 > - Wartungsfenster einplanen (1–2 Neustarts erforderlich)
 > - Auf physischen Systemen: **Power Off + Power On** statt Warm-Reboot bevorzugen
+> - **BitLocker:** Die Skripte setzen BitLocker automatisch aus (siehe unten)
 
 ### Einzelsystem – manuell (lokal)
 
 ```powershell
 # Einfache Variante (setzt 0x5944, alle Updates auf einmal):
 .\Invoke-SecureBootCertUpdate_simple.ps1
+
+# Einfache Variante ohne interaktive Neustart-Abfrage (auch remote nutzbar):
+.\Invoke-SecureBootCertUpdate_simple.ps1 -AutoConfirm
 
 # Kontrollierte Variante (Phase-für-Phase mit Abfragen):
 .\Invoke-SecureBootCertUpdate.ps1
@@ -208,6 +211,34 @@ $data.DBX.SecurityVersionNumber.BootMgr.Version.ToString()
 | WinRM | Muss auf Zielhosts aktiv sein (`winrm quickconfig`) |
 | AD-Modul | RSAT: `Install-WindowsFeature RSAT-AD-PowerShell` (Server) oder `Add-WindowsCapability -Name Rsat.ActiveDirectory*` (Client) |
 | UEFI | Kein BIOS-Legacy-Modus; `Confirm-SecureBootUEFI` muss ausführbar sein |
+
+---
+
+## BitLocker
+
+Das Eintragen des 2023er Zertifikats in die UEFI-DB ändert den Inhalt von **PCR 7** (Platform Configuration Register), den BitLocker für die TPM-Versiegelung nutzt. Ohne Gegenmaßnahme fordert BitLocker beim ersten Boot nach dem Update die **48-stellige Recovery-Key-Eingabe**.
+
+**Beide Skripte (`Invoke-SecureBootCertUpdate.ps1` und `Invoke-SecureBootCertUpdate_simple.ps1`) setzen BitLocker automatisch aus**, bevor sie die Registry ändern:
+
+```powershell
+# Was die Skripte intern tun (Suspend-BitLockerForUpdate):
+Get-BitLockerVolume | Where-Object { $_.ProtectionStatus -eq 'On' } | ForEach-Object {
+    Suspend-BitLocker -MountPoint $_.MountPoint -RebootCount 2
+}
+```
+
+`RebootCount 2` ist notwendig weil der Update-Prozess **zwei Neustarts** benötigen kann. Das Ergebnisobjekt enthält das Feld `BitLockerSuspended` ($true/$false).
+
+**Nach dem Suspend gilt:**
+- BitLocker ist nicht deaktiviert, nur für 2 Neustarts ausgesetzt (Schlüssel liegt temporär ungeschützt vor, Disk bleibt verschlüsselt)
+- Nach dem zweiten Neustart aktiviert sich BitLocker automatisch wieder mit den neuen PCR-Werten
+- Tritt dennoch Recovery auf: Recovery-Key aus dem MBAM-Portal / Intune / AD auslesen
+
+**Wenn `BitLockerSuspended = False` im Ergebnis:**
+Der Suspend ist fehlgeschlagen (z.B. BitLocker-Feature nicht installiert, Rechtefehler). In diesem Fall das System manuell vorbereiten:
+```powershell
+Suspend-BitLocker -MountPoint "C:" -RebootCount 2
+```
 
 ---
 

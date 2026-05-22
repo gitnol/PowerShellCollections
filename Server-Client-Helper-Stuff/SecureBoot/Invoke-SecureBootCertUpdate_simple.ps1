@@ -75,15 +75,44 @@ function Test-UEFICA2023InDb {
     return $false
 }
 
+function Suspend-BitLockerForUpdate {
+    $result = @{ Suspended = $false; Volumes = @(); Message = '' }
+    try {
+        $activeVols = Get-BitLockerVolume -ErrorAction Stop |
+            Where-Object { $_.ProtectionStatus -eq 'On' }
+        if (-not $activeVols) {
+            $result.Message = 'Kein aktives BitLocker-Volume gefunden.'
+            return $result
+        }
+        foreach ($vol in $activeVols) {
+            Suspend-BitLocker -MountPoint $vol.MountPoint -RebootCount 2 -ErrorAction Stop
+            $result.Volumes += $vol.MountPoint
+        }
+        $result.Suspended = $true
+        $result.Message   = "BitLocker ausgesetzt (RebootCount=2) auf: $($result.Volumes -join ', ')"
+    }
+    catch {
+        $result.Message = "BitLocker-Suspend fehlgeschlagen: $_"
+    }
+    return $result
+}
+
 function New-Result {
-    param([string]$Status, [string]$Action, [string]$Message, [bool]$RebootRequired = $false)
+    param(
+        [string]$Status,
+        [string]$Action,
+        [string]$Message,
+        [bool]$RebootRequired = $false,
+        [bool]$BitLockerSuspended = $false
+    )
     [PSCustomObject]@{
-        ComputerName   = $env:COMPUTERNAME
-        Timestamp      = Get-Date
-        Status         = $Status
-        Action         = $Action
-        Message        = $Message
-        RebootRequired = $RebootRequired
+        ComputerName       = $env:COMPUTERNAME
+        Timestamp          = Get-Date
+        Status             = $Status
+        Action             = $Action
+        Message            = $Message
+        RebootRequired     = $RebootRequired
+        BitLockerSuspended = $BitLockerSuspended
     }
 }
 
@@ -140,7 +169,17 @@ try {
 catch { }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 4. Registry setzen
+# 4. BitLocker aussetzen (PCR 7 ändert sich durch DB-Update → sonst Recovery)
+# ─────────────────────────────────────────────────────────────────────────────
+$blResult = Suspend-BitLockerForUpdate
+if ($blResult.Suspended) {
+    Write-Verbose "BitLocker: $($blResult.Message)"
+} else {
+    Write-Warning "BitLocker-Suspend: $($blResult.Message) – Recovery-Key bereithalten falls BitLocker aktiv ist!"
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 5. Registry setzen
 # ─────────────────────────────────────────────────────────────────────────────
 Write-Verbose "Setze $REG_NAME = 0x$("{0:X4}" -f $REG_VALUE)"
 try {
@@ -149,12 +188,13 @@ try {
 }
 catch {
     New-Result -Status 'FEHLER' -Action 'Registry-Fehler' `
-        -Message "Fehler beim Schreiben der Registry: $_"
+        -Message "Fehler beim Schreiben der Registry: $_" `
+        -BitLockerSuspended $blResult.Suspended
     return
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 5. Task starten
+# 6. Task starten
 # ─────────────────────────────────────────────────────────────────────────────
 Write-Verbose "Starte Task '$TASK_NAME'..."
 try {
@@ -162,12 +202,13 @@ try {
 }
 catch {
     New-Result -Status 'FEHLER' -Action 'Task-Fehler' `
-        -Message "Fehler beim Starten des Scheduled Tasks: $_"
+        -Message "Fehler beim Starten des Scheduled Tasks: $_" `
+        -BitLockerSuspended $blResult.Suspended
     return
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 6. Sofortverifikation (nur COM-Handler schreibt direkt ins UEFI-NVRAM)
+# 7. Sofortverifikation (nur COM-Handler schreibt direkt ins UEFI-NVRAM)
 # ─────────────────────────────────────────────────────────────────────────────
 if ($comHandlerRegistered) {
     Write-Verbose "COM-Handler erkannt – warte 60 Sekunden auf NVRAM-Commit..."
@@ -177,7 +218,7 @@ if ($comHandlerRegistered) {
         if ($dbAfter -and (Test-UEFICA2023InDb -DbBytes $dbAfter.bytes)) {
             New-Result -Status 'OK' -Action 'Direkt eingetragen' `
                 -Message "'$CERT_SUBJECT' wurde direkt in die DB eingetragen. Power Off + Power On empfohlen um NVRAM dauerhaft zu verankern." `
-                -RebootRequired $true
+                -RebootRequired $true -BitLockerSuspended $blResult.Suspended
             return
         }
     }
@@ -185,7 +226,7 @@ if ($comHandlerRegistered) {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 7. Reboot erforderlich (älterer SecureBootEncodeUEFI.exe Mechanismus)
+# 8. Reboot erforderlich (älterer SecureBootEncodeUEFI.exe Mechanismus)
 # ─────────────────────────────────────────────────────────────────────────────
 $rebootMsg = "Registry gesetzt und Task gestartet. Neustart erforderlich damit die UEFI-Firmware das Zertifikat beim Booten einträgt. " +
              "In manchen Fällen ist ein zweiter Neustart nötig. Danach mit Test-SecureBootCert2023.ps1 prüfen."
@@ -198,4 +239,4 @@ if (-not $AutoConfirm) {
     }
 }
 
-New-Result -Status 'REBOOT_REQUIRED' -Action 'Update eingeleitet' -Message $rebootMsg -RebootRequired $true
+New-Result -Status 'REBOOT_REQUIRED' -Action 'Update eingeleitet' -Message $rebootMsg -RebootRequired $true -BitLockerSuspended $blResult.Suspended
