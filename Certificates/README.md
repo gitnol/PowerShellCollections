@@ -23,32 +23,25 @@ Requests certificates from an Active Directory Certificate Services (ADCS) CA, e
 
 ## Workflow
 
+```mermaid
+flowchart TD
+    A["Generate-Certificate.ps1<br />(Orchestrator)"] --> B{Modus?}
+    B -->|"Config-Modus (Standard)"| C["config.json<br />(N Zertifikate)"]
+    B -->|"Single-Modus (-HostnameFQDN)"| D["CLI-Parameter"]
+    C --> E["New-Certificate()"]
+    D --> E
+    E --> F["Request-Certificate.ps1<br />certreq → ADCS CA"]
+    F --> G["hostname.pfx"]
+    G --> H["Convert-PfxToPem<br />(PSPKI-Modul)"]
+    G --> I["Export-CertificateChain<br />(.NET X509Chain)"]
+    H --> J["Split-Pem"]
+    H --> K["friendlyname.pem<br />(Key + Cert kombiniert)"]
+    I --> L["friendlyname_ca_chain.pem"]
+    J --> M["friendlyname_privatekey.pem"]
+    J --> N["friendlyname_certificate.pem"]
 ```
-Generate-Certificate.ps1
-        |
-        |  1. Reads config.json (or CLI parameters)
-        |  2. For each certificate:
-        |
-        v
-Request-Certificate.ps1          (certreq.exe -> ADCS CA)
-        |
-        |  3. Produces: <hostname>.pfx
-        v
-Convert-PfxToPem (PSPKI)         (PFX -> PEM with key + cert)
-        |
-        |  4. Produces: <friendlyname>.pem
-        v
-Export-CertificateChain           (PFX -> CA chain PEM)
-Split-Pem                         (PEM -> separate key + cert files)
-        |
-        |  5. Final output files:
-        v
-  <friendlyname>_privatekey.pem   (private key only)
-  <friendlyname>_certificate.pem  (host certificate only)
-  <friendlyname>_ca_chain.pem     (intermediate + root CA certs)
-  <friendlyname>.pem              (combined key + cert)
-  <hostname>.pfx                  (PKCS#12 archive)
-```
+
+> Detaillierte Architektur, Datenfluss zwischen Skripten und Constraints: [ARCHITECTURE.md](ARCHITECTURE.md)
 
 ## Usage
 
@@ -137,7 +130,7 @@ Create your `config.json` based on `config.example.json`:
   "certificates": [
     {
       "hostnameFQDN": "myserver.mycorp.local",
-      "sanDns": ["myserver", "myserver.mycorp.local"],
+      "sanDns": ["myserver"],
       "sanIpAddress": ["10.0.5.170"],
       "exportPassword": null
     },
