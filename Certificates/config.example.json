@@ -8,7 +8,7 @@
   "certificates": [
     {
       "hostnameFQDN": "myserver.mycorp.local",
-      "sanDns": ["myserver", "myserver.mycorp.local"],
+      "sanDns": ["myserver"],
       "sanIpAddress": ["10.0.5.170"],
       "exportPassword": null
     },

@@ -1,3 +1,11 @@
+<#PSScriptInfo
+.VERSION 1.0.0
+.GUID 7beac0a8-3c19-4094-8c88-8aa11aeb8228
+.AUTHOR gitnol
+.RELEASENOTES
+* v1.0.0: Initial release — config-mode and single-mode, PSPKI PFX-to-PEM, CA chain export, PEM split
+#>
+
 #requires -Version 7.0
 <#
 .SYNOPSIS
@@ -97,7 +105,7 @@ $script:Defaults = @{
 
 #region Helper Functions
 
-function Ensure-Module {
+function Initialize-Module {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
@@ -145,26 +153,32 @@ function Export-CertificateChain {
     )
 
     $chain = [System.Security.Cryptography.X509Certificates.X509Chain]::new()
-    $built = $chain.Build($pfx)
+    try {
+        $built = $chain.Build($pfx)
 
-    if (-not $built) {
-        foreach ($status in $chain.ChainStatus) {
-            Write-Warning "Chain validation: $($status.StatusInformation.Trim())"
+        if (-not $built) {
+            foreach ($status in $chain.ChainStatus) {
+                Write-Warning "Chain validation: $($status.StatusInformation.Trim())"
+            }
         }
-    }
 
-    $lines = [System.Collections.Generic.List[string]]::new()
-    foreach ($element in $chain.ChainElements) {
-        if ($CaOnly -and $element.Certificate.Thumbprint -eq $pfx.Thumbprint) { continue }
-        $lines.Add("-----BEGIN CERTIFICATE-----")
-        $b64 = [Convert]::ToBase64String($element.Certificate.RawData)
-        for ($i = 0; $i -lt $b64.Length; $i += 64) {
-            $lines.Add($b64.Substring($i, [Math]::Min(64, $b64.Length - $i)))
+        $lines = [System.Collections.Generic.List[string]]::new()
+        foreach ($element in $chain.ChainElements) {
+            if ($CaOnly -and $element.Certificate.Thumbprint -eq $pfx.Thumbprint) { continue }
+            $lines.Add("-----BEGIN CERTIFICATE-----")
+            $b64 = [Convert]::ToBase64String($element.Certificate.RawData)
+            for ($i = 0; $i -lt $b64.Length; $i += 64) {
+                $lines.Add($b64.Substring($i, [Math]::Min(64, $b64.Length - $i)))
+            }
+            $lines.Add("-----END CERTIFICATE-----")
         }
-        $lines.Add("-----END CERTIFICATE-----")
-    }
 
-    Set-Content -LiteralPath $OutputPath -Value ($lines -join "`r`n") -Encoding ascii
+        Set-Content -LiteralPath $OutputPath -Value ($lines -join "`r`n") -Encoding ascii
+    }
+    finally {
+        $chain.Dispose()
+        $pfx.Dispose()
+    }
 }
 
 function Split-Pem {
@@ -305,10 +319,15 @@ function Get-PropertyOrDefault {
     if ($p -and $p.Value) { $p.Value } else { $Default }
 }
 
+function Resolve-Param {
+    param([string]$Value, [string]$DefaultKey)
+    if ($Value) { $Value } else { $script:Defaults[$DefaultKey] }
+}
+
 #endregion
 
 # ---- MAIN ----
-Ensure-Module -Name "PSPKI"
+Initialize-Module -Name "PSPKI"
 
 if ($PSCmdlet.ParameterSetName -eq 'Config') {
     if (-not $ConfigPath) {
@@ -363,8 +382,8 @@ else {
         -ExportPassword $ExportPassword `
         -SanDns $SanDns `
         -SanIpAddress $SanIpAddress `
-        -TemplateName $(if ($TemplateName) { $TemplateName } else { $script:Defaults.TemplateName }) `
-        -Department $(if ($Department) { $Department } else { $script:Defaults.Department }) `
-        -Country $(if ($Country) { $Country } else { $script:Defaults.Country }) `
-        -ExportPath $(if ($ExportPath) { $ExportPath } else { $script:Defaults.ExportPath })
+        -TemplateName (Resolve-Param $TemplateName 'TemplateName') `
+        -Department   (Resolve-Param $Department   'Department') `
+        -Country      (Resolve-Param $Country      'Country') `
+        -ExportPath   (Resolve-Param $ExportPath   'ExportPath')
 }

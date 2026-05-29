@@ -1,3 +1,11 @@
+<#PSScriptInfo
+.VERSION 1.0.0
+.GUID c4a60503-3950-40cd-bb64-7a4718590545
+.AUTHOR gitnol
+.RELEASENOTES
+* v1.0.0: Initial release — phased vCenter/ESXi cert replacement with WhatIf/Confirm support
+#>
+
 #requires -Version 7.0
 <#
 .SYNOPSIS
@@ -139,7 +147,11 @@ if (-not $vmConfig.vCenters -or $vmConfig.vCenters.Count -eq 0) {
     throw "No vCenters defined in VMware config."
 }
 
-# Locate the CA chain (same CA for all certs, use the first available)
+# Locate the CA chain — assumes all certs share the same CA
+$uniqueChainPaths = $CertificateResults | Select-Object -ExpandProperty CaChainPath -Unique
+if ($uniqueChainPaths.Count -gt 1) {
+    Write-Warning "Multiple distinct CA chain paths detected across certificate results. Only the first will be uploaded to vCenter trusted stores. Verify that all certificates originate from the same CA."
+}
 $caChainPath = $CertificateResults[0].CaChainPath
 if (-not (Test-Path -LiteralPath $caChainPath)) {
     throw "CA chain file not found: $caChainPath"
@@ -225,19 +237,31 @@ try {
                 $files = Read-CertFiles -CertResult $certResult
 
                 if ($PSCmdlet.ShouldProcess($esxiHostname, "Replace ESXi certificate (maintenance mode on/off, managed by $vcHost)")) {
-                    $vmhost = VMware.VimAutomation.Core\Get-VMHost -Name $esxiHostname -Server $conn
+                    try {
+                        $vmhost = VMware.VimAutomation.Core\Get-VMHost -Name $esxiHostname -Server $conn
 
-                    Write-Host "  Entering maintenance mode: $esxiHostname" -ForegroundColor Yellow
-                    VMware.VimAutomation.Core\Set-VMHost -VMHost $vmhost -State Maintenance
+                        Write-Host "  Entering maintenance mode: $esxiHostname" -ForegroundColor Yellow
+                        VMware.VimAutomation.Core\Set-VMHost -VMHost $vmhost -State Maintenance
 
-                    $targetHost = VMware.VimAutomation.Core\Get-VMHost $vmhost.Name -Server $conn
-                    Set-VIMachineCertificate -VMHost $targetHost -PemCertificate $files.CertPem -PemKey $files.KeyPem -Server $conn
-                    Write-Host "  Certificate replaced on $esxiHostname" -ForegroundColor Green
+                        Set-VIMachineCertificate -VMHost $vmhost -PemCertificate $files.CertPem -PemKey $files.KeyPem -Server $conn
+                        Write-Host "  Certificate replaced on $esxiHostname" -ForegroundColor Green
 
-                    Write-Host "  Exiting maintenance mode: $esxiHostname" -ForegroundColor Yellow
-                    VMware.VimAutomation.Core\Set-VMHost -VMHost $vmhost -State Connected
+                        Write-Host "  Exiting maintenance mode: $esxiHostname" -ForegroundColor Yellow
+                        VMware.VimAutomation.Core\Set-VMHost -VMHost $vmhost -State Connected
 
-                    Write-Host "  ESXi host $esxiHostname completed." -ForegroundColor Green
+                        Write-Host "  ESXi host $esxiHostname completed." -ForegroundColor Green
+                    }
+                    catch {
+                        Write-Warning "  Failed to replace certificate on ${esxiHostname}: $_"
+                        Write-Warning "  Attempting to exit maintenance mode on $esxiHostname..."
+                        try {
+                            $staleHost = VMware.VimAutomation.Core\Get-VMHost -Name $esxiHostname -Server $conn -ErrorAction SilentlyContinue
+                            if ($staleHost -and $staleHost.State -eq 'Maintenance') {
+                                VMware.VimAutomation.Core\Set-VMHost -VMHost $staleHost -State Connected -ErrorAction SilentlyContinue
+                            }
+                        }
+                        catch { }
+                    }
                 }
             }
         }
