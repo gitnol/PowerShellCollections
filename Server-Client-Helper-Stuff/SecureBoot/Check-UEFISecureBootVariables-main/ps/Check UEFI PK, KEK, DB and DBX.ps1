@@ -1,0 +1,319 @@
+# Created by github.com/cjee21
+# License: MIT
+# Repository: https://github.com/cjee21/Check-UEFISecureBootVariables
+
+# Check for admin
+Write-Host "Checking for Administrator permission..."
+if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+    Write-Warning "Insufficient permissions to run this script. Please run as administrator."
+    Break
+} else {
+    Write-Host "Running as administrator - continuing execution...`n"
+}
+
+# Check files
+if (-not ((Test-Path -Path "$PSScriptRoot\Check-Dbx-Simplified.ps1" -PathType Leaf) -and `
+    (Test-Path -Path "$PSScriptRoot\Get-UEFIDatabaseSignatures.psm1" -PathType Leaf) -and `
+    (Test-Path -Path "$PSScriptRoot\..\dbx_bin\*.bin") -and `
+    (Test-Path -Path "$PSScriptRoot\..\dbx_info\*.json"))) {
+    Write-Warning "Some required files are missing. Please re-obtain a copy from https://github.com/cjee21/Check-UEFISecureBootVariables."
+    Break
+}
+
+# Print computer info
+Get-Date -Format 'dd MMMM yyyy'
+$computer = Get-CimInstance -ClassName Win32_ComputerSystem
+$bios = Get-CimInstance -ClassName Win32_BIOS
+"Manufacturer: " + $computer.Manufacturer
+"Model: " + $computer.Model
+$biosinfo = $bios.Manufacturer , $bios.Name , $bios.SMBIOSBIOSVersion , $bios.Version -join ", "
+"BIOS: " + $biosinfo
+$v = Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
+"Windows version: {0} (Build {1}.{2})`n" -f $v.DisplayVersion, $v.CurrentBuildNumber, $v.UBR
+
+# Check architecture
+$IsArm = $false
+$Is64bit = $true
+try {
+    $cpuArch = (Get-CimInstance -ClassName Win32_Processor -ErrorAction Stop).Architecture
+    # 0 = x86, 9 = x64, 5 = ARM, 12 = ARM64
+    if ($cpuArch -eq 5 -or $cpuArch -eq 12) {
+        $IsArm = $true
+    }
+    # Windows and UEFI bit-ness should always match on officially supported installs
+    # since UEFI doesn't support cross-platform boot as of https://learn.microsoft.com/en-us/windows/deployment/windows-deployment-scenarios-and-tools#windows-support-for-uefi
+    $Is64bit = [Environment]::Is64BitOperatingSystem
+} catch {
+    $IsArm = $false
+    $Is64bit = $true
+    Write-Warning "Unable to determine system architecture, proceeding with defaults (x64).`n"
+    $cpuArch = 9 # default x64
+}
+$arch = if ($Is64bit -and $cpuArch -eq 9) { # CPU arch x64
+        "x64"
+    } elseif ($Is64bit -and $cpuArch -eq 12) { # CPU arch ARM64
+        "arm64"
+    } elseif (-not $Is64bit -and ($cpuArch -eq 0 -or $cpuArch -eq 9)) {
+        "x86" # CPU arch can be x86 or x64, but Windows/EFI arch is x86, thus the one we need.
+    } elseif (-not $Is64bit -and $IsArm) { # cpu arch check with $IsArm above
+        "arm"
+    } else { # any other unsupported CPU architecture
+        "unsupported"
+    }
+
+Write-Host "Detected $arch UEFI architecture. Ensure that this is correct for valid DBX results.`n"
+
+# Check for Secure Boot status
+Write-Host "Secure Boot status: " -NoNewLine
+try {
+    $status = Confirm-SecureBootUEFI -ErrorAction Stop
+    if ($status -eq $True) {
+        Write-Host "$([char]0x1b)[92mEnabled$([char]0x1b)[0m`n"
+    }
+    elseif ($status -eq $False) {
+        Write-Host "$([char]0x1b)[91mDisabled$([char]0x1b)[0m`n"
+    }
+}
+catch [System.PlatformNotSupportedException] {
+    Write-Host "$([char]0x1b)[91mNot available$([char]0x1b)[0m`n"
+    Break
+}
+catch {
+    Write-Host "$([char]0x1b)[91mUnknown$([char]0x1b)[0m`n"
+    Break
+}
+
+$bold = "$([char]0x1b)[1m"
+$reset = "$([char]0x1b)[0m"
+$check = "$([char]0x1b)[92m$([char]8730)$reset"
+$cross =  "$([char]0x1b)[91mX$reset"
+
+Import-Module -Force "$PSScriptRoot\Get-UEFIDatabaseSignatures.psm1"
+
+Write-Host $bold'Current UEFI PK'$reset
+try {
+    $pk = Get-SecureBootUEFI -Name pk | Get-UEFIDatabaseSignatures
+    $pk.SignatureList.SignatureData.Subject | ForEach-Object {
+        $pk_name = [regex]::Match($_, 'CN=([^,]+)').Groups[1].Value
+        Write-Host "$check $pk_name"
+    }
+} catch {
+    Write-Warning "Failed to query UEFI variable PK"
+}
+
+Write-Host ""
+Write-Host $bold'Default UEFI PK'$reset
+if ($IsArm) {
+    Write-Warning "Some ARM-based Windows devices can't retrieve default UEFI variables."
+}
+try {
+    $pk_default = Get-SecureBootUEFI -Name PKDefault | Get-UEFIDatabaseSignatures
+    $pk_default.SignatureList.SignatureData.Subject | ForEach-Object {
+        $pk_name = [regex]::Match($_, 'CN=([^,]+)').Groups[1].Value
+        Write-Host "$check $pk_name"
+    }
+} catch {
+    Write-Warning "Failed to query UEFI variable PKDefault"
+}
+
+function Show-UEFICertIsPresent {
+    param (
+        [Parameter(Mandatory)]
+        [string]$SecureBootUEFIVar,
+        [Parameter(Mandatory)]
+        [string]$CertName
+    )
+    try {
+        if ([System.Text.Encoding]::ASCII.GetString((Get-SecureBootUEFI $SecureBootUEFIVar -ErrorAction Stop).bytes) -match $CertName) {
+            if ($CertName) {
+                $revoked = $false
+                try {
+                    $revoked = [System.Text.Encoding]::ASCII.GetString((Get-SecureBootUEFI dbx -ErrorAction Stop).bytes) -match $CertName
+                } catch {
+                    $revoked = $false
+                }
+                Write-Host "$check $CertName (revoked: $revoked)"
+            } else {
+                Write-Host "$check $CertName (revoked: Unknown)"
+            }
+        } else {
+            Write-Host "$cross $CertName"
+        }
+    } catch {
+        Write-Warning "Failed to query UEFI variable '$SecureBootUEFIVar' for cert '$CertName'"
+    }
+}
+
+function Show-UEFICertOthers {
+    param (
+        [Parameter(Mandatory)]
+        [string]$SecureBootUEFIVar,
+        [Parameter(Mandatory)]
+        [Array]$KnownCerts
+    )
+    try {
+        $certs = Get-SecureBootUEFI -Name $SecureBootUEFIVar | Get-UEFIDatabaseSignatures
+        $cert_names = @()
+        $certs | ForEach-Object {
+            if ($_.SignatureType -eq 'EFI_CERT_X509_GUID') {
+                $_.SignatureList.SignatureData.Subject | ForEach-Object {
+                    $cert_names += [regex]::Match($_, 'CN=([^,]+)').Groups[1].Value
+                }
+            }
+            elseif ($_.SignatureType -eq 'EFI_CERT_SHA256_GUID') {
+                $_.SignatureList.SignatureData | ForEach-Object {
+                    $cert_names += "SHA256: $_"
+                }
+            }
+        }
+        
+        $cert_names | ForEach-Object {
+            if ($KnownCerts -notcontains $_) {
+                # List out all other certs found other than those in known list
+                # No check for revocation since not all certs have unique CNs and we do not check by thumbprint
+                Write-Host "$check $_"
+            }
+        }
+    } catch {
+        Write-Warning "Failed to query UEFI variable '$SecureBootUEFIVar'"
+    }
+}
+
+$KEKCerts = @(
+    'Microsoft Corporation KEK CA 2011'
+    'Microsoft Corporation KEK 2K CA 2023'
+)
+
+Write-Host ""
+Write-Host $bold'Current UEFI KEK'$reset
+$KEKCerts | ForEach-Object {
+    Show-UEFICertIsPresent -SecureBootUEFIVar kek -CertName $_
+}
+Show-UEFICertOthers -SecureBootUEFIVar kek -KnownCerts $KEKCerts
+
+Write-Host ""
+Write-Host $bold'Default UEFI KEK'$reset
+if ($IsArm) {
+    Write-Warning "Some ARM-based Windows devices can't retrieve default UEFI variables."
+}
+$KEKCerts | ForEach-Object {
+    Show-UEFICertIsPresent -SecureBootUEFIVar KEKDefault -CertName $_
+}
+Show-UEFICertOthers -SecureBootUEFIVar KEKDefault -KnownCerts $KEKCerts
+
+$DBCerts = @(
+    'Microsoft Windows Production PCA 2011'
+    'Microsoft Corporation UEFI CA 2011'
+    'Windows UEFI CA 2023'
+    'Microsoft UEFI CA 2023'
+    'Microsoft Option ROM UEFI CA 2023'
+)
+
+Write-Host ""
+Write-Host $bold'Current UEFI DB'$reset
+$DBCerts  | ForEach-Object {
+    Show-UEFICertIsPresent -SecureBootUEFIVar db -CertName $_
+}
+Show-UEFICertOthers -SecureBootUEFIVar db -KnownCerts $DBCerts
+
+Write-Host ""
+Write-Host $bold'Default UEFI DB'$reset
+if ($IsArm) {
+    Write-Warning "Some ARM-based Windows devices can't retrieve default UEFI variables."
+}
+$DBCerts  | ForEach-Object {
+    Show-UEFICertIsPresent -SecureBootUEFIVar dbDefault -CertName $_
+}
+Show-UEFICertOthers -SecureBootUEFIVar DBDefault -KnownCerts $DBCerts
+
+Write-Host ""
+Write-Host $bold'Current UEFI DBX'$reset
+
+try {
+    $dbx_raw = Get-SecureBootUEFI dbx -ErrorAction Stop
+} catch {
+    Write-Host "Exception: $($_.Exception.Message)" -ForegroundColor Red
+    Break # No need to continue with remaining DBX-related checks of script if failed to obtain DBX data
+}
+
+$colWidth = 27
+function Show-CheckDBX {
+    param(
+        [Parameter(Mandatory)][string]$Label,
+        [Parameter(Mandatory)][string]$File
+    )
+    Write-Host ($Label.PadRight($colWidth) + " : ") -NoNewline
+    try {
+        $oldPreference = $ErrorActionPreference
+        $ErrorActionPreference = 'Stop'
+        & "$PSScriptRoot\Check-Dbx-Simplified.ps1" "$File"
+        $ErrorActionPreference = $oldPreference
+    } catch {
+        Write-Host "ERROR: An exception has occurred while checking DBX" -ForegroundColor Red
+    }
+}
+
+# select the proper bin file for the DBX Update.
+# files are copied from https://github.com/microsoft/secureboot_objects/tree/main/PostSignedObjects/DBX
+if ($arch -eq "x64") {
+  # Show-CheckDBX "2023-03-14         " "$PSScriptRoot\..\dbx_bin\x64_DBXUpdate_2023-03-14.bin"
+  # Show-CheckDBX "2023-05-09         " "$PSScriptRoot\..\dbx_bin\x64_DBXUpdate_2023-05-09.bin"
+  # Show-CheckDBX "2025-01-14 (v1.3.1)" "$PSScriptRoot\..\dbx_bin\x64_DBXUpdate_2025-01-14.bin"
+  # Show-CheckDBX "2025-06-11 (v1.5.1)" "$PSScriptRoot\..\dbx_bin\x64_DBXUpdate_2025-06-11.bin"
+    Show-CheckDBX "2025-10-14 (v1.6.0) [$arch]" "$PSScriptRoot\..\dbx_bin\x64_DBXUpdate_2025-10-14.bin"
+} elseif ($arch -eq "arm64") {
+    Show-CheckDBX "2025-02-25 (v1.4.0) [$arch]" "$PSScriptRoot\..\dbx_bin\arm64_DBXUpdate_2025-02-25.bin"
+} elseif ($arch -eq "x86") {
+    Show-CheckDBX "2025-10-14 (v1.6.0) [$arch]" "$PSScriptRoot\..\dbx_bin\x86_DBXUpdate_2025-10-14.bin"
+} elseif ($arch -eq "arm") {
+    Show-CheckDBX "2025-02-25 (v1.4.0) [$arch]" "$PSScriptRoot\..\dbx_bin\arm_DBXUpdate_2025-02-25.bin"
+} else {
+     Write-Warning "[$arch] architecture."
+}
+Show-CheckDBX "Current Windows staged" "C:\Windows\System32\SecureBootUpdates\dbxupdate.bin"
+
+Import-Module -Force "$PSScriptRoot\Get-SVNfromDBX.psm1"
+
+$svn_latest_dbx = "10_14_25"
+$svn_json = Get-Content -Path "$PSScriptRoot\..\dbx_info\dbx_info_msft_$svn_latest_dbx.json" -Raw | ConvertFrom-Json
+$svn_bootmgr_latest = [version]($svn_json.svns | Where-Object { $_.guid -eq "{$EFI_BOOTMGR_DBXSVN_GUID} == EFI_BOOTMGR_DBXSVN_GUID" }).version
+$svn_cdboot_latest = [version]($svn_json.svns | Where-Object { $_.guid -eq "{$EFI_CDBOOT_DBXSVN_GUID} == EFI_CDBOOT_DBXSVN_GUID" }).version
+$svn_wdsmgfw_latest = [version]($svn_json.svns | Where-Object { $_.guid -eq "{$EFI_WDSMGR_DBXSVN_GUID} == EFI_WDSMGR_DBXSVN_GUID" }).version
+
+$dbx_list = $dbx_raw | Get-UEFIDatabaseSignatures
+$dbx_size = $dbx_raw.Bytes.Length
+$dbx_hashes = @($dbx_list | Where-Object { $_.SignatureType -eq 'EFI_CERT_SHA256_GUID' } | ForEach-Object { $_.SignatureList.SignatureData }).Count
+$dbx_certs = @($dbx_list | Where-Object { $_.SignatureType -eq 'EFI_CERT_X509_GUID' } | ForEach-Object { $_.SignatureList.SignatureData }).Count
+$dbx_svns = @($dbx_list | Where-Object { $_.SignatureType -eq 'EFI_CERT_SHA256_GUID' } | ForEach-Object { $_.SignatureList | Where-Object { $_.SignatureOwner -eq [guid]$SVN_OWNER_GUID } } | ForEach-Object { $_.SignatureData }).Count
+$dbx_hashes -= $dbx_svns
+
+$components = [ordered]@{
+    BootMgr = @{ Name="Windows BootMgr SVN"; JSON=$svn_bootmgr_latest }
+    CDBoot  = @{ Name="Windows CDBoot SVN"; JSON=$svn_cdboot_latest }
+    WDSMgFw = @{ Name="Windows WDSMgFw SVN"; JSON=$svn_wdsmgfw_latest }
+}
+
+$svn_list = Get-SVNfromDBX $dbx_list
+$StagedSVNbytes = [IO.File]::ReadAllBytes('C:\Windows\System32\SecureBootUpdates\DBXUpdateSVN.bin')
+$svn_staged = Get-SVNfromDBX (Get-UEFIDatabaseSignatures -BytesIn $StagedSVNbytes)
+
+foreach ($key in $components.Keys) {
+    Write-Host -NoNewline "$($components[$key].Name.PadRight($colWidth)) : "
+
+    if (-not $svn_list.$key) {
+        Write-Host "Not applied" -ForegroundColor Red
+        continue
+    }
+
+    $json       = $components[$key].JSON
+    $current    = $svn_list.$key.Version
+    $staged     = $svn_staged.$key.Version
+
+    $target = if ($json -ge $staged) { $json } else { $staged }
+    $isUpdated = ($current -ge $target)
+    $color = if ($isUpdated) { "Green" } else { "Red" }
+    $text = if ($isUpdated) { "$current" } else { "$current (Target: $target)" }
+    Write-Host $text -ForegroundColor $color
+}
+
+Write-Host ("Statistics".PadRight($colWidth) + " : $dbx_size Bytes, $dbx_hashes SHA256 hashes, $dbx_certs X.509 certs, $dbx_svns SVNs")

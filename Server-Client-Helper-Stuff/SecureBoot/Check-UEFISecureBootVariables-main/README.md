@@ -1,0 +1,254 @@
+# Check-UEFISecureBootVariables
+
+PowerShell scripts to check the UEFI KEK, DB and DBX Secure Boot variables as well as scripts for other Secure Boot related items.
+
+> [!IMPORTANT]
+> The DBX checking in `Check UEFI PK, KEK, DB and DBX` is UEFI architecture dependent. The script attempts to detect the installed Windows architecture and assumes that the UEFI architecture matches (this should be the case on officially supported systems[[*]](https://learn.microsoft.com/en-us/windows/deployment/windows-deployment-scenarios-and-tools)). If this is not the case or the detection fails, the DBX check results will be invalid.
+
+> [!WARNING]
+> Disabling Secure Boot should be avoided. If Windows is booted when Secure Boot is turned off, all the Secure Boot and UEFI-related configurations are reset[[*]](https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/configuring-additional-lsa-protection#remove-the-lsa-protection-uefi-variable). This may include the deletion of UEFI variables for LSA protection[[*]](https://learn.microsoft.com/en-us/windows-server/security/credentials-protection-and-management/configuring-additional-lsa-protection#remove-the-lsa-protection-uefi-variable), SkuSiPolicy.p7b[[*]](https://support.microsoft.com/en-gb/topic/guidance-for-blocking-rollback-of-virtualization-based-security-vbs-related-security-updates-b2e7ebf4-f64d-4884-a390-38d63171b8d3#bkmk_policy_removal_and_recovery_procedure) and SBAT[[*]](https://github.com/canonical/sbat-reset-media), requiring them to be set/updated again.
+
+## Before using
+
+Obtain a copy of the contents of this repository from <https://github.com/cjee21/Check-UEFISecureBootVariables/archive/refs/heads/main.zip> and extract all contents from the ZIP file.
+
+Alternatively, using Git, clone this repository with the following command:
+
+```cmd
+git clone https://github.com/cjee21/Check-UEFISecureBootVariables.git
+```
+
+If using Git, the cloned copy can be updated by running the following commands while in `Check-UEFISecureBootVariables` folder.
+
+```cmd
+git fetch
+git reset --hard origin/main
+```
+
+## Checking the KEK, DB and DBX variables
+
+Right-click `Check UEFI PK, KEK, DB and DBX.cmd` and *Run as administrator*.
+
+Example output:
+
+<img width="979" height="833" alt="Screenshot" src="https://github.com/user-attachments/assets/210a22d0-c99c-4f4c-b8e4-0303adc25cf8" />
+
+## Audit ESP or an attached drive for revoked EFI binaries (DBX)
+
+Right-click `Scan ESP for revoked files.cmd` and select *Run as administrator*.
+
+This script:
+
+- Downloads the latest Microsoft DBX JSON
+- Scans EFI binaries in the ESP
+- Matches them against revoked hashes and certificates
+
+You can also scan other drives (e.g., USB, CD-ROM):
+
+```powershell
+powershell -ExecutionPolicy Bypass -Command "& 'ps\Find-EfiFilesRevokedByDbx.ps1' -Paths D:\ -MatchMode Both -MsftJsonPath C:\path\dbx_info_msft_latest.json -ScanESP:$false
+```
+
+Default JSON:
+https://raw.githubusercontent.com/microsoft/secureboot_objects/main/PreSignedObjects/DBX/dbx_info_msft_latest.json
+
+Example output:
+
+<img style="width: 979px" alt="DBX audit scan output" src="docs/screenshot-audit.png" />
+
+> [!WARNING]
+> Detection is based on hash and certificate matching only.
+Newer revocations using **SVN (version-based enforcement)** and **SBAT** are **not currently checked**. However `Check EFI file info.cmd` will display SVN/SBAT data if present, but this tool currently does not compare it against UEFI NVRAM policy. Support for SVN and SBAT comparison is welcome as a feature request.
+
+## Re-applying the Secure Boot DBX updates
+
+If the Secure Boot variables were accidentally reset to default in the UEFI/BIOS settings for example, it is possible to make Windows re-apply the DBX updates that Windows had previously applied. Right-click `Apply DBX update.cmd` and *Run as administrator*. Wait for awhile. The DBX updates should be applied after that.
+
+## Deploying all the 2023 certificates as well updating to the 2023 CA signed Boot Manager
+
+> [!NOTE]
+> There should be no need to do this manually as Windows Update will automatically do it from January 2026 onwards. Many manufacturers have also included 2023 certs in the latest UEFI updates and Windows will install 2023 CA signed Boot Manager if 2023 cert is present in the DB.
+
+Right-click `Apply 2023 KEK, DB and bootmgfw update.cmd` and *Run as administrator*. Wait for a while. The Windows UEFI CA 2023 cert and Microsoft Corporation KEK 2K CA 2023 cert will be applied to DB and KEK respectively. The Microsoft Option ROM UEFI CA 2023 and Microsoft UEFI CA 2023 certs will also be applied to the DB if the Microsoft Corporation UEFI CA 2011 cert is present there. It may be needed to restart Windows and run `Start-ScheduledTask -TaskName "\Microsoft\Windows\PI\Secure-Boot-Update"` to complete the Boot Manager update.
+
+## Revoking Windows Production PCA 2011 as well as updating the DBX, SVN and SBAT
+
+Right-click `Apply revocations.cmd` and *Run as administrator*. Wait for awhile. The DBX should be updated and the Windows Production PCA 2011 cert added to it. The latest SVN will be written to the DBX as well. The SBAT will be written to the 605DAB50-E046-4300-ABB6-3DD810DD8B23:SbatLevel UEFI variable when Windows is restarted. SbatLevel is a Boot Services variable that cannot be checked from within Windows.
+
+> [!IMPORTANT]
+> Make sure you know what you are doing before attempting this. It may cause some things to be no longer bootable on your system.
+
+## Registry bits for applying Secure Boot updates
+
+The bits in `HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\SecureBoot\AvailableUpdates` DWORD control what updates are to be applied by Windows. The updates are applied with `Start-ScheduledTask -TaskName "\Microsoft\Windows\PI\Secure-Boot-Update"` which normally also automatically runs every 12 hours.
+
+The following are the possible bit values that are currently known.
+
+| Bit | Usage |
+| - | - |
+| 0x0002 | Apply DBX updates. |
+| 0x0004 | Apply the Microsoft Corporation KEK 2K CA 2023 to the KEK. |
+| 0x0020 | Apply Microsoft-signed revocation policy (SkuSiPolicy.p7b) ([Not working as at 2025-12-17](https://support.microsoft.com/en-gb/topic/guidance-for-blocking-rollback-of-virtualization-based-security-vbs-related-security-updates-b2e7ebf4-f64d-4884-a390-38d63171b8d3)) |
+| 0x0040 | Apply the Windows UEFI CA 2023 to the DB. |
+| 0x0080 | Apply the Windows Production PCA 2011 to the DBX. |
+| 0x0100 | Apply the boot manager, signed by the Windows UEFI CA 2023, to the boot partition. |
+| 0x0200 | Apply Secure Version Number (SVN) update to the firmware. |
+| 0x0400 | Apply Secure Boot Advanced Targeting ([SBAT](https://github.com/rhboot/shim/blob/main/SBAT.md)) update to the firmware. |
+| 0x0800 | Apply the Microsoft Option ROM UEFI CA 2023 to the DB. |
+| 0x1000 | Apply the Microsoft UEFI CA 2023 to the DB. |
+| 0x4000 | This bit modifies the behavior of the 0x0800 and 0x1000 bits to only apply the Microsoft UEFI CA 2023 and Microsoft Option ROM UEFI CA 2023 if the DB already has the Microsoft Corporation UEFI CA 2011. |
+
+> [!IMPORTANT]
+> Please carefully read and understand [How to manage the Windows Boot Manager revocations for Secure Boot changes associated with CVE-2023-24932](https://support.microsoft.com/en-us/topic/how-to-manage-the-windows-boot-manager-revocations-for-secure-boot-changes-associated-with-cve-2023-24932-41a975df-beb2-40c1-99a3-b3ff139f832d), [Secure Boot Certificate updates: Guidance for IT professionals and organizations](https://support.microsoft.com/en-us/topic/secure-boot-certificate-updates-guidance-for-it-professionals-and-organizations-e2b43f9f-b424-42df-bc6a-8476db65ab2f) as well as [Registry key updates for Secure Boot: Windows devices with IT-managed updates](https://support.microsoft.com/en-us/topic/registry-key-updates-for-secure-boot-windows-devices-with-it-managed-updates-a7be69c9-4634-42e1-9ca1-df06f43f360d) before attempting to manually modify the registry to apply updates. It is also recommended to read the other resources listed above these in the references section.
+
+## Viewing Secure Boot DB and DBX variable update events
+
+Double-click `Show Secure Boot update events.cmd` to display all the Secure Boot DB and DBX variable update events. Refer to [KB5016061](https://support.microsoft.com/en-gb/topic/kb5016061-secure-boot-db-and-dbx-variable-update-events-37e47cf8-608b-4a87-8175-bdead630eb69) for details on interpreting the events.
+
+## Viewing Windows Secure Boot state
+
+To view the current Windows Secure Boot state, right-click `Check Windows state.cmd` and *Run as administrator*. The output will be similar to the following:
+
+```
+Checking for Administrator permission...
+Running as administrator - continuing execution...
+
+Windows version: 25H2 (Build 26200.8457)
+
+UEFISecureBootEnabled    : 1
+AvailableUpdates         : 0x0000
+UEFICA2023Status         : Updated
+WindowsUEFICA2023Capable : Windows UEFI CA 2023 cert is in DB, system is starting from 2023 signed boot manager
+
+The EFI System Partition is not mounted. Mounting to S:.
+
+bootmgfw version         : 10.0.28000.322 (WinBuild.160101.0800)
+bootmgfw raw version     : 10.0.28000.326
+bootmgfw signature CA    : Windows UEFI CA 2023
+bootmgfw SVN             : 8.0
+
+bootmgr version          : 10.0.28000.322 (WinBuild.160101.0800)
+bootmgr raw version      : 10.0.28000.326
+bootmgr signature CA     : Microsoft Windows Production PCA 2011
+bootmgr SVN              : 8.0
+
+memtest version          : 10.0.26100.1 (WinBuild.160101.0800)
+memtest raw version      : 10.0.26100.8457
+memtest signature CA     : Microsoft Windows Production PCA 2011
+
+Staged BootMgr SVN       : 8.0
+Staged CDBoot SVN        : 3.0
+Staged WDSMgFw SVN       : 3.0
+
+Cleaning up: Unmounting the EFI System Partition from S: because we mounted it.
+
+Press any key to continue . . .
+```
+
+## Viewing all the UEFI Secure Boot variables
+
+To display all the UEFI Secure Boot variables in readable format, right-click `Show UEFI PK, KEK, DB and DBX.cmd` and *Run as administrator*. All certificates in the PK, KEK and DB variables as well as all hashes in the DBX variable will be displayed. `Show UEFI PK, KEK, DB and DBX (new).cmd` can also be used if the Windows version is newer than April 2026 to obtain different information.
+
+## Dumping all the UEFI Secure Boot variables and related information
+
+To save all UEFI Secure Boot variables and related information to an XML file, right-click `Dump Secure Boot data` and *Run as administrator*. `SecureBootData.xml` will be saved to the Desktop.
+
+The exported XML file can be imported back as a PowerShell object that can be navigated.
+
+For example, to view the 2023 CA update status or the current Boot Manager SVN in the DBX:
+
+```powershell
+$SecureBootData = Import-Clixml 'SecureBootData.xml'
+$SecureBootData.RegistryKeys.Servicing.UEFICA2023Status
+$SecureBootData.DBX.SecurityVersionNumber.BootMgr.Version.ToString()
+```
+
+## Checking EFI files
+
+`Check EFI file info.cmd` can be used to check and display various information of EFI and EXE files. A file path can be passed to it via CLI, a file can be dropped on it or a path may be provided to it when prompted. It can be used to check bootable media for example. Various information will be displayed as in the example below:
+
+```
+Path to EFI file: C:\Windows\Boot\EFI\bootmgfw.efi
+
+
+FilePath         : C:\Windows\Boot\EFI\bootmgfw.efi
+Machine          : x64
+Subsystem        : EFI Application
+SubsystemVersion : 1.0
+
+
+
+File Information:
+
+
+OriginalFilename  : bootmgr.exe.mui
+FileDescription   : Boot Manager
+ProductName       : Microsoft® Windows® Operating System
+Comments          :
+CompanyName       : Microsoft Corporation
+FileName          : C:\Windows\Boot\EFI\bootmgfw.efi
+FileVersion       : 10.0.26100.30227 (WinBuild.160101.0800)
+ProductVersion    : 10.0.26100.30227
+IsDebug           : False
+IsPatched         : False
+IsPreRelease      : False
+IsPrivateBuild    : False
+IsSpecialBuild    : False
+Language          : English (United Kingdom)
+LegalCopyright    : © Microsoft Corporation. All rights reserved.
+LegalTrademarks   :
+PrivateBuild      :
+SpecialBuild      :
+FileVersionRaw    : 10.0.28000.317
+ProductVersionRaw : 10.0.28000.317
+
+
+
+Authenticode SHA256: 2A5E50EB6A232538E895A32D3DC77BBF08059F952A6FA045BBBBC203CCBD2FA6
+
+
+
+Signature Certificate(s):
+
+
+Subject      : CN=Microsoft Windows, O=Microsoft Corporation, L=Redmond, S=Washington, C=US
+Issuer       : CN=Microsoft Windows Production PCA 2011, O=Microsoft Corporation, L=Redmond, S=Washington, C=US
+Thumbprint   : FACDE3D80E99AFCC15E08AC5A69BD22785287F79
+FriendlyName :
+NotBefore    : 20/6/2025 2:11:43 AM
+NotAfter     : 18/6/2026 2:11:43 AM
+Extensions   : {System.Security.Cryptography.Oid, System.Security.Cryptography.Oid, System.Security.Cryptography.Oid,
+               System.Security.Cryptography.Oid...}
+
+
+
+BOOTMGRSECURITYVERSIONNUMBER: 7.0
+
+
+
+Press any key to continue . . .
+```
+
+## References
+
+- [Windows Secure Boot Key Creation and Management Guidance](https://learn.microsoft.com/en-my/windows-hardware/manufacture/desktop/windows-secure-boot-key-creation-and-management-guidance?view=windows-11)
+- [Get-SecureBootUEFI](https://learn.microsoft.com/en-my/powershell/module/secureboot/get-securebootuefi?view=windowsserver2022-ps)
+- [Microsoft guidance for applying Secure Boot DBX update (KB4575994)](https://support.microsoft.com/en-gb/topic/microsoft-guidance-for-applying-secure-boot-dbx-update-kb4575994-e3b9e4cb-a330-b3ba-a602-15083965d9ca)
+- [KB5016061: Secure Boot DB and DBX variable update events](https://support.microsoft.com/en-gb/topic/kb5016061-secure-boot-db-and-dbx-variable-update-events-37e47cf8-608b-4a87-8175-bdead630eb69)
+- [KB5036210: Deploying Windows UEFI CA 2023 certificate to Secure Boot Allowed Signature Database (DB)](https://support.microsoft.com/en-gb/topic/kb5036210-deploying-windows-uefi-ca-2023-certificate-to-secure-boot-allowed-signature-database-db-a68a3eae-292b-4224-9490-299e303b450b)
+- [How to manage the Windows Boot Manager revocations for Secure Boot changes associated with CVE-2023-24932](https://support.microsoft.com/en-us/topic/how-to-manage-the-windows-boot-manager-revocations-for-secure-boot-changes-associated-with-cve-2023-24932-41a975df-beb2-40c1-99a3-b3ff139f832d)
+- [Windows Secure Boot certificate expiration and CA updates](https://support.microsoft.com/en-us/topic/windows-secure-boot-certificate-expiration-and-ca-updates-7ff40d33-95dc-4c3c-8725-a9b95457578e)
+- [Secure Boot Certificate updates: Guidance for IT professionals and organizations](https://support.microsoft.com/en-us/topic/secure-boot-certificate-updates-guidance-for-it-professionals-and-organizations-e2b43f9f-b424-42df-bc6a-8476db65ab2f)
+- [Registry key updates for Secure Boot: Windows devices with IT-managed updates](https://support.microsoft.com/en-us/topic/registry-key-updates-for-secure-boot-windows-devices-with-it-managed-updates-a7be69c9-4634-42e1-9ca1-df06f43f360d)
+- [Guidance for blocking rollback of Virtualization-based Security (VBS) related security updates](https://support.microsoft.com/en-us/topic/guidance-for-blocking-rollback-of-virtualization-based-security-vbs-related-security-updates-b2e7ebf4-f64d-4884-a390-38d63171b8d3)
+- [Windows will apply a Secure Boot Advanced Targeting (SBAT) update to block vulnerable Linux boot loaders](https://msrc.microsoft.com/update-guide/vulnerability/CVE-2023-40547)
+- [Check-Dbx.ps1](https://gist.github.com/out0xb2/f8e0bae94214889a89ac67fceb37f8c0#file-check-dbx-ps1)
+- [Get-UEFIDatabaseSignatures.ps1](https://gist.github.com/out0xb2/f8e0bae94214889a89ac67fceb37f8c0?permalink_comment_id=4572467#gistcomment-4572467)
+- [Only the latest DBX update is needed (1)](https://gist.github.com/out0xb2/f8e0bae94214889a89ac67fceb37f8c0?permalink_comment_id=4661159#gistcomment-4661159)
+- [Only the latest DBX update is needed (2)](https://gist.github.com/out0xb2/f8e0bae94214889a89ac67fceb37f8c0?permalink_comment_id=4661596#gistcomment-4661596)
+- [UEFI Revocation List File](https://uefi.org/revocationlistfile)
+- [Microsoft - Secure Boot Objects](https://github.com/microsoft/secureboot_objects)
+- [Evolving the Secure Boot Ecosystem](https://uefi.org/sites/default/files/resources/Evolving%20the%20Secure%20Boot%20Ecosystem_Flick%20and%20Sutherland.pdf)
+- [Secure Boot Ecosystem](https://uefi.org/sites/default/files/resources/11.%20Secure%20Boot%20Ecosystem_Microsoft_Ogbuanya%20and%20Flick_FINAL.pdf)
+- [Secure Boot Ecosystem (presentation video)](https://www.youtube.com/watch?v=iWPwqt9OXFU)
+- [Update the dbx database to add back the same dbx entries as the cumulative update applied](https://support.hp.com/my-en/document/ish_9642671-9641393-16#GUID-49C8C19D-32CC-4FF9-A635-4A87C0BB0046)

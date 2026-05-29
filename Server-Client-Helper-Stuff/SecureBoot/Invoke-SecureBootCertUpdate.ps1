@@ -165,6 +165,34 @@ function Test-UEFICA2023InDb {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
+# BitLocker vor UEFI-DB-Aenderungen aussetzen
+# Begruendung: DB/KEK-Aenderungen aendern PCR 7; BitLocker resealt erst beim
+# zweiten Boot korrekt → ohne Suspend droht Recovery-Key-Abfrage nach Reboot 1.
+# RebootCount=2 deckt den zweistufigen Reboot-Prozess ab.
+# ─────────────────────────────────────────────────────────────────────────────
+function Suspend-BitLockerForUpdate {
+    $result = @{ Suspended = $false; Volumes = @(); Message = '' }
+    try {
+        $activeVols = Get-BitLockerVolume -ErrorAction Stop |
+            Where-Object { $_.ProtectionStatus -eq 'On' }
+        if (-not $activeVols) {
+            $result.Message = 'Kein aktives BitLocker-Volume gefunden.'
+            return $result
+        }
+        foreach ($vol in $activeVols) {
+            Suspend-BitLocker -MountPoint $vol.MountPoint -RebootCount 2 -ErrorAction Stop
+            $result.Volumes += $vol.MountPoint
+        }
+        $result.Suspended = $true
+        $result.Message   = "BitLocker ausgesetzt (RebootCount=2) auf: $($result.Volumes -join ', ')"
+    }
+    catch {
+        $result.Message = "BitLocker-Suspend fehlgeschlagen: $_"
+    }
+    return $result
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
 # System-Zustandsermittlung
 # ─────────────────────────────────────────────────────────────────────────────
 function Get-SystemState {
@@ -315,18 +343,24 @@ function Get-CurrentPhase {
         return 4
     }
 
-    if ($SysState.TaskRanAfterBoot -and -not $SysState.UEFICA2023InDB) { return 6 }
+    # TaskRanAfterBoot als Phase-6-Indikator nur solange Reboot 2 noch nicht erfolgt ist.
+    # Nach Reboot 2 (Reboot2Done=true) laeuft der Task erneut automatisch – ohne diese
+    # Pruefung wuerde Phase 6 endlos zurueckgegeben und -AutoConfirm eine Reboot-Schleife ausloesen.
+    if ($SysState.TaskRanAfterBoot -and -not $SysState.UEFICA2023InDB) {
+        if ($null -eq $SavedState -or -not $SavedState.Reboot2Done) { return 6 }
+        # Reboot2Done=true aber Zertifikat noch nicht in DB → Verifikation in Phase 7
+    }
 
-    # 2-Tage-Fallback nur wenn Reboot1Done=true im SavedState bekannt ist;
-    # sonst: fehlgeschlagener frueherer Versuch wuerde faelschlich Phase 6 ausloesen
+    # 2-Tage-Fallback: nur wenn Reboot1Done=true UND Reboot2 noch nicht erfolgt ist
     if ($SysState.TaskExists -and $SysState.TaskLastRunTime -and
-        $null -ne $SavedState -and $SavedState.Reboot1Done) {
+        $null -ne $SavedState -and $SavedState.Reboot1Done -and -not $SavedState.Reboot2Done) {
         if ($SysState.TaskLastRunTime -gt (Get-Date).AddDays(-2) -and -not $SysState.UEFICA2023InDB) {
             return 6
         }
     }
 
     if ($null -ne $SavedState) {
+        if ($SavedState.Reboot2Done -and -not $SysState.UEFICA2023InDB) { return 7 }
         if ($SavedState.Reboot1Done -and -not $SavedState.Reboot2Done) { return 6 }
         if ($SavedState.Phase -ge 3 -and -not $SavedState.Reboot1Done) { return 4 }
         if ($SavedState.SnapshotDone -and $SavedState.Phase -lt 3)     { return 3 }
@@ -458,6 +492,15 @@ function Invoke-Phase {
         3 {
             Write-Verbose "Phase 3 – Registry setzen + Task starten"
 
+            $blResult = Suspend-BitLockerForUpdate
+            if ($blResult.Suspended) {
+                Write-Verbose "BitLocker: $($blResult.Message)"
+                Write-Log    "Phase 3: $($blResult.Message)"
+            } else {
+                Write-Warning "BitLocker-Suspend: $($blResult.Message) – Recovery-Key bereithalten falls BitLocker aktiv ist!"
+                Write-Log    "Phase 3 WARNUNG: BitLocker-Suspend – $($blResult.Message)"
+            }
+
             if ($null -ne $SysState.ServicingCapable -and $SysState.ServicingCapable -eq 0) {
                 Write-Warning "WindowsUEFICA2023Capable = 0: Workaround setzt Wert auf 1. Nur anwenden wenn Hardware tatsaechlich UEFI-CA-2023-faehig ist."
                 try {
@@ -482,10 +525,11 @@ function Invoke-Phase {
             catch {
                 Write-Log "FEHLER Phase 3 Registry: $_"
                 return @{
-                    Action         = 'Registry-Fehler'
-                    Success        = $false
-                    Message        = "Fehler beim Setzen der Registry: $_"
-                    RebootRequired = $false
+                    Action             = 'Registry-Fehler'
+                    Success            = $false
+                    Message            = "Fehler beim Setzen der Registry: $_"
+                    RebootRequired     = $false
+                    BitLockerSuspended = $blResult.Suspended
                 }
             }
 
@@ -502,10 +546,11 @@ function Invoke-Phase {
             catch {
                 Write-Log "FEHLER Phase 3 Task: $_"
                 return @{
-                    Action         = 'Task-Fehler'
-                    Success        = $false
-                    Message        = "Fehler beim Starten des Tasks: $_"
-                    RebootRequired = $false
+                    Action             = 'Task-Fehler'
+                    Success            = $false
+                    Message            = "Fehler beim Starten des Tasks: $_"
+                    RebootRequired     = $false
+                    BitLockerSuspended = $blResult.Suspended
                 }
             }
 
@@ -527,10 +572,11 @@ function Invoke-Phase {
                         }
                         Write-Log "Phase 3: COM-Handler erfolgreich – UEFI CA 2023 in DB"
                         return @{
-                            Action         = 'COM-Handler erfolgreich'
-                            Success        = $true
-                            Message        = "'$CERT_PATTERN' direkt eingetragen. Power Off -> Power On empfohlen um NVRAM dauerhaft zu verankern."
-                            RebootRequired = $true
+                            Action             = 'COM-Handler erfolgreich'
+                            Success            = $true
+                            Message            = "'$CERT_PATTERN' direkt eingetragen. Power Off -> Power On empfohlen um NVRAM dauerhaft zu verankern."
+                            RebootRequired     = $true
+                            BitLockerSuspended = $blResult.Suspended
                         }
                     }
                     else {
@@ -562,10 +608,11 @@ function Invoke-Phase {
             }
 
             return @{
-                Action         = 'Registry gesetzt, Task gestartet'
-                Success        = $true
-                Message        = 'Reboot 1 erforderlich. Script nach dem Reboot erneut starten.'
-                RebootRequired = $true
+                Action             = 'Registry gesetzt, Task gestartet'
+                Success            = $true
+                Message            = 'Reboot 1 erforderlich. Script nach dem Reboot erneut starten.'
+                RebootRequired     = $true
+                BitLockerSuspended = $blResult.Suspended
             }
         }
 
@@ -824,8 +871,9 @@ function New-ResultObject {
         ActionTaken       = $PhaseResult.Action
         Success           = $PhaseResult.Success
         Message           = $PhaseResult.Message
-        RebootRequired    = $PhaseResult.RebootRequired
-        SecureBootEnabled = $SysState.SecureBootEnabled
+        RebootRequired     = $PhaseResult.RebootRequired
+        BitLockerSuspended = [bool]$PhaseResult['BitLockerSuspended']
+        SecureBootEnabled  = $SysState.SecureBootEnabled
         UEFICA2023InDB    = $SysState.UEFICA2023InDB
         TaskExists        = $SysState.TaskExists
         TaskMechanism     = if ($SysState.ComHandlerRegistered) { 'COM-Handler (TpmTasks.dll)' } else { 'SecureBootEncodeUEFI.exe' }
