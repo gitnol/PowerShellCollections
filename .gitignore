@@ -1,3 +1,4 @@
 # Windows reserved device names (created by shell redirects)
 nul
 .claude
+graphify*
