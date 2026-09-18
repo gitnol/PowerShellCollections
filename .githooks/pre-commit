@@ -1,0 +1,92 @@
+#!/bin/sh
+#
+# pre-commit: verhindert, dass firmenspezifische Details oder Secrets
+#             ins oeffentliche Repo committet werden.
+#
+# Geprueft werden alle gestageten Text-Dateien gegen zwei Regex-Listen:
+#
+#   .githooks/forbidden-patterns.txt         versioniert, generische Muster
+#   .githooks/forbidden-patterns.local.txt   lokal (gitignored), Firmenbegriffe
+#
+# Die lokale Datei ist bewusst NICHT versioniert - sonst stuenden genau die
+# Begriffe im Klartext im oeffentlichen Repo, die der Hook schuetzen soll.
+#
+# Aktivierung (einmalig pro Clone):
+#     git config core.hooksPath .githooks
+#     cp .githooks/forbidden-patterns.local.txt.example \
+#        .githooks/forbidden-patterns.local.txt
+#
+# Notfall-Bypass (bewusst nutzen!):
+#     git commit --no-verify
+
+set -u
+
+repo_root=$(git rev-parse --show-toplevel)
+hooks_dir="$repo_root/.githooks"
+shared_patterns="$hooks_dir/forbidden-patterns.txt"
+local_patterns="$hooks_dir/forbidden-patterns.local.txt"
+
+# Fehlende lokale Liste ist kein Abbruchgrund, aber sie darf nicht still
+# uebergangen werden - sonst wiegt man sich in einem frischen Clone in
+# falscher Sicherheit.
+if [ ! -f "$local_patterns" ]; then
+    echo ""
+    echo "HINWEIS (pre-commit): $local_patterns fehlt."
+    echo "  Firmenspezifische Begriffe werden daher NICHT geprueft."
+    echo "  Anlegen mit:"
+    echo "      cp .githooks/forbidden-patterns.local.txt.example \\"
+    echo "         .githooks/forbidden-patterns.local.txt"
+    echo ""
+fi
+
+# Beide Listen zusammenfuehren: Kommentare/Leerzeilen raus, CR entfernen,
+# Rest mit '|' zu einer einzigen ERE verketten.
+pattern=$(cat "$shared_patterns" "$local_patterns" 2>/dev/null \
+    | tr -d '\r' \
+    | grep -v -e '^[[:space:]]*#' -e '^[[:space:]]*$' \
+    | paste -sd '|' -)
+
+[ -n "$pattern" ] || exit 0
+
+report=$(mktemp)
+trap 'rm -f "$report"' EXIT
+
+# Gestagete Dateien (Added/Copied/Modified/Renamed). Die while-Schleife laeuft
+# in einer Subshell, deshalb sammeln wir Treffer in einer Datei statt in einer
+# Variablen.
+git diff --cached --name-only --diff-filter=ACMR | while IFS= read -r file; do
+    # Hook-Verzeichnis selbst nicht pruefen (enthaelt die Muster im Klartext)
+    case "$file" in
+        .githooks/*) continue ;;
+    esac
+
+    # Binaerdateien ueberspringen (grep -I laesst Binaeres durchfallen)
+    git show ":$file" 2>/dev/null | grep -qI '' || continue
+
+    hits=$(git show ":$file" 2>/dev/null | grep -n -i -E "$pattern")
+    if [ -n "$hits" ]; then
+        printf '  %s\n' "$file" >> "$report"
+        printf '%s\n\n' "$hits" | sed 's/^/      /' >> "$report"
+    fi
+done
+
+if [ -s "$report" ]; then
+    echo ""
+    echo "COMMIT ABGEBROCHEN - schuetzenswerte Inhalte gefunden:"
+    echo ""
+    cat "$report"
+    echo "  Bitte durch neutrale Beispielwerte ersetzen, z.B.:"
+    echo "      Domaene   -> contoso.local / example.com"
+    echo "      Server    -> DC01, SRV01, FS01"
+    echo "      Benutzer  -> m.mustermann, m.mueller"
+    echo "      IP        -> 192.0.2.10 (RFC 5737)"
+    echo ""
+    echo "  Muster pflegen in:"
+    echo "      .githooks/forbidden-patterns.txt        (generisch, versioniert)"
+    echo "      .githooks/forbidden-patterns.local.txt  (firmenspezifisch, lokal)"
+    echo "  Bewusster Bypass: git commit --no-verify"
+    echo ""
+    exit 1
+fi
+
+exit 0

@@ -1,0 +1,27 @@
+# Generische Muster, die NICHT ins oeffentliche Repo gehoeren.
+# Eine erweiterte Regex (ERE) pro Zeile, Vergleich case-insensitive.
+# Zeilen mit '#' am Anfang und Leerzeilen werden ignoriert.
+#
+# WICHTIG: Diese Datei ist versioniert und damit oeffentlich.
+# Konkrete Firmen-, Personen- und Hostnamen gehoeren deshalb NICHT hierher,
+# sondern in die lokale, per .gitignore ausgeschlossene Datei:
+#
+#     .githooks/forbidden-patterns.local.txt
+#
+# Als Vorlage dient forbidden-patterns.local.txt.example.
+#
+# Ersatzwerte fuer Beispiele im Code:
+#   Domaene    -> contoso.local / example.com
+#   DC/Server  -> DC01, DC02, SRV01, FS01
+#   Benutzer   -> m.mustermann, m.mueller, j.doe
+#   IP         -> 192.0.2.x / 198.51.100.x / 203.0.113.x (RFC 5737)
+
+# --- Zugangsdaten / Secrets -------------------------------------------------
+# Klartext-Passwort in einer Zuweisung
+(password|passwort|kennwort|pwd)[[:space:]]*=[[:space:]]*['\"][^'\"]+['\"]
+# API-/Access-Token in einer Zuweisung
+(api[_-]?key|apitoken|access[_-]?token|client[_-]?secret)[[:space:]]*=[[:space:]]*['\"][^'\"]+['\"]
+# ConvertTo-SecureString mit Klartext
+ConvertTo-SecureString[[:space:]]+.*-AsPlainText
+# Private-Key-Bloecke
+BEGIN (RSA |OPENSSH |EC |DSA |PGP )?PRIVATE KEY

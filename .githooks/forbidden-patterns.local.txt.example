@@ -1,0 +1,23 @@
+# Vorlage fuer .githooks/forbidden-patterns.local.txt
+#
+# Diese lokale Datei wird per .gitignore vom Repo ausgeschlossen und enthaelt
+# die tatsaechlichen firmenspezifischen Begriffe. Kopieren und anpassen:
+#
+#     cp .githooks/forbidden-patterns.local.txt.example .githooks/forbidden-patterns.local.txt
+#
+# Eine erweiterte Regex (ERE) pro Zeile, Vergleich case-insensitive.
+
+# Firmen- und Standortname
+# meinefirma
+# meinstandort
+
+# Interne AD-/DNS-Domaenen
+# meinefirma\.local
+# intern\.meinefirma\.de
+
+# Echte Benutzer-/Personennamen
+# m\.nachname
+
+# Echte Server-/Hostnamen
+# dc0[0-9]
+# fileserver01

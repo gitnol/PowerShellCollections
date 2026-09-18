@@ -1,3 +1,8 @@
 # Windows reserved device names (created by shell redirects)
 nul
 .claude
+
+# Lokale Liste firmenspezifischer Begriffe fuer den pre-commit-Hook.
+# Bewusst NICHT versioniert - sie enthaelt genau die Begriffe, die nicht
+# ins oeffentliche Repo sollen. Vorlage: forbidden-patterns.local.txt.example
+.githooks/forbidden-patterns.local.txt
