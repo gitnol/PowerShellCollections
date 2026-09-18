@@ -1,3 +1,25 @@
+<#
+.SYNOPSIS
+    Startet eine neue PowerShell-Sitzung unter einem anderen Konto mit
+    erhoehten Rechten.
+
+.DESCRIPTION
+    Ermittelt die gerade laufende PowerShell (powershell.exe oder pwsh.exe),
+    baut daraus einen Base64-kodierten Startbefehl und uebergibt ihn an
+    runas.exe. Die neue Sitzung laeuft unter dem angegebenen Konto und
+    elevated.
+
+    Die Kodierung als EncodedCommand vermeidet die Anfuehrungszeichen-Hoelle
+    beim Durchreichen von Befehlen durch runas.
+
+.NOTES
+    runas fragt das Passwort interaktiv ab - das laesst sich nicht
+    automatisieren, und das ist beabsichtigt.
+
+    Der Vorgaengerstand legte dafuer eine temporaere Batchdatei in
+    ProgramData an; dieser Weg kommt ohne Datei auf der Platte aus.
+#>
+
 function Invoke-RunAsElevated {
     [CmdletBinding()]
     param(

@@ -1,3 +1,24 @@
+<#
+.SYNOPSIS
+    Findet Mitglieder einer Gruppe, die sich seit laengerem nicht angemeldet
+    haben - etwa zur Rueckgewinnung von Microsoft-365-Lizenzen.
+
+.DESCRIPTION
+    Filtert ueber LDAP alle Mitglieder einer Gruppe, deren
+    lastLogonTimestamp aelter als der Schwellwert ist oder die noch nie
+    gesetzt wurde. Vorgabe sind 100 Tage.
+
+.NOTES
+    lastLogonTimestamp wird absichtlich nur alle 9 bis 14 Tage repliziert.
+    Der Wert ist deshalb systematisch zu alt und taugt nur fuer grobe
+    Schwellen wie hier - fuer eine genaue Angabe braucht es lastLogon ueber
+    alle DCs (siehe Get-ADComputerLastLogon.ps1 fuer das gleiche Problem bei
+    Computern).
+
+    Hintergrund:
+    https://techcommunity.microsoft.com/t5/ask-the-directory-services-team/8220-the-lastlogontimestamp-attribute-8221-8211-8220-what-it-was/ba-p/396204
+#>
+
 # This Script helps to identify, which Office 365 or Microsoft 365 Licenses could perhaps be available for reuse.
 # It identifies the users which haven't logged on or which have a LastLogonTimestamp older than 100 days
 # perfect to manually check. This out grid view list should always be empty.

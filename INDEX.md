@@ -2,7 +2,7 @@
 
 <!-- Automatisch erzeugt von tools/Build-ScriptIndex.ps1 - nicht von Hand bearbeiten. -->
 
-151 Skripte. 69 mit `.SYNOPSIS` (46%), 75 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
+146 Skripte. 146 mit `.SYNOPSIS` (100%), 0 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
 
 | Markierung | Bedeutung |
 | ---------- | --------- |
@@ -17,7 +17,7 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
 | [Protect-OUs.ps1](scripts/active-directory/Protect-OUs.ps1) |  | Aktiviert den Schutz vor versehentlichem Löschen für alle OUs in der Domäne. |
-| [Test-DomainCredentials.ps1](scripts/active-directory/Test-DomainCredentials.ps1) | `def` | _(aus Kommentar)_ This script checks whether the user name and password are correct and returns true or false accordingly. |
+| [Test-DomainCredentials.ps1](scripts/active-directory/Test-DomainCredentials.ps1) | `def` | Prueft, ob Benutzername und Passwort gegen eine Domaene gueltig sind. |
 
 ## `scripts/active-directory/dns/`
 
@@ -29,20 +29,20 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-GPOLinks.ps1](scripts/active-directory/gpo/Get-GPOLinks.ps1) | `def` | _(aus Kommentar)_ # Alle GPOs inkl. Links |
-| [Get-GPOReportSettings.ps1](scripts/active-directory/gpo/Get-GPOReportSettings.ps1) |  | _(aus Kommentar)_ If this does not work with Powershell 7, try it as admin / elevated |
-| [Get-GPPItemLevelTargeting.ps1](scripts/active-directory/gpo/Get-GPPItemLevelTargeting.ps1) |  | _(aus Kommentar)_ Diese Funktion liefert die zielgruppenbasierte Zuordnung innerhalb von GPPs bei GPOs. |
+| [Get-GPOLinks.ps1](scripts/active-directory/gpo/Get-GPOLinks.ps1) | `def` | Listet alle GPOs mit ihren Verknuepfungen auf und findet unverknuepfte. |
+| [Get-GPOReportSettings.ps1](scripts/active-directory/gpo/Get-GPOReportSettings.ps1) |  | Liest saemtliche Einstellungen aus einem GPO-Report aus. |
+| [Get-GPPItemLevelTargeting.ps1](scripts/active-directory/gpo/Get-GPPItemLevelTargeting.ps1) |  | Listet die zielgruppenbasierte Zuordnung (Item-Level Targeting) aller Gruppenrichtlinien-Einstellungen auf. |
 | [New-GPOAnalysis.ps1](scripts/active-directory/gpo/New-GPOAnalysis.ps1) |  | Vergleicht bei allen GPOs den konfigurierten Status mit den tatsaechlich vorhandenen Einstellungen. |
 
 ## `scripts/active-directory/group-membership/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Compare-ADGroupSidResolution.ps1](scripts/active-directory/group-membership/Compare-ADGroupSidResolution.ps1) |  | _(aus Kommentar)_ ($user.MemberOf).count |
-| [Compare-ADUserGroup.ps1](scripts/active-directory/group-membership/Compare-ADUserGroup.ps1) |  | _(aus Kommentar)_ Change the two lines if you do not want to input it |
-| [Copy-ADGroupMember.ps1](scripts/active-directory/group-membership/Copy-ADGroupMember.ps1) | `def` | _keine Beschreibung_ |
-| [New-ADGroupInOU.ps1](scripts/active-directory/group-membership/New-ADGroupInOU.ps1) |  | _(aus Kommentar)_ Prüfen, ob OU existiert |
-| [Resolve-ADGroupRecursive.ps1](scripts/active-directory/group-membership/Resolve-ADGroupRecursive.ps1) |  | _(aus Kommentar)_ CaseSensitive |
+| [Compare-ADGroupSidResolution.ps1](scripts/active-directory/group-membership/Compare-ADGroupSidResolution.ps1) |  | Stellt die rekursive SID-Aufloesung von Gruppenmitgliedschaften der Ausgabe von Get-ADPrincipalGroupMembership gegenueber. |
+| [Compare-ADUserGroup.ps1](scripts/active-directory/group-membership/Compare-ADUserGroup.ps1) |  | Vergleicht die Gruppenmitgliedschaften zweier AD-Benutzer. |
+| [Copy-ADGroupMember.ps1](scripts/active-directory/group-membership/Copy-ADGroupMember.ps1) | `def` | Kopiert alle Mitglieder einer AD-Gruppe in eine andere. |
+| [New-ADGroupInOU.ps1](scripts/active-directory/group-membership/New-ADGroupInOU.ps1) |  | Legt eine AD-Sicherheitsgruppe in einer OU an und richtet passende Ordnerberechtigungen ein. |
+| [Resolve-ADGroupRecursive.ps1](scripts/active-directory/group-membership/Resolve-ADGroupRecursive.ps1) |  | Loest AD-Gruppen rekursiv auf und listet je Gruppe alle wirksamen Mitglieder. |
 
 ## `scripts/active-directory/group-membership/temporary/`
 
@@ -56,17 +56,17 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
 | [Get-ADComputerInventory.ps1](scripts/active-directory/inventory/Get-ADComputerInventory.ps1) |  | Inventarisiert AD-Computer parallel und aktualisiert Benutzer-, Hardware- und Kommentar-Informationen im Description-Feld. |
-| [Get-ADComputerLastLogon.ps1](scripts/active-directory/inventory/Get-ADComputerLastLogon.ps1) |  | _(aus Kommentar)_ Alle DCs ermitteln |
-| [Get-ADEnabledUserWithManager.ps1](scripts/active-directory/inventory/Get-ADEnabledUserWithManager.ps1) |  | _(aus Kommentar)_ Import the Active Directory module |
-| [Get-ADInactiveGroupMember.ps1](scripts/active-directory/inventory/Get-ADInactiveGroupMember.ps1) |  | _(aus Kommentar)_ This Script helps to identify, which Office 365 or Microsoft 365 Licenses could perhaps be available for reuse. |
-| [Get-ADUserLastLogonCache.ps1](scripts/active-directory/inventory/Get-ADUserLastLogonCache.ps1) |  | _(aus Kommentar)_ Rückgabe als Hashtable mit SamAccountName -> DateTime |
+| [Get-ADComputerLastLogon.ps1](scripts/active-directory/inventory/Get-ADComputerLastLogon.ps1) |  | Ermittelt je AD-Computer die letzte Anmeldung ueber alle Domain Controller hinweg. |
+| [Get-ADEnabledUserWithManager.ps1](scripts/active-directory/inventory/Get-ADEnabledUserWithManager.ps1) |  | Listet alle aktiven AD-Benutzer mit ihrem hinterlegten Vorgesetzten auf. |
+| [Get-ADInactiveGroupMember.ps1](scripts/active-directory/inventory/Get-ADInactiveGroupMember.ps1) |  | Findet Mitglieder einer Gruppe, die sich seit laengerem nicht angemeldet haben - etwa zur Rueckgewinnung von Microsoft-365-Lizenzen. |
+| [Get-ADUserLastLogonCache.ps1](scripts/active-directory/inventory/Get-ADUserLastLogonCache.ps1) |  | Baut eine Nachschlagetabelle SamAccountName -> letzte Anmeldung ueber alle Domain Controller. |
 
 ## `scripts/active-directory/ldap/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Connect-LdapServer.ps1](scripts/active-directory/ldap/Connect-LdapServer.ps1) |  | _(aus Kommentar)_ [string]$Filter = "(telephoneNumber=13*)", |
-| [Test-LdapPorts.ps1](scripts/active-directory/ldap/Test-LdapPorts.ps1) |  | _(aus Kommentar)_ Ziel-IP-Adresse |
+| [Connect-LdapServer.ps1](scripts/active-directory/ldap/Connect-LdapServer.ps1) |  | Baut eine LDAP-Verbindung auf und fuehrt eine Suche aus - ohne das ActiveDirectory-Modul. |
+| [Test-LdapPorts.ps1](scripts/active-directory/ldap/Test-LdapPorts.ps1) |  | Prueft, ob LDAP (389) und LDAPS (636) auf einem Ziel erreichbar sind, und testet zusaetzlich einen echten LDAPS-Bind. |
 
 ## `scripts/active-directory/logon-events/`
 
@@ -74,14 +74,14 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | ------ | --- | ------------ |
 | [Get-ADAuthEventsAllDCs.ps1](scripts/active-directory/logon-events/Get-ADAuthEventsAllDCs.ps1) | `def` | Sammelt Anmelde-Events (fehlgeschlagen, Lockout, erfolgreich) von allen Domain Controllern inkl. Quell-IP. |
 | [Get-LockedOutEventsAllDCs.ps1](scripts/active-directory/logon-events/Get-LockedOutEventsAllDCs.ps1) | `def` | Sammelt Account-Lockout-Events von allen Domain Controllern in der Domäne. |
-| [Get-LogonAttempts.ps1](scripts/active-directory/logon-events/Get-LogonAttempts.ps1) |  | _(aus Kommentar)_ This Script enables you to find failed logonattempts. (on german PCs... you have to adjust it to english words in the function Extract-MessageDetail) |
-| [Get-UserLogonEvent.ps1](scripts/active-directory/logon-events/Get-UserLogonEvent.ps1) |  | _(aus Kommentar)_ This Script returns all logon events of specific EventIDs or user names |
+| [Get-LogonAttempts.ps1](scripts/active-directory/logon-events/Get-LogonAttempts.ps1) |  | Sammelt fehlgeschlagene Anmeldeversuche aus den Sicherheitsprotokollen mehrerer Rechner. |
+| [Get-UserLogonEvent.ps1](scripts/active-directory/logon-events/Get-UserLogonEvent.ps1) |  | Holt Anmelde-Events bestimmter Event-IDs oder Benutzer von allen Domain Controllern. |
 
 ## `scripts/active-directory/machine-sid/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-DuplicateMachineSIDs.ps1](scripts/active-directory/machine-sid/Get-DuplicateMachineSIDs.ps1) |  | _keine Beschreibung_ |
+| [Get-DuplicateMachineSIDs.ps1](scripts/active-directory/machine-sid/Get-DuplicateMachineSIDs.ps1) |  | Findet Rechner in der Domaene, die sich dieselbe Maschinen-SID teilen. |
 | [Invoke-MachineSidCheck.ps1](scripts/active-directory/machine-sid/Invoke-MachineSidCheck.ps1) |  | Prüft den Online-Status von AD-Computern und führt optional einen Neustart oder eine SID-Prüfung durch. |
 
 ## `scripts/active-directory/time-sync/`
@@ -94,7 +94,7 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Export-KerberosTokenSize.ps1](scripts/active-directory/token-size/Export-KerberosTokenSize.ps1) |  | _(aus Kommentar)_ collects all Users of the local domain and exports their groupmember count and estimated ticketsize |
+| [Export-KerberosTokenSize.ps1](scripts/active-directory/token-size/Export-KerberosTokenSize.ps1) |  | Zaehlt je Domaenenbenutzer die Gruppenmitgliedschaften und exportiert die geschaetzte Kerberos-Tokengroesse. |
 
 ## `scripts/active-directory/user-photo/`
 
@@ -112,21 +112,21 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [ConvertFrom-ExcelClipboard.ps1](scripts/applications/excel/ConvertFrom-ExcelClipboard.ps1) |  | _(aus Kommentar)_ This function enables you to copy information from Excel to a pscustomobject |
+| [ConvertFrom-ExcelClipboard.ps1](scripts/applications/excel/ConvertFrom-ExcelClipboard.ps1) |  | Wandelt aus Excel kopierte Zellen in PowerShell-Objekte um. |
 | [Remove-ExcelSheetProtection.ps1](scripts/applications/excel/Remove-ExcelSheetProtection.ps1) |  | Entfernt den Blattschutz (Worksheet Protection) aus einer oder mehreren Tabellen einer .xlsx-Datei durch direkte XML-Manipulation. |
 
 ## `scripts/applications/filezilla/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [ConvertFrom-FileZillaLog.ps1](scripts/applications/filezilla/ConvertFrom-FileZillaLog.ps1) | `def` | _(aus Kommentar)_ $erg = Parse-FileZillaLog "D:\FILEZILLA_LOGS_bis_20250508\FILEZILLA.log" |
+| [ConvertFrom-FileZillaLog.ps1](scripts/applications/filezilla/ConvertFrom-FileZillaLog.ps1) | `def` | Zerlegt ein FileZilla-Server-Logfile in auswertbare Objekte. |
 | [Get-FtpLoginSummary.ps1](scripts/applications/filezilla/Get-FtpLoginSummary.ps1) |  | Analysiert FileZilla Server Logs und gibt eine Zusammenfassung der erfolgreichen und fehlgeschlagenen FTP-Logins aus. |
 
 ## `scripts/applications/kyocera/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-PrinterSnmpOid.ps1](scripts/applications/kyocera/Get-PrinterSnmpOid.ps1) |  | _(aus Kommentar)_ See also here for some kyocera OIDs |
+| [Get-PrinterSnmpOid.ps1](scripts/applications/kyocera/Get-PrinterSnmpOid.ps1) |  | Fragt einen einzelnen SNMP-Wert von einem Netzwerkdrucker ab. |
 
 ## `scripts/applications/openscape-business/`
 
@@ -138,22 +138,22 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Clear-TeamsCache.ps1](scripts/applications/teams/Clear-TeamsCache.ps1) |  | _(aus Kommentar)_ Beende alle laufenden Teams-Prozesse |
+| [Clear-TeamsCache.ps1](scripts/applications/teams/Clear-TeamsCache.ps1) |  | Beendet Microsoft Teams und leert die Cache-Verzeichnisse - klassisch und neu. |
 
 ## `scripts/applications/teamviewer/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [ConvertFrom-TeamViewerLog.ps1](scripts/applications/teamviewer/ConvertFrom-TeamViewerLog.ps1) |  | _(aus Kommentar)_ Look here: https://medium.com/mii-cybersec/digital-forensic-artifact-of-teamviewer-application-cfd6290dc0a7 |
-| [Set-TeamViewerAccess.ps1](scripts/applications/teamviewer/Set-TeamViewerAccess.ps1) | `def` | _(aus Kommentar)_ Definition der Funktion für die parallele Online-Prüfung im Begin-Block |
+| [ConvertFrom-TeamViewerLog.ps1](scripts/applications/teamviewer/ConvertFrom-TeamViewerLog.ps1) |  | Wertet TeamViewer-Logdateien forensisch aus - wer war wann mit wem verbunden. |
+| [Set-TeamViewerAccess.ps1](scripts/applications/teamviewer/Set-TeamViewerAccess.ps1) | `def` | Setzt die TeamViewer-Zugriffssteuerung auf mehreren Rechnern gleichzeitig. |
 | [Start-TeamViewer.ps1](scripts/applications/teamviewer/Start-TeamViewer.ps1) |  | Startet TeamViewer mit verschiedenen Konfigurationsoptionen und Verbindungsparametern. |
 
 ## `scripts/applications/zammad/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-ZammadTicket.ps1](scripts/applications/zammad/Get-ZammadTicket.ps1) |  | _(aus Kommentar)_ Base URL of Zammad API |
-| [ZammadApiFunctions.ps1](scripts/applications/zammad/ZammadApiFunctions.ps1) | `def` | _(aus Kommentar)_ Zammad API PowerShell Modul |
+| [Get-ZammadTicket.ps1](scripts/applications/zammad/Get-ZammadTicket.ps1) |  | Holt Tickets aus Zammad, gefiltert nach Zeitraum und Status. |
+| [ZammadApiFunctions.ps1](scripts/applications/zammad/ZammadApiFunctions.ps1) | `def` | Funktionsbibliothek fuer die Zammad-REST-API. |
 
 ## `scripts/databases/mssql/`
 
@@ -166,29 +166,29 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Compress-FilesByMonth.ps1](scripts/filesystem/Compress-FilesByMonth.ps1) |  | _(aus Kommentar)_ Überprüfen, ob das Quellverzeichnis existiert |
-| [Get-DllVersion.ps1](scripts/filesystem/Get-DllVersion.ps1) | `def` | _(aus Kommentar)_ Get-DllVersion -Pfad 'C:\Tools\openssl\libeay32.dll' |
-| [Resolve-Links.ps1](scripts/filesystem/Resolve-Links.ps1) |  | _(aus Kommentar)_ This function searches for symlinks / junction points and hardlinks in a folder and subfolder. |
+| [Compress-FilesByMonth.ps1](scripts/filesystem/Compress-FilesByMonth.ps1) |  | Packt Dateien nach Entstehungsmonat in je ein ZIP-Archiv. |
+| [Get-DllVersion.ps1](scripts/filesystem/Get-DllVersion.ps1) | `def` | Liest die Dateiversion einer DLL oder EXE aus. |
+| [Resolve-Links.ps1](scripts/filesystem/Resolve-Links.ps1) |  | Findet Symlinks, Junctions und Hardlinks in einem Verzeichnisbaum und loest ihre Ziele auf. |
 
 ## `scripts/filesystem/permissions/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-FileserverUserPermission.ps1](scripts/filesystem/permissions/Get-FileserverUserPermission.ps1) |  | _(aus Kommentar)_ 1x alle Benutzer-Accounts in Hashtable |
-| [Get-FolderPermissions.ps1](scripts/filesystem/permissions/Get-FolderPermissions.ps1) | `def` | _(aus Kommentar)_ This script looks for folder permissions recursively and lists those ones, which have (non inherited) single user permissions |
+| [Get-FileserverUserPermission.ps1](scripts/filesystem/permissions/Get-FileserverUserPermission.ps1) |  | Findet auf einem Dateiserver Ordner, auf denen einzelne Benutzer statt Gruppen berechtigt sind. |
+| [Get-FolderPermissions.ps1](scripts/filesystem/permissions/Get-FolderPermissions.ps1) | `def` | Listet rekursiv die Ordner auf, die nicht vererbte Einzelberechtigungen tragen. |
 
 ## `scripts/filesystem/search/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
 | [Find-FilesInZips.ps1](scripts/filesystem/search/Find-FilesInZips.ps1) | `def` | Durchsucht ZIP-Archive nach Dateien basierend auf einem Suchmuster. |
-| [Get-TextMatchInFiles.ps1](scripts/filesystem/search/Get-TextMatchInFiles.ps1) | `def` | _(aus Kommentar)_ Verzeichnis, das durchsucht werden soll |
+| [Get-TextMatchInFiles.ps1](scripts/filesystem/search/Get-TextMatchInFiles.ps1) | `def` | Durchsucht Dateien nach Zeilen, in denen mehrere Begriffe gleichzeitig vorkommen. |
 
 ## `scripts/messaging/exchange/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-MailboxForwardingRules.ps1](scripts/messaging/exchange/Get-MailboxForwardingRules.ps1) |  | _(aus Kommentar)_ Make Exchange-specific commands available |
+| [Get-MailboxForwardingRules.ps1](scripts/messaging/exchange/Get-MailboxForwardingRules.ps1) |  | Findet Postfaecher mit eingerichteter Weiterleitung nach aussen. |
 | [New-SharedMailboxWorkflow.ps1](scripts/messaging/exchange/New-SharedMailboxWorkflow.ps1) |  | Erstellt standardisierte Shared Mailboxes und die dazugehörigen AD-Sicherheitsgruppen für Berechtigungen. |
 | [Sync-SharedMailboxPermission.ps1](scripts/messaging/exchange/Sync-SharedMailboxPermission.ps1) |  | Verwaltet vollautomatisch 'FullAccess'-Berechtigungen für Exchange 2019 SharedMailboxes basierend auf Active Directory Gruppenmitgliedschaften. |
 
@@ -196,31 +196,16 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Invoke-MailStoreApiScratch.ps1](scripts/messaging/mailstore/Invoke-MailStoreApiScratch.ps1) | `def` | _(aus Kommentar)_ HINWEIS: Diese Datei ist eine Arbeitskopie (frueher test.ps1) mit |
+| [Invoke-MailStoreApiScratch.ps1](scripts/messaging/mailstore/Invoke-MailStoreApiScratch.ps1) | `def` | Arbeitskopie generierter MailStore-API-Funktionen - nicht der gepflegte Stand. |
 | [MailStoreApiFunctions.ps1](scripts/messaging/mailstore/MailStoreApiFunctions.ps1) | `def` | PowerShell-Huelle um die Administrations-API des MailStore Server. |
 | [MailStoreSnippets.ps1](scripts/messaging/mailstore/MailStoreSnippets.ps1) |  | Aeltere Sammlung von MailStore-API-Funktionen samt Anwendungsbeispielen (Stand v2). |
 | [New-MailStoreApiFunctionReference.ps1](scripts/messaging/mailstore/New-MailStoreApiFunctionReference.ps1) |  | Erzeugt aus der Online-Funktionsreferenz von MailStore PowerShell-Huellen fuer jede API-Methode. |
-
-## `scripts/messaging/mailstore/api-wrapper/`
-
-| Skript | | Beschreibung |
-| ------ | --- | ------------ |
-| [MS.PS.Lib.psm1](scripts/messaging/mailstore/api-wrapper/MS.PS.Lib.psm1) |  | Scriptblock called by "InternalMSApiCall" to handle long running API processes. |
-
-## `scripts/messaging/mailstore/examples/`
-
-| Skript | | Beschreibung |
-| ------ | --- | ------------ |
-| [Get-AllUserInfo.ps1](scripts/messaging/mailstore/examples/Get-AllUserInfo.ps1) |  | _(aus Kommentar)_ Example Script 2 |
-| [Get-ServerInfo.ps1](scripts/messaging/mailstore/examples/Get-ServerInfo.ps1) |  | _(aus Kommentar)_ Example Script 1 |
-| [Invoke-StoreVerification.ps1](scripts/messaging/mailstore/examples/Invoke-StoreVerification.ps1) |  | _(aus Kommentar)_ Example Script 3 |
-| [Invoke-StoreVerificationAsync.ps1](scripts/messaging/mailstore/examples/Invoke-StoreVerificationAsync.ps1) |  | _(aus Kommentar)_ Example Script 4 |
 
 ## `scripts/messaging/nospamproxy/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-NspUserToDomainCommunication.ps1](scripts/messaging/nospamproxy/Get-NspUserToDomainCommunication.ps1) |  | _(aus Kommentar)_ Parameter: Start- und Enddatum für den Abfragezeitraum |
+| [Get-NspUserToDomainCommunication.ps1](scripts/messaging/nospamproxy/Get-NspUserToDomainCommunication.ps1) |  | Wertet aus NoSpamProxy aus, welche Benutzer mit welchen externen Domaenen E-Mails austauschen. |
 
 ## `scripts/messaging/outlook/`
 
@@ -232,7 +217,7 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Start-Win10PingMonitor.ps1](scripts/monitoring/ping-monitor/Start-Win10PingMonitor.ps1) |  | _(aus Kommentar)_ 1. Modul laden |
+| [Start-Win10PingMonitor.ps1](scripts/monitoring/ping-monitor/Start-Win10PingMonitor.ps1) |  | Startskript fuer die Ping-Ueberwachung von Windows-10-Rechnern mit E-Mail-Benachrichtigung. |
 | [Win10PingMonitor.psm1](scripts/monitoring/ping-monitor/Win10PingMonitor.psm1) |  | Schreibt Meldungen in eine Log-Datei |
 
 ## `scripts/monitoring/prtg/ad-group-integrity/`
@@ -261,13 +246,13 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-ArubaMacTable.ps1](scripts/network/aruba/Get-ArubaMacTable.ps1) |  | _(aus Kommentar)_ iwr https://www.wireshark.org/json/manuf.json -OutFile C:\install\manuf.json |
+| [Get-ArubaMacTable.ps1](scripts/network/aruba/Get-ArubaMacTable.ps1) |  | Liest die MAC-Adresstabelle von Aruba-Switches aus und loest die Hersteller auf. |
 
 ## `scripts/network/dhcp/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-DhcpServerLease.ps1](scripts/network/dhcp/Get-DhcpServerLease.ps1) |  | _(aus Kommentar)_ DHCP Leases aus allen autorisierten DHCP-Servern der Domäne abfragen und MAC-Adressen in verschiedenen Formaten ausgeben |
+| [Get-DhcpServerLease.ps1](scripts/network/dhcp/Get-DhcpServerLease.ps1) |  | Sammelt die DHCP-Leases aller autorisierten DHCP-Server der Domaene. |
 
 ## `scripts/network/diagnostics/`
 
@@ -275,13 +260,13 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | ------ | --- | ------------ |
 | [Get-WebHeaders.ps1](scripts/network/diagnostics/Get-WebHeaders.ps1) |  | Liest HTTP Response-Header und Statuscode aus. |
 | [Show-NetConnections.ps1](scripts/network/diagnostics/Show-NetConnections.ps1) |  | Zeigt aktive TCP/UDP-Verbindungen inkl. Prozessinformationen, ähnlich netstat -anob. |
-| [Test-Port.ps1](scripts/network/diagnostics/Test-Port.ps1) |  | _(aus Kommentar)_ Funktion, um eine Verbindung zu einem Port mit Timeout zu prüfen |
+| [Test-Port.ps1](scripts/network/diagnostics/Test-Port.ps1) |  | Prueft einen TCP-Port mit einstellbarem Zeitlimit. |
 
 ## `scripts/network/firewall/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Remove-DuplicateFirewallRule.ps1](scripts/network/firewall/Remove-DuplicateFirewallRule.ps1) |  | _(aus Kommentar)_ This script removes duplicate firewall rules |
+| [Remove-DuplicateFirewallRule.ps1](scripts/network/firewall/Remove-DuplicateFirewallRule.ps1) |  | Entfernt doppelte Windows-Firewall-Regeln. |
 
 ## `scripts/network/lancom/`
 
@@ -295,7 +280,7 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
 | [Send-WakeOnLan.ps1](scripts/network/wake-on-lan/Send-WakeOnLan.ps1) | `def` | Sendet ein Wake-on-LAN Magic Packet an eine MAC-Adresse. |
-| [Set-WakeOnLanAdapterOption.ps1](scripts/network/wake-on-lan/Set-WakeOnLanAdapterOption.ps1) |  | _keine Beschreibung_ |
+| [Set-WakeOnLanAdapterOption.ps1](scripts/network/wake-on-lan/Set-WakeOnLanAdapterOption.ps1) |  | Richtet die Netzwerkkarte fuer Wake-on-LAN ein. |
 
 ## `scripts/security/bitlocker/`
 
@@ -307,7 +292,7 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-BitLockerStatus_legacy.ps1](scripts/security/bitlocker/archive/Get-BitLockerStatus_legacy.ps1) |  | _(aus Kommentar)_ ARCHIV - nicht mehr der gueltige Stand. |
+| [Get-BitLockerStatus_legacy.ps1](scripts/security/bitlocker/archive/Get-BitLockerStatus_legacy.ps1) |  | ARCHIV - Vorgaengerstand des BitLocker-Abgleichs zwischen AD und lokalen Systemen. |
 
 ## `scripts/security/certificates/`
 
@@ -327,13 +312,13 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Find-Log4jFile.ps1](scripts/security/log4j/Find-Log4jFile.ps1) |  | _(aus Kommentar)_ Vorbereitungen |
+| [Find-Log4jFile.ps1](scripts/security/log4j/Find-Log4jFile.ps1) |  | Durchsucht Datentraeger nach log4j-Bibliotheken mit der JndiLookup-Klasse - auch in verschachtelten Archiven. |
 
 ## `scripts/security/passwords/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Test-ADUserWeakPassword.ps1](scripts/security/passwords/Test-ADUserWeakPassword.ps1) |  | _(aus Kommentar)_ This little script checks the AD Users of specific groups, if they use a weak password |
+| [Test-ADUserWeakPassword.ps1](scripts/security/passwords/Test-ADUserWeakPassword.ps1) |  | Prueft Mitglieder bestimmter AD-Gruppen auf schwache Passwoerter. |
 
 ## `scripts/security/secure-boot/`
 
@@ -342,15 +327,15 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | [Invoke-SecureBootCertUpdate_simple.ps1](scripts/security/secure-boot/Invoke-SecureBootCertUpdate_simple.ps1) |  | Einmaliges Einleiten des Secure Boot 2023-Zertifikat-Updates (einfache Variante). |
 | [Invoke-SecureBootCertUpdate.ps1](scripts/security/secure-boot/Invoke-SecureBootCertUpdate.ps1) |  | Secure Boot UEFI CA 2023 - Update Manager |
 | [Test-LocalSecureBootVariable.ps1](scripts/security/secure-boot/Test-LocalSecureBootVariable.ps1) |  | Prüft lokal Secure Boot PK, db und KEK inkl. Handlungsempfehlung. > |
-| [Test-MultipleHostsSecureBoot.ps1](scripts/security/secure-boot/Test-MultipleHostsSecureBoot.ps1) |  | _(aus Kommentar)_ Only PowerShell 7+ (ForEach-Object -Parallel) |
+| [Test-MultipleHostsSecureBoot.ps1](scripts/security/secure-boot/Test-MultipleHostsSecureBoot.ps1) |  | Prueft auf vielen Rechnern parallel den Secure-Boot-Status und das Zertifikat 'Windows UEFI CA 2023'. |
 | [Test-SecureBootCert2023.ps1](scripts/security/secure-boot/Test-SecureBootCert2023.ps1) |  | Prüft den Secure Boot Status und das Vorhandensein des Windows UEFI CA 2023 Zertifikats. |
 
 ## `scripts/virtualization/vmware/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-VMSnapshots.ps1](scripts/virtualization/vmware/Get-VMSnapshots.ps1) | `def` | _keine Beschreibung_ |
-| [Get-VMUptimes.ps1](scripts/virtualization/vmware/Get-VMUptimes.ps1) |  | _(aus Kommentar)_ -and $_.Guest.GuestFamily -match 'windows' } |
+| [Get-VMSnapshots.ps1](scripts/virtualization/vmware/Get-VMSnapshots.ps1) | `def` | Findet virtuelle Maschinen mit vorhandenen Snapshots. |
+| [Get-VMUptimes.ps1](scripts/virtualization/vmware/Get-VMUptimes.ps1) |  | Ermittelt die Laufzeit seit dem letzten Neustart aller eingeschalteten VMs. |
 | [New-VSphereWindowsTemplate.ps1](scripts/virtualization/vmware/New-VSphereWindowsTemplate.ps1) |  | Bereitet eine Windows-VM als vSphere-Template vor. |
 
 ## `scripts/windows/activity-timeline/`
@@ -370,7 +355,7 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [ComputerAvailabilityFunctions.ps1](scripts/windows/availability/ComputerAvailabilityFunctions.ps1) |  | _(aus Kommentar)_ # This is also functioning for powershell 5 where "foreach-object -parallel" is missing |
+| [ComputerAvailabilityFunctions.ps1](scripts/windows/availability/ComputerAvailabilityFunctions.ps1) |  | Funktionsbibliothek zur parallelen Erreichbarkeitspruefung vieler Rechner. |
 | [Get-ComputerOnlineStatus.ps1](scripts/windows/availability/Get-ComputerOnlineStatus.ps1) |  | Prüft den Online-Status von Computern aus Active Directory und listet deren IP-Adressen auf. |
 
 ## `scripts/windows/cleanup/`
@@ -390,22 +375,22 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Invoke-RunAsElevated.ps1](scripts/windows/elevation/Invoke-RunAsElevated.ps1) | `def` | _(aus Kommentar)_ What does this function do? |
+| [Invoke-RunAsElevated.ps1](scripts/windows/elevation/Invoke-RunAsElevated.ps1) | `def` | Startet eine neue PowerShell-Sitzung unter einem anderen Konto mit erhoehten Rechten. |
 
 ## `scripts/windows/eventlog/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Clear-EventLog.ps1](scripts/windows/eventlog/Clear-EventLog.ps1) |  | _(aus Kommentar)_ https://learn.microsoft.com/th-th/powershell/module/microsoft.powershell.core/about/about_requires?view=powershell-5.1 |
+| [Clear-EventLog.ps1](scripts/windows/eventlog/Clear-EventLog.ps1) |  | Leert saemtliche Windows-Ereignisprotokolle des lokalen Rechners. |
 | [New-EventLogSource.ps1](scripts/windows/eventlog/New-EventLogSource.ps1) |  | Erstellt die Event Log-Quelle für ProcessMonitorService |
-| [New-EventLogSourceSimple.ps1](scripts/windows/eventlog/New-EventLogSourceSimple.ps1) |  | _(aus Kommentar)_ Einfaches PowerShell Script zum Erstellen der Event Log-Quelle |
+| [New-EventLogSourceSimple.ps1](scripts/windows/eventlog/New-EventLogSourceSimple.ps1) |  | Legt die Eventlog-Quelle 'ProcessMonitorService' im Anwendungsprotokoll an - schlanke Variante. |
 
 ## `scripts/windows/inventory/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-ClientMonitorEDIDData.ps1](scripts/windows/inventory/Get-ClientMonitorEDIDData.ps1) | `def` | _(aus Kommentar)_ Get-ClientMonitorEDIDData -Computer "MYHOSTNAME" |
-| [Get-DiskInformation.ps1](scripts/windows/inventory/Get-DiskInformation.ps1) | `def` | _(aus Kommentar)_ robust: Strings/UInt* -> int cast |
+| [Get-ClientMonitorEDIDData.ps1](scripts/windows/inventory/Get-ClientMonitorEDIDData.ps1) | `def` | Liest Hersteller, Modell, Seriennummer und Anschlussart der an einem Rechner angeschlossenen Monitore aus. |
+| [Get-DiskInformation.ps1](scripts/windows/inventory/Get-DiskInformation.ps1) | `def` | Ermittelt zu jedem physischen Datentraeger eines Rechners Bustyp, Medientyp und Groesse. |
 | [Get-InstalledSoftware.ps1](scripts/windows/inventory/Get-InstalledSoftware.ps1) |  | Liest installierte Software (Registry-basiert, ohne Win32_Product) |
 | [New-ComputerNameByMacAddress.ps1](scripts/windows/inventory/New-ComputerNameByMacAddress.ps1) |  | Ermittelt AABBCC aus PermanentAddress (alle Trennzeichen entfernt). Suffix "-M" wenn ein WLAN-Adapter gefunden wird, sonst "-D". Setzt MYCOMPUTERNAME in aktueller Session und, falls Adminrechte vorhanden, systemweit. |
 
@@ -413,8 +398,8 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-DomainWideProcessCpuUsage.ps1](scripts/windows/processes/Get-DomainWideProcessCpuUsage.ps1) |  | _(aus Kommentar)_ This script queries remotely the top X process and collect these. |
-| [Remove-StuckProcess.ps1](scripts/windows/processes/Remove-StuckProcess.ps1) |  | _(aus Kommentar)_ Define the process name and the time interval (in seconds) |
+| [Get-DomainWideProcessCpuUsage.ps1](scripts/windows/processes/Get-DomainWideProcessCpuUsage.ps1) |  | Sammelt von allen Domaenenrechnern die Prozesse mit der hoechsten CPU-Last. |
+| [Remove-StuckProcess.ps1](scripts/windows/processes/Remove-StuckProcess.ps1) |  | Beobachtet einen Prozess und beendet ihn, wenn er sich nicht mehr regt. |
 | [Set-ProcessPriority.ps1](scripts/windows/processes/Set-ProcessPriority.ps1) |  | Setzt Prozesspriorität per Name oder PID Um es zu kompilieren, nutze PS2EXE: Install-Module PS2EXE -Scope CurrentUser Invoke-PS2EXE -inputFile "G:\AVERP\Set-ProcPriority.ps1" -outputFile "G:\AVERP\Set-ProcPriority.exe" -noConsole \\myserver\myshare\Set-ProcPriority.exe -Name MYPROCESS -Priority AboveNormal |
 | [Trace-ProcessStartStop.ps1](scripts/windows/processes/Trace-ProcessStartStop.ps1) |  | Protokolliert laufend jeden Prozessstart und jedes Prozessende des lokalen Rechners nach JSON. |
 
@@ -422,44 +407,44 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-RemoteRegistryValue.ps1](scripts/windows/registry/Get-RemoteRegistryValue.ps1) |  | _(aus Kommentar)_ Get the remote registry Value of online computers, |
-| [Test-RemoteRegistry.ps1](scripts/windows/registry/Test-RemoteRegistry.ps1) |  | _(aus Kommentar)_ Test Netzwerkverbindung |
+| [Get-RemoteRegistryValue.ps1](scripts/windows/registry/Get-RemoteRegistryValue.ps1) |  | Liest einen Registry-Wert von allen Domaenenrechnern aus, die sich zuletzt angemeldet haben. |
+| [Test-RemoteRegistry.ps1](scripts/windows/registry/Test-RemoteRegistry.ps1) |  | Prueft, ob der Remote-Registry-Zugriff auf einen Rechner ueberhaupt moeglich ist, und richtet ihn auf Wunsch ein. |
 
 ## `scripts/windows/scheduled-tasks/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Export-ScheduledTask.ps1](scripts/windows/scheduled-tasks/Export-ScheduledTask.ps1) | `def` | _keine Beschreibung_ |
-| [Get-AllScheduledTasks.ps1](scripts/windows/scheduled-tasks/Get-AllScheduledTasks.ps1) |  | _(aus Kommentar)_ Set to $false, if there is something being automated... |
+| [Export-ScheduledTask.ps1](scripts/windows/scheduled-tasks/Export-ScheduledTask.ps1) | `def` | Exportiert alle geplanten Aufgaben eines Rechners als XML-Dateien. |
+| [Get-AllScheduledTasks.ps1](scripts/windows/scheduled-tasks/Get-AllScheduledTasks.ps1) |  | Listet alle geplanten Aufgaben eines Rechners auf, wahlweise als Gitteransicht, JSON-Datei oder Pipeline-Ausgabe. |
 
 ## `scripts/windows/services/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-TasksAndServices.ps1](scripts/windows/services/Get-TasksAndServices.ps1) |  | _(aus Kommentar)_ make sure, that you have sufficient rights on the target machine |
-| [Set-ServiceStartupType.ps1](scripts/windows/services/Set-ServiceStartupType.ps1) | `def` | _(aus Kommentar)_ Mapping of abbreviations to full names |
-| [Test-ServiceOnMultipleClients.ps1](scripts/windows/services/Test-ServiceOnMultipleClients.ps1) |  | _(aus Kommentar)_ Annahme: $Computer ist eine Liste/Array von Computernamen |
+| [Get-TasksAndServices.ps1](scripts/windows/services/Get-TasksAndServices.ps1) |  | Sammelt von allen Domaenenrechnern die geplanten Aufgaben und Dienste, die unter einem Domaenenkonto laufen. |
+| [Set-ServiceStartupType.ps1](scripts/windows/services/Set-ServiceStartupType.ps1) | `def` | Setzt den Starttyp eines Dienstes, inklusive 'Automatisch (verzoegert)'. |
+| [Test-ServiceOnMultipleClients.ps1](scripts/windows/services/Test-ServiceOnMultipleClients.ps1) |  | Prueft auf mehreren Rechnern, ob mindestens einer aus einer Liste von Diensten laeuft. |
 
 ## `scripts/windows/sessions/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-LastInteractiveUserLogons.ps1](scripts/windows/sessions/Get-LastInteractiveUserLogons.ps1) | `def` | _keine Beschreibung_ |
-| [Get-LoggedInUsersCim.ps1](scripts/windows/sessions/Get-LoggedInUsersCim.ps1) | `def` | _(aus Kommentar)_ Bug in Powershell for Version 7 (checked on Version 7.4.4) : https://github.com/PowerShell/PowerShell/issues/20829 |
-| [Get-LoggedInUsersInvokeCommand.ps1](scripts/windows/sessions/Get-LoggedInUsersInvokeCommand.ps1) |  | _(aus Kommentar)_ Bug in Powershell for Version 7 (checked on Version 7.4.4) : https://github.com/PowerShell/PowerShell/issues/20829 |
-| [Get-UserIdleTime.ps1](scripts/windows/sessions/Get-UserIdleTime.ps1) |  | _keine Beschreibung_ |
-| [Get-WorkstationUnlockEvents.ps1](scripts/windows/sessions/Get-WorkstationUnlockEvents.ps1) |  | _(aus Kommentar)_ Beispielaufruf |
-| [Test-IdleSession.ps1](scripts/windows/sessions/Test-IdleSession.ps1) |  | _(aus Kommentar)_ I have added this script to reddit on 20240803 |
-| [UserSessionFunctions.ps1](scripts/windows/sessions/UserSessionFunctions.ps1) |  | _(aus Kommentar)_ This Script is able to get remote user sessions information and is able to log off the (discconnected \| connected) remote user sessions |
+| [Get-LastInteractiveUserLogons.ps1](scripts/windows/sessions/Get-LastInteractiveUserLogons.ps1) | `def` | Findet die letzten interaktiven Anmeldungen und RDP-Sitzungen der letzten 90 Tage. |
+| [Get-LoggedInUsersCim.ps1](scripts/windows/sessions/Get-LoggedInUsersCim.ps1) | `def` | Ermittelt die angemeldeten Benutzer mehrerer Rechner ueber CIM-Sessions und unterscheidet Konsole von RDP. |
+| [Get-LoggedInUsersInvokeCommand.ps1](scripts/windows/sessions/Get-LoggedInUsersInvokeCommand.ps1) |  | Ermittelt die angemeldeten Benutzer mehrerer Rechner per Invoke-Command und unterscheidet Konsole von RDP. |
+| [Get-UserIdleTime.ps1](scripts/windows/sessions/Get-UserIdleTime.ps1) |  | Ermittelt, wie lange der angemeldete Benutzer keine Eingabe mehr gemacht hat. |
+| [Get-WorkstationUnlockEvents.ps1](scripts/windows/sessions/Get-WorkstationUnlockEvents.ps1) |  | Sammelt Sperr- und Entsperrvorgaenge von Arbeitsplaetzen aus dem Sicherheitsprotokoll. |
+| [Test-IdleSession.ps1](scripts/windows/sessions/Test-IdleSession.ps1) |  | Stellt fest, ob auf einem Rechner alle Sitzungen im Leerlauf sind - ohne GetLastInputInfo. |
+| [UserSessionFunctions.ps1](scripts/windows/sessions/UserSessionFunctions.ps1) |  | Funktionsbibliothek zum Auflisten und Abmelden von Remote-Sitzungen. |
 
 ## `scripts/windows/shadow-copy/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Enable-ShadowCopy.ps1](scripts/windows/shadow-copy/Enable-ShadowCopy.ps1) |  | _(aus Kommentar)_ $volume = Get-CimInstance -Query "SELECT * FROM Win32_Volume WHERE DriveLetter = 'C:' AND FileSystem = 'NTFS'" |
-| [Get-ShadowStorage.ps1](scripts/windows/shadow-copy/Get-ShadowStorage.ps1) |  | _(aus Kommentar)_ $shadowStorage = Get-CimInstance -Namespace root\cimv2 -ClassName Win32_ShadowStorage |
-| [New-ScheduledTaskFromXml.ps1](scripts/windows/shadow-copy/New-ScheduledTaskFromXml.ps1) |  | _(aus Kommentar)_ vssadmin list shadowstorage |
-| [New-SpontaneousShadowCopy.ps1](scripts/windows/shadow-copy/New-SpontaneousShadowCopy.ps1) | `def` | _(aus Kommentar)_ Beispielaufruf: |
+| [Enable-ShadowCopy.ps1](scripts/windows/shadow-copy/Enable-ShadowCopy.ps1) |  | Richtet Schattenkopien fuer das Laufwerk C: ein, inklusive Speicherzuweisung und Zeitplan. |
+| [Get-ShadowStorage.ps1](scripts/windows/shadow-copy/Get-ShadowStorage.ps1) |  | Zeigt die vorhandenen Schattenkopien des Laufwerks C: mit Zeitpunkt und Speicherverbrauch. |
+| [New-ScheduledTaskFromXml.ps1](scripts/windows/shadow-copy/New-ScheduledTaskFromXml.ps1) |  | Registriert die beiden mitgelieferten Aufgabenplanungs-Definitionen fuer taegliche Schattenkopien. |
+| [New-SpontaneousShadowCopy.ps1](scripts/windows/shadow-copy/New-SpontaneousShadowCopy.ps1) | `def` | Erzeugt eine Schattenkopie von C: und haengt sie als begehbaren Ordner ein. |
 
 ## `scripts/windows/telemetry/`
 
@@ -471,7 +456,7 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-InstalledUpdatesFromEventLog.ps1](scripts/windows/updates/Get-InstalledUpdatesFromEventLog.ps1) |  | _(aus Kommentar)_ Execute the function |
+| [Get-InstalledUpdatesFromEventLog.ps1](scripts/windows/updates/Get-InstalledUpdatesFromEventLog.ps1) |  | Liest die Installationshistorie von Windows-Updates aus dem Systemprotokoll. |
 
 ## `scripts/windows/wmi/`
 
@@ -485,14 +470,14 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [New-PSCustomObjectWithIndexColumn.ps1](snippets/New-PSCustomObjectWithIndexColumn.ps1) | `def` | _(aus Kommentar)_ DO NOT USE THIS FUNCTION, IF YOU DON'T WANT YOUR SOURCE PSCUSUTOMOBJECT!!! |
-| [ScriptBlockParameters.ps1](snippets/ScriptBlockParameters.ps1) |  | _(aus Kommentar)_ Source: https://stackoverflow.com/questions/16347214/pass-arguments-to-a-scriptblock-in-powershell |
+| [New-PSCustomObjectWithIndexColumn.ps1](snippets/New-PSCustomObjectWithIndexColumn.ps1) | `def` | Ergaenzt ein PSCustomObject-Array um eine fortlaufende Indexspalte - drei Wege im Vergleich. |
+| [ScriptBlockParameters.ps1](snippets/ScriptBlockParameters.ps1) |  | Zeigt, wie man Argumente an einen Scriptblock uebergibt. |
 
 ## `snippets/graph-traversal/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Invoke-BreadthFirstSearch.ps1](snippets/graph-traversal/Invoke-BreadthFirstSearch.ps1) | `def` | _(aus Kommentar)_ mit Richtung. Demo |
+| [Invoke-BreadthFirstSearch.ps1](snippets/graph-traversal/Invoke-BreadthFirstSearch.ps1) | `def` | Kuerzeste Wege in einem JSON-beschriebenen Graphen per Breitensuche, gerichtet und ungerichtet. |
 | [Invoke-GraphTraversal.ps1](snippets/graph-traversal/Invoke-GraphTraversal.ps1) | `def` | Funktionen zur Wegsuche in einem als JSON beschriebenen gerichteten Graphen. |
 
 ## `tools/`

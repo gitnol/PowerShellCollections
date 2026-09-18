@@ -1,4 +1,22 @@
-﻿function Remove-StuckProcess {
+﻿<#
+.SYNOPSIS
+    Beobachtet einen Prozess und beendet ihn, wenn er sich nicht mehr regt.
+
+.DESCRIPTION
+    Misst in einem festen Intervall die Speichernutzung des Prozesses. Bleibt
+    sie ueber mehrere Messungen unveraendert, gilt der Prozess als haengend
+    und wird beendet.
+
+    Gedacht fuer Faelle, in denen ein Programm regelmaessig einfriert und
+    niemand danebensitzt.
+
+.NOTES
+    Die Heuristik kann danebenliegen: ein Prozess, der korrekt auf Eingaben
+    wartet, veraendert seine Speichernutzung ebenfalls nicht. Vor dem
+    unbeaufsichtigten Einsatz mit einem grosszuegigen Intervall beobachten.
+#>
+
+function Remove-StuckProcess {
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $true, ValueFromPipeline = $false, ValueFromPipelineByPropertyName = $false)]

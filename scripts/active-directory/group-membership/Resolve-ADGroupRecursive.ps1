@@ -1,4 +1,23 @@
-﻿Import-Module ActiveDirectory
+﻿<#
+.SYNOPSIS
+    Loest AD-Gruppen rekursiv auf und listet je Gruppe alle wirksamen
+    Mitglieder.
+
+.DESCRIPTION
+    Durchsucht einen SearchBase nach Gruppen und ermittelt zu jeder die
+    Mitglieder ueber alle Verschachtelungsebenen hinweg. Damit wird sichtbar,
+    wer ueber Umwege tatsaechlich in einer Gruppe steckt - was bei
+    Berechtigungspruefungen der eigentlich interessante Wert ist.
+
+.NOTES
+    Domaene, SearchBase, SearchScope und Namensfilter stehen als Variablen am
+    Dateianfang und muessen angepasst werden.
+
+    SearchScope moeglichst auf OneLevel begrenzen oder ueber SearchBase
+    einschraenken - Subtree ueber die gesamte Domaene dauert entsprechend.
+#>
+
+Import-Module ActiveDirectory
 
 $DomainName = "my-domain" # CaseSensitive
 $TopLevelDomainName = "local" # CaseSensitive

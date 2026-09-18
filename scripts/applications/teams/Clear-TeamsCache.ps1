@@ -1,4 +1,26 @@
-﻿# Beende alle laufenden Teams-Prozesse
+﻿<#
+.SYNOPSIS
+    Beendet Microsoft Teams und leert die Cache-Verzeichnisse - klassisch und
+    neu.
+
+.DESCRIPTION
+    Stoppt die Prozesse ms-teams und Teams, wartet kurz, bis die Dateien
+    freigegeben sind, und loescht anschliessend die Cache-Ordner beider
+    Varianten: das klassische Teams unter %APPDATA% und das neue Teams im
+    MSIX-Paketverzeichnis unter %LOCALAPPDATA%\Packages.
+
+    Hilft bei den ueblichen Symptomen - Anmeldeschleifen, fehlende Bilder,
+    haengende Kanaele.
+
+.NOTES
+    Laeuft im Benutzerkontext, nicht als Administrator: die Caches liegen im
+    Profil des jeweiligen Benutzers.
+
+    Nach dem Leeren dauert der erste Start laenger, und der Anmeldevorgang
+    muss neu durchlaufen werden.
+#>
+
+# Beende alle laufenden Teams-Prozesse
 Write-Host "Beende Microsoft Teams..."
 Get-Process -Name "ms-teams", "Teams" -ErrorAction SilentlyContinue | Stop-Process -Force
 

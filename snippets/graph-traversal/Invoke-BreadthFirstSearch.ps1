@@ -1,4 +1,27 @@
-﻿# mit Richtung. Demo
+﻿<#
+.SYNOPSIS
+    Kuerzeste Wege in einem JSON-beschriebenen Graphen per Breitensuche,
+    gerichtet und ungerichtet.
+
+.DESCRIPTION
+    Baut aus der JSON-Beschreibung Nachschlagetabellen und einen
+    ungerichteten Hilfsgraphen auf und sucht darin den kuerzesten Weg
+    zwischen zwei Knoten. Mit -ShowDirection wird zusaetzlich ausgegeben, in
+    welche Richtung jede Kante des gefundenen Weges tatsaechlich zeigt.
+
+    Der praktische Anlass war das Nachvollziehen von Abhaengigkeiten zwischen
+    Datenbanksichten.
+
+    Codebeispiel ohne Betriebszweck, deshalb unter snippets/.
+
+.NOTES
+    Die Breitensuche findet den Weg mit den wenigsten Kanten - nicht den
+    guenstigsten. Kantengewichte werden nicht beruecksichtigt.
+
+    Die Anwendungsbeispiele stehen als Kommentar am Dateianfang.
+#>
+
+# mit Richtung. Demo
 # Find-ShortestPath -GraphJson $erg -StartNode V_CRM_BUYER -EndNode V_CRM_ENDCUSTOMER
 # Find-ShortestPath -GraphJson $erg -StartNode V_CRM_ENDCUSTOMER -EndNode V_CRM_BUYER
 # Find-ShortestPath -GraphJson $erg -StartNode V_CRM_ENDCUSTOMER -EndNode V_CRM_BUYER -ShowDirection

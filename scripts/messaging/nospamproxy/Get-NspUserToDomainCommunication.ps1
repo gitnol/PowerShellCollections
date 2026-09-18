@@ -1,4 +1,27 @@
-﻿# Parameter: Start- und Enddatum für den Abfragezeitraum
+﻿<#
+.SYNOPSIS
+    Wertet aus NoSpamProxy aus, welche Benutzer mit welchen externen Domaenen
+    E-Mails austauschen.
+
+.DESCRIPTION
+    Fragt ueber Get-NspMessageTrack die Nachrichtenverfolgung fuer einen
+    Zeitraum ab und aggregiert sie zu Paaren aus internem Benutzer und
+    externer Domaene.
+
+    Beantwortet Fragen wie: mit wem kommuniziert diese Abteilung ueberhaupt,
+    und welche Partnerdomaenen kaemen fuer eine Transportverschluesselung in
+    Frage.
+
+.NOTES
+    Der Zeitraum steht als $StartDate und $EndDate am Dateianfang; Vorgabe
+    sind die letzten 24 Stunden, Bausteine fuer "letzter Monat" liegen
+    daneben.
+
+    Braucht die NoSpamProxy-PowerShell-Erweiterung und eine bestehende
+    Verbindung ueber Connect-Nsp.
+#>
+
+# Parameter: Start- und Enddatum für den Abfragezeitraum
 $StartDate = (get-date).AddDays(-1)
 $EndDate = (get-date)
 

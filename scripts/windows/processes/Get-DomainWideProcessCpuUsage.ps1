@@ -1,3 +1,23 @@
+<#
+.SYNOPSIS
+    Sammelt von allen Domaenenrechnern die Prozesse mit der hoechsten
+    CPU-Last.
+
+.DESCRIPTION
+    Fragt per Invoke-Command parallel die Top-X-Prozesse je Rechner ab und
+    fuehrt sie in einer Tabelle zusammen. Sortiert man nach Prozessname oder
+    CPU-Zeit, faellt auf, wo ein Prozess flottenweit ungewoehnlich viel
+    verbraucht - etwa ein hakender Agent.
+
+.NOTES
+    Erklaertermassen ein Proof of Concept, kein fertiges Werkzeug.
+    Erfordert PowerShell 7 und Administrationsrechte auf den Zielrechnern.
+
+    Die Messung ist eine Momentaufnahme: CPU-Zeit ist kumuliert seit
+    Prozessstart, ein lange laufender Prozess sieht dadurch teurer aus als
+    ein kurz aufflammender.
+#>
+
 # This script queries remotely the top X process and collect these. 
 # You get a view and maybe see processes which have unnormal high cpu usage on the computers
 # just sort by the process name and / or the cpu usage

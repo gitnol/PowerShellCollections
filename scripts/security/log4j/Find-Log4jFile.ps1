@@ -1,4 +1,28 @@
-﻿param (
+﻿<#
+.SYNOPSIS
+    Durchsucht Datentraeger nach log4j-Bibliotheken mit der
+    JndiLookup-Klasse - auch in verschachtelten Archiven.
+
+.DESCRIPTION
+    Sucht nach JAR- und WAR-Dateien und prueft deren Inhalt auf
+    JndiLookup.class, also den fuer Log4Shell (CVE-2021-44228)
+    ausschlaggebenden Bestandteil. Archive werden ueber 7-Zip geoeffnet, auch
+    ineinander geschachtelte.
+
+    Allow- und Denylist erlauben es, bekannte und gepruefte Fundstellen bei
+    Wiederholungslaeufen auszublenden. Mit -Loeschen wird die betroffene
+    Klasse aus dem Archiv entfernt - der von Apache empfohlene Notbehelf,
+    wenn ein Update nicht moeglich ist.
+
+.NOTES
+    Braucht 7z.exe; erwartet wird sie neben dem Skript ($PSScriptRoot).
+
+    -Loeschen veraendert Archive an Ort und Stelle. Vorher sichern und mit
+    der Anwendung testen - manche Programme pruefen ihre JAR-Dateien auf
+    Unversehrtheit.
+#>
+
+param (
     [string]$Suchmuster = "*jndilookup.class*",
     [string]$AusgabePfad = "C:\install\log4j_$($env:COMPUTERNAME).txt",
     [string]$PfadZu7z = "$PSScriptRoot\7z.exe",

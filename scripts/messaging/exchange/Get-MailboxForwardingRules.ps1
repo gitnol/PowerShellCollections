@@ -1,3 +1,25 @@
+<#
+.SYNOPSIS
+    Findet Postfaecher mit eingerichteter Weiterleitung nach aussen.
+
+.DESCRIPTION
+    Baut eine Remote-Session zum Exchange-Server auf und prueft alle
+    Postfaecher auf ForwardingAddress und ForwardingSmtpAddress.
+
+    Das ist eine Standardpruefung nach einem Verdacht auf Kontouebernahme:
+    eine unbemerkt eingerichtete Weiterleitung ist der uebliche Weg, um
+    dauerhaft mitzulesen, auch nachdem das Passwort geaendert wurde.
+
+.NOTES
+    Die Session wird am Ende wieder abgebaut - sonst laeuft man in das
+    Verbindungslimit von Exchange.
+
+    Ruft Write-Log auf, ohne es zu definieren: dafuer muss eine der
+    Nachbardateien im selben Ordner dot-gesourct sein. Siehe docs/BACKLOG.md.
+
+    Der Exchange-Server steht als Variable $exchserver am Dateianfang.
+#>
+
 $credential = (Get-Credential)
 $exchserver = "myexchange.mycorp.local"
 

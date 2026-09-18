@@ -14,14 +14,14 @@
     docs/BACKLOG.md.
 
 .NOTES
-    Importiert api-wrapper/MS.PS.Lib.psd1 relativ zum Skriptverzeichnis und
+    Importiert den MailStore-Wrapper aus third-party/ und
     laedt beim Laden bereits das ActiveDirectory-Modul.
 #>
 
 $myScriptpath = if ($PSScriptRoot) { $PSScriptRoot }else { (Get-Location) }
 
 Import-Module ActiveDirectory
-Import-Module "$myScriptpath\api-wrapper\MS.PS.Lib.psd1"
+Import-Module "$myScriptpath\..\..\..\third-party\MailStore-PowerShell-API-Wrapper\api-wrapper\MS.PS.Lib.psd1"
 
 # # ---------------------------------------------------------------- #
 # # Private Methods                                                  #

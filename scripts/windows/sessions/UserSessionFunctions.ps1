@@ -1,3 +1,20 @@
+<#
+.SYNOPSIS
+    Funktionsbibliothek zum Auflisten und Abmelden von Remote-Sitzungen.
+
+.DESCRIPTION
+    Get-UserSessions liest die Sitzungen eines oder mehrerer Server aus,
+    Remove-UserSessions meldet sie ab. Ohne -all trifft es nur getrennte
+    Sitzungen; mit -all auch die verbundenen.
+
+    Bibliothek, kein ausfuehrbares Skript: per Dot-Sourcing laden.
+
+.NOTES
+    ACHTUNG: Remove-UserSessions meldet Benutzer ohne Vorwarnung ab.
+    Ungespeicherte Arbeit geht verloren. Vorher immer Get-UserSessions
+    ansehen - besonders vor dem Einsatz von -all.
+#>
+
 # This Script is able to get remote user sessions information and is able to log off the (discconnected | connected) remote user sessions
 function Remove-UserSessions {
     param (

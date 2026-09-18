@@ -1,4 +1,27 @@
-﻿function Write-Log {
+﻿<#
+.SYNOPSIS
+    Richtet Schattenkopien fuer das Laufwerk C: ein, inklusive
+    Speicherzuweisung und Zeitplan.
+
+.DESCRIPTION
+    Legt die Schattenkopie-Konfiguration fuer C: an, setzt die maximale
+    Groesse des Schattenspeichers und protokolliert die Schritte nach
+    C:\Install\shadowcopy.log.
+
+    Schattenkopien geben Benutzern ueber "Vorgaengerversionen" die
+    Moeglichkeit, geloeschte oder ueberschriebene Dateien selbst
+    wiederherzustellen - ohne Anfrage an die IT.
+
+.NOTES
+    Erfordert administrative Rechte. Schattenkopien sind KEIN Ersatz fuer ein
+    Backup: sie liegen auf demselben Datentraeger und sind bei dessen Ausfall
+    ebenfalls weg.
+
+    Die Datei definiert eine eigene Write-Log-Funktion; dieser Name wird im
+    Repo von mehreren Dateien unabhaengig voneinander belegt.
+#>
+
+function Write-Log {
     param([string]$Message)
     $logPath = "C:\Install"
     $logFile = "$logPath\shadowcopy.log"

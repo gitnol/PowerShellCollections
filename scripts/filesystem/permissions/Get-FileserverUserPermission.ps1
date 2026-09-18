@@ -1,3 +1,23 @@
+<#
+.SYNOPSIS
+    Findet auf einem Dateiserver Ordner, auf denen einzelne Benutzer statt
+    Gruppen berechtigt sind.
+
+.DESCRIPTION
+    Liest einmal alle AD-Benutzer-SIDs in eine Hashtable und prueft dann die
+    ACLs der Verzeichnisse dagegen. Gemeldet wird, wo ein Eintrag auf eine
+    Benutzer-SID zeigt statt auf eine Gruppe.
+
+    Einzelberechtigungen sind die uebliche Ursache dafuer, dass Rechte beim
+    Abteilungswechsel nicht mitwandern und beim Austritt nicht entzogen
+    werden.
+
+.NOTES
+    Der Abgleich ueber eine vorab gefuellte Hashtable vermeidet einen
+    Get-ADUser-Aufruf je ACL-Eintrag - bei grossen Freigaben ist das der
+    Unterschied zwischen Minuten und Stunden.
+#>
+
 Import-Module ActiveDirectory
 # 1x alle Benutzer-Accounts in Hashtable
 $UserAccounts = @{}

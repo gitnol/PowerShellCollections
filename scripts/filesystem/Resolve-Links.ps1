@@ -1,4 +1,25 @@
-﻿# This function searches for symlinks / junction points and hardlinks in a folder and subfolder.
+﻿<#
+.SYNOPSIS
+    Findet Symlinks, Junctions und Hardlinks in einem Verzeichnisbaum und
+    loest ihre Ziele auf.
+
+.DESCRIPTION
+    Durchsucht Ordner und Unterordner nach Verknuepfungen auf Dateisystemebene
+    und gibt je Fund Typ und Ziel aus.
+
+    Relevant vor Umzuegen und Aufraeumaktionen: eine Junction, die anderswohin
+    zeigt, laesst ein Verzeichnis groesser aussehen als es ist - und ein
+    rekursives Loeschen kann ueber sie hinauslaufen.
+
+.NOTES
+    Erfordert administrative Rechte, sonst laesst sich das Ziel nicht
+    aufloesen.
+
+    Beschraenkt auf PowerShell 7 und neuer: in 5.x verhindert ein Fehler das
+    Aufloesen von Symlink-Zielen.
+#>
+
+# This function searches for symlinks / junction points and hardlinks in a folder and subfolder.
 # Administrative priviledges are needed. Otherwise the target can not be resolved.
 # Due to a bug in Powershell 5.x it is not possible to resolve the target of a symlink. Therefore the execution is being limited to Powershell versions 7.x and above
 function Resolve-Links {

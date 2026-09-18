@@ -1,4 +1,22 @@
-﻿$volume = Get-CimInstance -Query "SELECT * FROM Win32_Volume WHERE DriveLetter = 'C:' AND FileSystem = 'NTFS'"
+﻿<#
+.SYNOPSIS
+    Zeigt die vorhandenen Schattenkopien des Laufwerks C: mit Zeitpunkt und
+    Speicherverbrauch.
+
+.DESCRIPTION
+    Ermittelt ueber Win32_Volume die Geraete-ID von C: und listet die
+    zugehoerigen Eintraege aus Win32_ShadowCopy auf. Convert-WmiDateTime
+    rechnet die WMI-Zeitstempel in lesbare Datumsangaben um.
+
+    Beantwortet die beiden praktischen Fragen: bis wann reichen die
+    Vorgaengerversionen zurueck, und wie viel Platz kostet das.
+
+.NOTES
+    Reine Abfrage, veraendert nichts. Das Gegenstueck zum Einrichten ist
+    Enable-ShadowCopy.ps1 im selben Ordner.
+#>
+
+$volume = Get-CimInstance -Query "SELECT * FROM Win32_Volume WHERE DriveLetter = 'C:' AND FileSystem = 'NTFS'"
 $deviceID = $volume.DeviceID
 
 

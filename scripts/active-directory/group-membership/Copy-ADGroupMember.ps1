@@ -1,4 +1,20 @@
-﻿function Copy-ADGroupMembers {
+﻿<#
+.SYNOPSIS
+    Kopiert alle Mitglieder einer AD-Gruppe in eine andere.
+
+.DESCRIPTION
+    Liest die Mitglieder der Quellgruppe rekursiv aus und fuegt sie der
+    Zielgruppe hinzu. Bereits vorhandene Mitglieder werden uebersprungen.
+
+.NOTES
+    Rekursiv heisst: verschachtelte Gruppen werden aufgeloest, es landen also
+    die einzelnen Konten in der Zielgruppe, nicht die Untergruppen. Wer die
+    Verschachtelung erhalten will, darf -Recursive nicht verwenden.
+
+    Die Funktion heisst Copy-ADGroupMembers (Plural).
+#>
+
+function Copy-ADGroupMembers {
     param (
         [Parameter(Mandatory = $true)]
         [string]$SourceGroup,

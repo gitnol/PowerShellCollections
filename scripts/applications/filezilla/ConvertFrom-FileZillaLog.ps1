@@ -1,4 +1,21 @@
-﻿function Parse-FileZillaLog {
+﻿<#
+.SYNOPSIS
+    Zerlegt ein FileZilla-Server-Logfile in auswertbare Objekte.
+
+.DESCRIPTION
+    Liest das Log zeilenweise und extrahiert Zeitstempel, Sitzungs-ID,
+    Benutzer, Quell-IP und Befehl. Aus dem reinen Text wird damit etwas, das
+    sich sortieren, gruppieren und filtern laesst.
+
+    Die Auswertung darauf - wer hat sich wann wie oft angemeldet - macht
+    Get-FtpLoginSummary.ps1 im selben Ordner.
+
+.NOTES
+    Erwartet das Standard-Logformat des FileZilla Servers. Bei geaendertem
+    Format greifen die Muster nicht mehr.
+#>
+
+function Parse-FileZillaLog {
     param (
         [string]$LogPath
     )

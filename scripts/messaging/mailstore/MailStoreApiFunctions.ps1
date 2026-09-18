@@ -13,7 +13,7 @@
 
 .NOTES
     Reine Definitionsdatei, per Dot-Sourcing laden. Die Verbindung selbst
-    stellt api-wrapper/MS.PS.Lib.psd1 her.
+    stellt der MailStore-Wrapper unter third-party/ her.
 #>
 
 function Attach-MSStore {

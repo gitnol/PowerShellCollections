@@ -1,4 +1,24 @@
-﻿Import-Module GroupPolicy # If this does not work with Powershell 7, try it as admin / elevated
+﻿<#
+.SYNOPSIS
+    Liest saemtliche Einstellungen aus einem GPO-Report aus.
+
+.DESCRIPTION
+    Zusammen mit `Get-GPO -All` laesst sich damit die gesamte Domaene nach
+    einer bestimmten Einstellung durchsuchen - ohne fuer jeden Rechner oder
+    Benutzer ein GPResult erzeugen zu muessen. Nuetzlich, wenn viele GPOs
+    existieren und unklar ist, in welcher eine Einstellung gesetzt wurde.
+
+    Version 5.0 arbeitet hybrid: ADMX-Richtlinien (`<Policy>`-Knoten) werden
+    zusammengefasst, alle uebrigen Knoten - Preferences, Security Settings
+    und anderes - rekursiv generisch ausgewertet. Damit faellt keine
+    Einstellung des Reports durchs Raster.
+
+.NOTES
+    Benoetigt das Modul GroupPolicy. Unter PowerShell 7 laedt es unter
+    Umstaenden nur mit erhoehten Rechten.
+#>
+
+Import-Module GroupPolicy # If this does not work with Powershell 7, try it as admin / elevated
 # This function gets all settings from a GPO. together with "Get-GPO -All"  it is possible to search for settings within the whole domain
 # When you have plenty of GPOs and have no clue which setting is set within which GPO. (without generating an GPResultset for a Computer or user on demand)
  

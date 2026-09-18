@@ -1,3 +1,22 @@
+<#
+.SYNOPSIS
+    Liest die Installationshistorie von Windows-Updates aus dem
+    Systemprotokoll.
+
+.DESCRIPTION
+    Filtert das Systemprotokoll auf Eintraege des Anbieters
+    Microsoft-Windows-WindowsUpdateClient und gibt Zeitpunkt, Update-Titel
+    und Ergebnis aus.
+
+    Anders als Get-HotFix erfasst das auch Updates, die nicht als
+    QFE-Eintrag hinterlegt sind - etwa Definitionsupdates und
+    Funktionsupdates.
+
+.NOTES
+    Reicht nur so weit zurueck, wie das Systemprotokoll aufbewahrt wird.
+    Nach einem Leeren des Protokolls ist die Historie weg.
+#>
+
 function Get-InstalledUpdatesFromEventLog {
     $filterXml = @'
     <QueryList>

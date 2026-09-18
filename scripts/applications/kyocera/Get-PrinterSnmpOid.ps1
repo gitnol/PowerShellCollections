@@ -1,3 +1,20 @@
+<#
+.SYNOPSIS
+    Fragt einen einzelnen SNMP-Wert von einem Netzwerkdrucker ab.
+
+.DESCRIPTION
+    Liest ueber SNMP die angegebene OID von einem Geraet. Gedacht fuer
+    Kyocera-Geraete, funktioniert aber mit jedem SNMP-faehigen Drucker -
+    typischerweise fuer Toner- und Zaehlerstaende.
+
+.NOTES
+    Eine Sammlung brauchbarer Kyocera-OIDs findet sich hier:
+    https://github.com/fusioninventory/fusioninventory-agent/issues/638
+
+    Auf dem Geraet muss SNMP aktiviert sein und die Community-Zeichenfolge
+    passen. Viele Geraete liefern per Vorgabe nur lesend und nur ueber v1/v2c.
+#>
+
 # See also here for some kyocera OIDs 
 # https://github.com/fusioninventory/fusioninventory-agent/issues/638
 

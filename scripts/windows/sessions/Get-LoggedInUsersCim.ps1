@@ -1,3 +1,24 @@
+<#
+.SYNOPSIS
+    Ermittelt die angemeldeten Benutzer mehrerer Rechner ueber CIM-Sessions
+    und unterscheidet Konsole von RDP.
+
+.DESCRIPTION
+    Wertet die laufenden explorer.exe-Prozesse aus: je interaktiver Sitzung
+    gibt es genau einen. Ueber die Sitzungs-ID laesst sich unterscheiden, ob
+    jemand lokal an der Konsole oder per RemoteDesktop arbeitet.
+
+    Diese Fassung baut zuerst eine CIM-Session mit Anmeldedaten auf. Die
+    schlankere Alternative ohne vorherige Sessionanlage ist
+    Get-LoggedInUsersInvokeCommand.ps1 im selben Ordner - beide existieren
+    absichtlich nebeneinander.
+
+.NOTES
+    Hintergrund fuer die zwei Varianten ist ein Fehler in PowerShell 7
+    (geprueft mit 7.4.4):
+    https://github.com/PowerShell/PowerShell/issues/20829
+#>
+
 # Bug in Powershell for Version 7 (checked on Version 7.4.4) : https://github.com/PowerShell/PowerShell/issues/20829
 # This function returns the logged in users on multiple remote computers and uses the process information of the explorer.exe
 # It can differentiate between Console and RDP Sessions.

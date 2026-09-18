@@ -1,3 +1,25 @@
+<#
+.SYNOPSIS
+    Arbeitskopie generierter MailStore-API-Funktionen - nicht der gepflegte
+    Stand.
+
+.DESCRIPTION
+    Aeltere Ausgabe von New-MailStoreApiFunctionReference.ps1 mit einem
+    Teil der Administrations-API. Hiess frueher test.ps1.
+
+    Der vollstaendige und gepflegte Bestand ist MailStoreApiFunctions.ps1 im
+    selben Ordner. Diese Datei bleibt als Arbeitsstand liegen; wer die API
+    benutzen will, nimmt die andere.
+
+.NOTES
+    Die Funktionsnamen folgen der API-Benennung von MailStore und verwenden
+    deshalb nicht freigegebene Verben (Create-, Compact-, Cancel-). Das ist
+    hier Absicht: sie bilden die API-Methoden eins zu eins ab.
+
+    Zur Vorgeschichte des Syntaxfehlers siehe den Hinweisblock unter diesem
+    Kommentar und docs/BACKLOG.md.
+#>
+
 # HINWEIS: Diese Datei ist eine Arbeitskopie (frueher test.ps1) mit
 # MailStore-API-Funktionen, erzeugt von New-MailStoreApiFunctionReference.ps1.
 # Sie hat bis 2026-09-18 nicht geparst: der Generator hatte bei

@@ -1,3 +1,23 @@
+<#
+.SYNOPSIS
+    Ermittelt zu jedem physischen Datentraeger eines Rechners Bustyp,
+    Medientyp und Groesse.
+
+.DESCRIPTION
+    Uebersetzt die numerischen BusType-Werte aus Get-PhysicalDisk in
+    lesbare Bezeichnungen (NVMe, SATA, SAS, USB, RAID und weitere) und gibt
+    sie zusammen mit dem Medientyp aus.
+
+    Damit laesst sich flottenweit beantworten, welche Rechner noch auf
+    rotierenden Platten laufen oder welche per USB angebundene Datentraeger
+    haben.
+
+.NOTES
+    Virtuelle Maschinen melden je nach Hypervisor 'Virtual' oder den Bustyp
+    des darunterliegenden Speichers - der Medientyp ist dort wenig
+    aussagekraeftig.
+#>
+
 function Get-DiskTypes {
     param (
         [Parameter(Mandatory = $false, Position = 0)]

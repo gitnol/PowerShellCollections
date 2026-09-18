@@ -1,4 +1,24 @@
-﻿function Get-ADComputerLastLogon {
+﻿<#
+.SYNOPSIS
+    Ermittelt je AD-Computer die letzte Anmeldung ueber alle Domain
+    Controller hinweg.
+
+.DESCRIPTION
+    Das Attribut lastLogon wird nicht repliziert: jeder Domain Controller
+    fuehrt seinen eigenen Wert. Wer nur einen DC fragt, bekommt ein zu altes
+    Datum. Das Skript fragt deshalb alle DCs ab und behaelt je Computer den
+    juengsten Wert.
+
+    Mit ausgegeben werden Betriebssystem, Enabled-Status, Beschreibung,
+    pwdLastSet und - sofern vorhanden - das LAPS-Passwort aus
+    ms-Mcs-AdmPwd.
+
+.NOTES
+    Das LAPS-Attribut ist nur fuer Konten sichtbar, die dafuer berechtigt
+    sind; sonst bleibt die Spalte leer.
+#>
+
+function Get-ADComputerLastLogon {
     [CmdletBinding()]
     param(
         [string]$Filter = '*'

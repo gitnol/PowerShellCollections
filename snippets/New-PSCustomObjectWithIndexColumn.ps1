@@ -1,3 +1,25 @@
+<#
+.SYNOPSIS
+    Ergaenzt ein PSCustomObject-Array um eine fortlaufende Indexspalte - drei
+    Wege im Vergleich.
+
+.DESCRIPTION
+    Zeigt denselben Vorgang in drei Ausfuehrungen:
+
+      Update-...Slow    ueber Select-Object mit berechneter Eigenschaft,
+                        bequem, aber langsam
+      Update-...Fast    ueber Add-Member, deutlich schneller
+      New-...           erzeugt eine Kopie, statt das Original zu veraendern
+
+    Codebeispiel zum Nachschlagen, kein Betriebswerkzeug.
+
+.NOTES
+    ACHTUNG bei den Update-Varianten: sie veraendern das uebergebene Objekt.
+    In PowerShell werden PSCustomObjects als Referenz weitergereicht - das
+    Original in der aufrufenden Variablen aendert sich mit. Wer das nicht
+    will, nimmt New-PSCustomObjectWithIndexColumn.
+#>
+
 function Update-PSCustomObjectWithIndexColumnSlow {
     # DO NOT USE THIS FUNCTION, IF YOU DON'T WANT YOUR SOURCE PSCUSUTOMOBJECT!!!
     # This one is slow.

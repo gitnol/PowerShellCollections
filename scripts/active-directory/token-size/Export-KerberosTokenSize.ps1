@@ -1,3 +1,27 @@
+<#
+.SYNOPSIS
+    Zaehlt je Domaenenbenutzer die Gruppenmitgliedschaften und exportiert die
+    geschaetzte Kerberos-Tokengroesse.
+
+.DESCRIPTION
+    Ermittelt die Tokengruppen ueber LDAP, rechnet daraus die zu erwartende
+    Ticketgroesse aus und schreibt das Ergebnis mit Trennzeichen in eine
+    Datei. Nicht ueber die SID aufloesbare Gruppen werden pauschal mit 40
+    Byte angesetzt.
+
+    Zu grosse Tokens aeussern sich als Anmeldefehler oder als HTTP 400 an
+    IIS-Anwendungen, weil der Kerberos-Header die Puffergroesse
+    ueberschreitet.
+
+.NOTES
+    Aelterer Bestand, Versionsstand 1.7 von 2017, urspruenglich von 2012.
+    Eine Herkunftsangabe fehlt - ob eigene Entwicklung oder uebernommen,
+    liess sich nicht klaeren.
+
+    Dieselbe Aufgabe loest third-party/Get-TokenSizeReport/ mit belegter
+    Herkunft und ausfuehrlicherem Report.
+#>
+
 # collects all Users of the local domain and exports their groupmember count and estimated ticketsize
 #
 #

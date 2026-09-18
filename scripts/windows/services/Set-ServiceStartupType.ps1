@@ -1,3 +1,18 @@
+<#
+.SYNOPSIS
+    Setzt den Starttyp eines Dienstes, inklusive 'Automatisch (verzoegert)'.
+
+.DESCRIPTION
+    Set-Service kennt den verzoegerten Autostart nicht - dafuer braucht es
+    `sc.exe config ... start= delayed-auto`. Diese Funktion kapselt beides
+    hinter einer Schnittstelle und akzeptiert Kurzformen: m, a, ad, d.
+
+.NOTES
+    Erfordert administrative Rechte. Der Starttyp sagt nichts ueber den
+    aktuellen Zustand - ein auf Disabled gesetzter Dienst laeuft weiter, bis
+    er beendet wird.
+#>
+
 function Set-ServiceStartupType {
     param (
         [string]$ServiceName,

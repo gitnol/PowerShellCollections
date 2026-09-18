@@ -1,4 +1,23 @@
-﻿# This script looks for folder permissions recursively and lists those ones, which have (non inherited) single user permissions
+﻿<#
+.SYNOPSIS
+    Listet rekursiv die Ordner auf, die nicht vererbte Einzelberechtigungen
+    tragen.
+
+.DESCRIPTION
+    Geht einen Verzeichnisbaum bis zur angegebenen Tiefe durch und meldet
+    Berechtigungen, die direkt gesetzt und nicht vom uebergeordneten Ordner
+    geerbt sind. Genau diese Stellen brechen ein sauberes Rechtekonzept auf.
+
+    Get-FolderPermissions puffert die AD-Abfragen; die daneben liegende
+    Get-FolderPermissionsOLD tut das nicht und ist entsprechend langsamer -
+    sie bleibt als Vergleich erhalten.
+
+.NOTES
+    Die Vorgabetiefe ist 2. Ein ganzer Dateiserver ohne Tiefenbegrenzung
+    laeuft sehr lange.
+#>
+
+# This script looks for folder permissions recursively and lists those ones, which have (non inherited) single user permissions
 # The first function Get-FolderPermissions uses a cache so that Get-ADUser is not being fired all the time.
 # The second function Get-FolderPermissionsOLD has no cache functionality... 
 

@@ -1,4 +1,24 @@
-﻿Import-Module ActiveDirectory
+﻿<#
+.SYNOPSIS
+    Sammelt von allen Domaenenrechnern die geplanten Aufgaben und Dienste,
+    die unter einem Domaenenkonto laufen.
+
+.DESCRIPTION
+    Fragt parallel jeden erreichbaren Rechner ab und filtert auf
+    Ausfuehrungskonten der eigenen Domaene. Damit wird sichtbar, wo ueberall
+    ein Dienstkonto hinterlegt ist.
+
+    Der praktische Anlass ist meist eine Passwortaenderung: bevor ein
+    Dienstkonto ein neues Passwort bekommt, muss man wissen, welche Dienste
+    und Aufgaben daran haengen.
+
+.NOTES
+    Fragt beim Start nach Anmeldedaten mit administrativen Rechten auf den
+    Zielrechnern. Domaenenfilter und Grenzwerte stehen als Variablen am
+    Dateianfang.
+#>
+
+Import-Module ActiveDirectory
 # make sure, that you have sufficient rights on the target machine
 $credentials = Get-Credential -Message "Input Credentials with administrative priviledges on all PCs"
 

@@ -1,3 +1,19 @@
+<#
+.SYNOPSIS
+    Listet alle aktiven AD-Benutzer mit ihrem hinterlegten Vorgesetzten auf.
+
+.DESCRIPTION
+    Liest die aktiven Konten eines SearchBase und loest das Attribut Manager
+    vom Distinguished Name in einen lesbaren Namen auf. Konten ohne
+    hinterlegten Vorgesetzten fallen dadurch auf.
+
+    Nuetzlich fuer Rezertifizierungen und ueberall dort, wo Freigaben an den
+    Vorgesetzten gehen sollen.
+
+.NOTES
+    SearchBase und SearchScope stehen als Variablen am Dateianfang.
+#>
+
 # Import the Active Directory module
 Import-Module ActiveDirectory
 

@@ -1,4 +1,26 @@
-﻿[CmdletBinding()]
+﻿<#
+.SYNOPSIS
+    Setzt die TeamViewer-Zugriffssteuerung auf mehreren Rechnern gleichzeitig.
+
+.DESCRIPTION
+    Prueft die Rechner parallel auf Erreichbarkeit und setzt anschliessend den
+    AccessControlType in der Registry:
+
+        0 = Vollzugriff
+        1 = Bestaetigung durch den Benutzer erforderlich
+        2 = Nur Ansicht
+        3 = Benutzerdefiniert
+
+.NOTES
+    Wirkt erst nach einem Neustart des TeamViewer-Dienstes auf dem
+    Zielrechner.
+
+    Die Datei definiert ihre eigene Kopie von Test-ConnectionInParallel -
+    dieselbe Funktion gibt es im Repo noch dreimal. Ein gemeinsames
+    Hilfsmodul waere besser, siehe docs/BACKLOG.md.
+#>
+
+[CmdletBinding()]
 param (
     [Parameter(Mandatory = $true, ValueFromPipeline = $true, HelpMessage = "Liste von Computernamen oder DNSHostNames.")]
     [string[]]$ComputerNames,

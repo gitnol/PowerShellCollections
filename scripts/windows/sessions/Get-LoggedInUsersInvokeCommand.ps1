@@ -1,3 +1,23 @@
+<#
+.SYNOPSIS
+    Ermittelt die angemeldeten Benutzer mehrerer Rechner per Invoke-Command
+    und unterscheidet Konsole von RDP.
+
+.DESCRIPTION
+    Gleiche Aufgabe wie Get-LoggedInUsersCim.ps1, aber ohne vorher eine
+    CIM-Session mit Anmeldedaten aufzubauen - der Scriptblock laeuft direkt
+    auf dem Zielrechner. Dadurch ist der Weg kuerzer und weniger
+    fehleranfaellig.
+
+    Ausgewertet werden die laufenden explorer.exe-Prozesse: je interaktiver
+    Sitzung genau einer, die Sitzungs-ID trennt Konsole von RemoteDesktop.
+
+.NOTES
+    Beide Varianten sind Absicht, keine konkurrierenden Versionsstaende.
+    Hintergrund ist ein Fehler in PowerShell 7 (geprueft mit 7.4.4):
+    https://github.com/PowerShell/PowerShell/issues/20829
+#>
+
 
 # Bug in Powershell for Version 7 (checked on Version 7.4.4) : https://github.com/PowerShell/PowerShell/issues/20829
 

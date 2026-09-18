@@ -1,4 +1,21 @@
-﻿function Test-LdapPorts {
+﻿<#
+.SYNOPSIS
+    Prueft, ob LDAP (389) und LDAPS (636) auf einem Ziel erreichbar sind, und
+    testet zusaetzlich einen echten LDAPS-Bind.
+
+.DESCRIPTION
+    Der Portscan allein sagt wenig: ein offener Port 636 heisst nicht, dass
+    ein Bind gelingt - das Zertifikat kann abgelaufen oder von einer nicht
+    vertrauten CA ausgestellt sein. Test-LdapsBind prueft deshalb zusaetzlich
+    die tatsaechliche Anmeldung.
+
+.NOTES
+    Der Portteil ruft nmap auf; erwartet wird es unter
+    C:\Program Files (x86)\Nmap\nmap.exe. Ohne nmap laeuft nur der
+    Bind-Test.
+#>
+
+function Test-LdapPorts {
     param(
         [string]$TargetIP              # Ziel-IP-Adresse
     )

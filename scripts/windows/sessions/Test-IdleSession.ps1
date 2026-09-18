@@ -1,4 +1,29 @@
-﻿# I have added this script to reddit on 20240803
+﻿<#
+.SYNOPSIS
+    Stellt fest, ob auf einem Rechner alle Sitzungen im Leerlauf sind - ohne
+    GetLastInputInfo.
+
+.DESCRIPTION
+    GetLastInputInfo gilt immer nur fuer die eigene Sitzung. Dieses Skript
+    nimmt deshalb einen Umweg: der Prozess csrss.exe existiert je Sitzung
+    einmal, und sein ReadOperationCount steigt bei Tastatur- und
+    Mauseingaben.
+
+    Gemessen wird zu zwei Zeitpunkten. Hat sich kein Zaehler veraendert,
+    waren ALLE Sitzungen im Leerlauf; hat sich einer veraendert, war
+    mindestens eine aktiv.
+
+.NOTES
+    Der Ansatz sagt nicht, WELCHE Sitzung aktiv war - nur ob ueberhaupt eine
+    es war. Fuer die Frage "darf dieser Rechner jetzt neu starten?" reicht
+    das.
+
+    Vom Autor veroeffentlicht am 2024-08-03:
+    https://www.reddit.com/r/PowerShell/comments/8r56tr/getting_idle_time_for_logged_on_domain_users/
+    https://stackoverflow.com/questions/1219050/getlastinputinfo-is-user-specific-is-there-something-similar-which-gives-machi/78827409#78827409
+#>
+
+# I have added this script to reddit on 20240803
 # https://www.reddit.com/r/PowerShell/comments/8r56tr/getting_idle_time_for_logged_on_domain_users/
 
 # Also added it as answer here:

@@ -1,4 +1,21 @@
-﻿#Requires -RunAsAdministrator
+﻿<#
+.SYNOPSIS
+    Legt die Eventlog-Quelle 'ProcessMonitorService' im Anwendungsprotokoll
+    an - schlanke Variante.
+
+.DESCRIPTION
+    Prueft, ob die Quelle schon existiert, legt sie sonst an und schreibt
+    einen Testeintrag.
+
+    Die ausfuehrlichere Fassung mit Pruefungen und Rueckmeldungen ist
+    New-EventLogSource.ps1 im selben Ordner.
+
+.NOTES
+    Erfordert administrative Rechte: das Anlegen einer Eventlog-Quelle
+    schreibt in die Registry unter HKLM.
+#>
+
+#Requires -RunAsAdministrator
 
 # Einfaches PowerShell Script zum Erstellen der Event Log-Quelle
 # Muss als Administrator ausgeführt werden!

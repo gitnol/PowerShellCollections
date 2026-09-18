@@ -1,4 +1,26 @@
-﻿function New-CShadowCopyLink {
+﻿<#
+.SYNOPSIS
+    Erzeugt eine Schattenkopie von C: und haengt sie als begehbaren Ordner
+    ein.
+
+.DESCRIPTION
+    Legt spontan eine Schattenkopie an und verknuepft sie ueber einen
+    symbolischen Link (per Vorgabe C:\vsslink). Danach laesst sich der
+    eingefrorene Zustand des Laufwerks wie ein normales Verzeichnis
+    durchsuchen.
+
+    Nuetzlich, um an Dateien zu kommen, die gerade gesperrt sind, oder um
+    einen Stand vor einer Aenderung zu sichern.
+
+.NOTES
+    Erfordert administrative Rechte. Besteht der Linkpfad bereits, bricht das
+    Skript ab, statt ihn zu ueberschreiben.
+
+    Link und Schattenkopie nach Gebrauch wieder entfernen - sonst bleibt
+    Speicher belegt.
+#>
+
+function New-CShadowCopyLink {
     param(
         [string]$Volume = "C:\",
         [string]$LinkPath = "C:\vsslink"

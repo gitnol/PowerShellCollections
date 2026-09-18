@@ -1,3 +1,23 @@
+<#
+.SYNOPSIS
+    Liest Hersteller, Modell, Seriennummer und Anschlussart der an einem
+    Rechner angeschlossenen Monitore aus.
+
+.DESCRIPTION
+    Wertet die WMI-Klassen WmiMonitorID und WmiMonitorConnectionParams im
+    Namespace root\wmi aus. Die Angaben stammen aus dem EDID-Block des
+    Monitors, sind also die Herstellerdaten und nicht das, was Windows in der
+    Geraeteverwaltung anzeigt.
+
+    Nuetzlich fuer Inventarisierung und Garantiefaelle - die Seriennummer
+    steht sonst nur auf einem Aufkleber an der Rueckseite.
+
+.NOTES
+    Braucht WMI-Zugriff auf den Zielrechner. Manche Monitore, besonders
+    aeltere und ueber Adapter angeschlossene, liefern unvollstaendige oder
+    leere EDID-Daten.
+#>
+
 function Get-ClientMonitorEDIDData {
     param (
         [string]$Computer = "localhost"

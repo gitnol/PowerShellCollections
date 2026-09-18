@@ -1,4 +1,30 @@
-﻿
+﻿<#
+.SYNOPSIS
+    Liest die MAC-Adresstabelle von Aruba-Switches aus und loest die
+    Hersteller auf.
+
+.DESCRIPTION
+    Meldet sich an der REST-Schnittstelle der Switches an, holt die
+    MAC-Adresstabelle und ergaenzt je Eintrag den Hersteller anhand des
+    OUI-Praefixes. Die MAC-Adressen werden zusaetzlich in den gaengigen
+    Schreibweisen ausgegeben.
+
+    Beantwortet die Frage, was an welchem Port haengt - ohne im Serverraum
+    Kabel zu verfolgen.
+
+.NOTES
+    Braucht die Herstellerliste von Wireshark unter C:\install\manuf.json:
+
+        iwr https://www.wireshark.org/json/manuf.json -OutFile C:\install\manuf.json
+
+    Die Suche prueft drei Praefixlaengen (9, 7 und 6 Zeichen), weil OUIs
+    unterschiedlich lang zugeteilt werden, und arbeitet durchgehend in
+    Kleinschreibung - beides hatte der Vorgaengerstand nicht.
+
+    Benoetigt das Modul PowerArubaSW.
+#>
+
+
 # iwr https://www.wireshark.org/json/manuf.json -OutFile C:\install\manuf.json
 $global:ouilist = (Get-Content -LiteralPath "C:\install\manuf.json" | ConvertFrom-Json -AsHashtable -Depth 10).data
 

@@ -1,4 +1,21 @@
-﻿function Compress-FilesByMonth {
+﻿<#
+.SYNOPSIS
+    Packt Dateien nach Entstehungsmonat in je ein ZIP-Archiv.
+
+.DESCRIPTION
+    Gruppiert die Dateien eines Quellverzeichnisses nach Jahr und Monat und
+    legt je Gruppe ein Archiv im Zielverzeichnis an. Gedacht fuer
+    Verzeichnisse, die durch taegliche Ausgaben zulaufen - Logs, Exporte,
+    Scans.
+
+.NOTES
+    -Confirm ist ein Pflichtparameter vom Typ bool, nicht der uebliche
+    PowerShell-Schalter: erst mit $true werden die Quelldateien nach dem
+    Packen geloescht. Zuerst mit $false laufen lassen und das Ergebnis
+    ansehen.
+#>
+
+function Compress-FilesByMonth {
     param (
         [Parameter(Mandatory = $true)]
         [bool]$Confirm,

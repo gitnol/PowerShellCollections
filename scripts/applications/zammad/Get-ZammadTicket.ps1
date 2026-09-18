@@ -1,3 +1,22 @@
+<#
+.SYNOPSIS
+    Holt Tickets aus Zammad, gefiltert nach Zeitraum und Status.
+
+.DESCRIPTION
+    Get-ZammadTickets sucht ueber die Zammad-API Tickets der letzten X Tage;
+    mehrere Status werden oder-verknuepft. Get-ZammadTicketDetails holt zu
+    einer Ticket-ID die vollstaendigen Angaben nach.
+
+    Der zuletzt gepflegte der drei Zammad-Staende und auf diese eine Aufgabe
+    zugeschnitten. Die vollstaendige API-Abdeckung steht in
+    ZammadApiFunctions.ps1 im selben Ordner.
+
+.NOTES
+    Braucht Basis-URL und API-Token. Beide Dateien definieren eine Funktion
+    Get-ZammadTickets - werden beide dot-gesourct, gewinnt die zuletzt
+    geladene.
+#>
+
 function Get-ZammadTickets {
     param (
         [string]$ZammadUrl,           # Base URL of Zammad API
@@ -67,7 +86,7 @@ function Get-ZammadTicketDetails {
 
 # Example usage:
 $ZammadUrl = "https://your-zammad-instance.com"
-$ApiToken = "your-api-token"
+$ApiToken = "your-api-token"  # allowlist secret - Platzhalter, kein echtes Token
 $TicketIds = @(9680, 9679, 9631, 9636)  # Replace with actual IDs
 
 $TicketHistory = Get-ZammadTicketDetails -ZammadUrl $ZammadUrl -ApiToken $ApiToken -TicketIds $TicketIds
@@ -75,7 +94,7 @@ $TicketHistory | Format-List
 
 # Example usage:
 $ZammadUrl = "https://your-zammad-instance.com"
-$ApiToken = "your-api-token"
+$ApiToken = "your-api-token"  # allowlist secret - Platzhalter, kein echtes Token
 $Days = 30
 $Statuses = @("open", "new", "pending close")
 

@@ -1,4 +1,24 @@
-﻿param (
+﻿<#
+.SYNOPSIS
+    Prueft auf mehreren Rechnern, ob mindestens einer aus einer Liste von
+    Diensten laeuft.
+
+.DESCRIPTION
+    Geht eine Rechnerliste durch und meldet je Rechner, welcher der
+    gesuchten Dienste vorhanden und in welchem Zustand er ist. Die Dienste
+    sind oder-verknuepft: gedacht fuer Produkte, die je nach Version
+    unterschiedliche Dienstnamen mitbringen.
+
+    Im Auslieferungszustand sind die Dienste einer G-DATA-Installation
+    hinterlegt.
+
+.NOTES
+    Dienstliste und Titel stehen als Variablen am Dateianfang. Nicht
+    erreichbare Rechner werden als solche ausgewiesen und nicht
+    stillschweigend uebergangen.
+#>
+
+param (
     $Computer = @()
 )
 # Annahme: $Computer ist eine Liste/Array von Computernamen

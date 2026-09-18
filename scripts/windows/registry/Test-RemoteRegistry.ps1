@@ -1,4 +1,23 @@
-﻿function Test-RemoteRegistryPrerequisites {
+﻿<#
+.SYNOPSIS
+    Prueft, ob der Remote-Registry-Zugriff auf einen Rechner ueberhaupt
+    moeglich ist, und richtet ihn auf Wunsch ein.
+
+.DESCRIPTION
+    Kontrolliert nacheinander Netzwerkerreichbarkeit, den Dienst
+    RemoteRegistry und die zugehoerigen Firewall-Regeln. Ensure-
+    RemoteRegistryService startet den Dienst bei Bedarf.
+
+    Spart die uebliche Sucherei, wenn ein Registry-Zugriff scheitert: das
+    Ergebnis sagt, welche der drei Voraussetzungen fehlt.
+
+.NOTES
+    Der Dienst RemoteRegistry ist auf aktuellen Windows-Versionen
+    standardmaessig deaktiviert. Ihn dauerhaft zu aktivieren vergroessert die
+    Angriffsflaeche - nach getaner Arbeit wieder abschalten.
+#>
+
+function Test-RemoteRegistryPrerequisites {
     param (
         [Parameter(Mandatory)]
         [string]$ComputerName

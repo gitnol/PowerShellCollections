@@ -1,4 +1,22 @@
-﻿# This Script enables you to find failed logonattempts. (on german PCs... you have to adjust it to english words in the function Extract-MessageDetail)
+﻿<#
+.SYNOPSIS
+    Sammelt fehlgeschlagene Anmeldeversuche aus den Sicherheitsprotokollen
+    mehrerer Rechner.
+
+.DESCRIPTION
+    Setzt eine XML-gefilterte Eventlog-Abfrage gegen eine Liste von Rechnern
+    ab und zerlegt die Meldungstexte in Felder - Kontoname, Quelle, Grund.
+
+.NOTES
+    Die Auswertung liest den Meldungstext, nicht die Event-Datenfelder, und
+    ist deshalb sprachabhaengig: sie erwartet deutsche Texte. Auf einem
+    englischsprachigen System muss Extract-MessageDetail angepasst werden.
+
+    Robuster loest das Get-ADAuthEventsAllDCs.ps1 im selben Ordner - es liest
+    die Felder ueber ihren Attributnamen im XML statt ueber den Text.
+#>
+
+# This Script enables you to find failed logonattempts. (on german PCs... you have to adjust it to english words in the function Extract-MessageDetail)
 
 function Get-ComputerWinEvents {
     param (

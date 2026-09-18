@@ -1,220 +1,108 @@
 # Backlog
 
-Offene Punkte, die bekannt sind und bewusst nicht sofort erledigt wurden.
-Stand: 2026-09-18.
+Offene Punkte. Stand: 2026-09-18.
+
+Die urspruenglichen Punkte 1 bis 3 - konkurrierende Versionsstaende, fehlende
+Comment-Based Help, falsch abgelegter Fremdcode, `_inbox/`, nummerierte
+Beispiele, ungepruefte Generator-Ausgabe - sind abgearbeitet. Was dabei
+gelernt wurde, steht in [../CLAUDE.md](../CLAUDE.md) und
+[STRUCTURE.md](STRUCTURE.md).
 
 ---
 
-## 1. Konkurrierende Versionsstaende
+## 1. Erledigt - zur Nachvollziehbarkeit
 
-Dreizehn Aufgaben liegen in mehreren Staenden nebeneinander. Die Benennung ist
-seit der Umstellung einheitlich (`_v1`/`_v2`/`_old`), damit die Lage sichtbar
-ist - aufgeloest ist sie damit nicht.
+| Punkt                          | Ergebnis                                                                 |
+| ------------------------------ | ------------------------------------------------------------------------ |
+| Konkurrierende Versionsstaende | aufgeloest, je Aufgabe eine kanonische Datei                              |
+| Comment-Based Help             | 146 von 146 Skripten haben eine `.SYNOPSIS`                               |
+| Fremdcode unter `scripts/`     | `Get-TokenSizeReport` und der MailStore-Wrapper nach `third-party/`, je mit `ORIGIN.md` |
+| `_inbox/playground/`           | aufgeloest                                                                |
+| Nummerierte Beispieldateien    | nach Inhalt benannt                                                       |
+| Generator ohne Ausgabepruefung | `Test-GeneratedScript` ergaenzt                                           |
 
-Die Empfehlung ist aus Datum, Umfang und Inhalt abgeleitet. **Sie ersetzt
-keine Entscheidung**: welcher Stand produktiv im Einsatz ist, steht nirgends
-im Repository.
+Zwei Faelle brauchten vor dem Loeschen eine Zusammenfuehrung, weil der
+juengere Stand **kein** Superset war: bei Zammad fehlten `_v2` drei
+Funktionen aus `_v1`, bei MailStore rief `_v2` eine Funktion auf, die nur in
+`_v1` stand. Zwei weitere Paare waren gar keine Versionen, sondern jeweils
+Funktionsbibliothek plus fertiges Skript.
 
-### 1.1 Windows-Bereinigung - vier Staende
+Nebenbei repariert: ein Modulimport auf eine nicht existierende Datei
+(`Win10Monitor.psm1` statt `Win10PingMonitor.psm1`), die Importpfade der
+MailStore-Beispiele nach deren Umzug, und Steuerzeichen, die bei einer
+frueheren Pfadanpassung in fuenf Dateien geraten waren.
 
-`scripts/windows/cleanup/`
+---
 
-| Datei                     | Datum      | Zeilen | Inhalt                                                     |
-| ------------------------- | ---------- | ------ | ---------------------------------------------------------- |
-| `Clear-OldTempFiles_v1.ps1` | 2025-06-05 | 122    | Funktionsbibliothek (`Get-CleanupPaths`, `Clear-OldFiles`)  |
-| `Clear-OldTempFiles_v2.ps1` | 2025-10-28 | 389    | eigenstaendiges Skript, parallele Verarbeitung, Eventlogs   |
-| `Clear-OldTempFiles_v3.ps1` | 2025-10-28 | 588    | v2 + Browser-Caches, Delivery Optimization, leere Ordner    |
-| `Clear-OldTempFiles_v4.ps1` | 2025-10-28 | 667    | v3 + Modi QuickClean/DeepClean/SafeMode, `-DryRun`          |
-
-v2 bis v4 sind eine echte Kette, jede Stufe enthaelt die vorige. v1 ist etwas
-anderes: eine Sammlung dot-sourcebarer Funktionen, kein Skript.
-
-**Empfehlung:** `_v4` als kanonisch setzen (der Kopf nennt sich selbst
-"Fixed - Stabile Version"), `_v2` und `_v3` loeschen. Bei `_v1` zuerst
-pruefen, ob irgendwo `Clear-OldFiles` dot-gesourct wird.
-
-### 1.2 Temporaere Gruppenmitgliedschaften - zwei Werkzeuge, nicht vier Versionen
-
-`scripts/active-directory/group-membership/temporary/`
-
-Das ist der irrefuehrendste Fall: die vier Dateien lagen unter einem
-gemeinsamen Ordnernamen, sind aber **zwei verschiedene Werkzeuge**.
-
-| Datei                                         | Art                                    |
-| --------------------------------------------- | -------------------------------------- |
-| `Show-TemporaryGroupMembershipGui_v1.ps1`     | interaktive WinForms-GUI, PAM-Feature  |
-| `Show-TemporaryGroupMembershipGui_v2.ps1`     | dieselbe GUI, ueberarbeitet            |
-| `Sync-TemporaryGroupMembershipFromCsv_v2.ps1` | unbeaufsichtigter CSV-Lauf (Aufgabenplanung) |
-| `Sync-TemporaryGroupMembershipFromCsv_v3.ps1` | + config.json, Datei-Logging, Entfernen |
-
-**Empfehlung:** je Werkzeug den hoechsten Stand behalten
-(`Show-...Gui_v2`, `Sync-...FromCsv_v3`), die beiden anderen loeschen. Die
-Namen sagen jetzt, was was ist - das war vorher nicht erkennbar.
-
-### 1.3 Weitere Paare
-
-| Ort                          | Staende                                                        | Unterschied                                                                 | Empfehlung |
-| ---------------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------- | ---------- |
-| `windows/elevation/`         | `Invoke-RunAsElevated.ps1` (2025-06-30) / `_old.ps1` (2025-06-28) | neu: EncodedCommand + `runas`. alt: temporaere Batchdatei im ProgramData     | neu        |
-| `network/lancom/`            | `New-PublicSpotUserBulk.ps1` (2026-05-13) / `_old.ps1` (2026-05-12) | neu 318 Zeilen gegen 195, gleiche Aufgabe                                    | neu        |
-| `network/dhcp/`              | `Get-DhcpServerLease_v1` (2024-08) / `_v2` (2025-08)            | v1 mit fest eingetragener Serverliste, v2 fragt alle autorisierten DHCP-Server der Domaene ab | `_v2` |
-| `windows/desktop/window-cascade/` | `Set-CascadedWindow_v1` / `_v2`                            | v2 gruppiert nach Prozess und laesst den Zielmonitor waehlen                 | `_v2`      |
-| `network/aruba/`             | `Get-ArubaMacTable_v1` / `_v2`                                  | v2 korrigiert die OUI-Suche (klein geschrieben, drei Praefixlaengen) und die Wireshark-URL | `_v2` |
-| `security/log4j/`            | `Find-Log4jFile_v1` / `_v2`                                     | v2 mit Parametern, Allow-/Denylist, `-Loeschen`, 7z-Aufruf                   | `_v2`      |
-| `security/secure-boot/`      | `Test-MultipleHostsSecureBoot_v1` (29 Z) / `_v2` (48 Z)         | v2 ruft zusaetzlich `Invoke-SecureBootCertUpdate` auf                        | `_v2`      |
-| `windows/availability/`      | `Get-ComputerOnlineStatus_v1` / `_v2`                           | **unklar.** v1: 13 Commits ueber ein Jahr, laeuft ueber Jobs auch unter PS 5.1. v2: 3 Commits, neuer. Hier ist nicht der neuere automatisch der bessere. | pruefen |
-| `messaging/mailstore/`       | `MailStoreApiFunctions.ps1` / `MailStoreSnippets_v1` / `_v2`    | Snippets_v2 ist fast Obermenge von _v1, **aber** `_v2` Zeile 1744 ruft `Get-MailstoreAndExchangeUsers` auf, das nur in `_v1` definiert ist. `_v1` loeschen bricht `_v2`. | erst die Funktion nach `_v2` uebernehmen, dann `_v1` loeschen |
-| `applications/zammad/`       | `Get-ZammadTicket` / `Invoke-ZammadApi_v1` / `_v2`              | drei parallele API-Experimente vom selben Tag; nur `Get-ZammadTicket` wurde spaeter (2026-02) noch gepflegt | zusammenfuehren |
-
-### 1.4 Was **keine** Versionskonflikte sind
-
-Diese Paare sehen so aus, sind aber Absicht - nicht zusammenfuehren:
-
-| Dateien                                                        | Grund                                                                 |
-| -------------------------------------------------------------- | --------------------------------------------------------------------- |
-| `Get-LoggedInUsersCim.ps1` / `Get-LoggedInUsersInvokeCommand.ps1` | zwei Wege wegen eines PowerShell-7.4-Bugs; der Dateikopf verlinkt ihn |
-| `Get-BitLockerStatus_de.ps1` / `_en.ps1`                       | Sprachvarianten fuer lokalisierte Ausgaben - **aber** siehe 1.6       |
-| `Invoke-SecureBootCertUpdate.ps1` / `_simple.ps1`              | bewusst schlanke Variante (242 statt 923 Zeilen) fuer den Einzelfall  |
-| `Test-ADGroupIntegrity.ps1` / `Test-ADGroupIntegrityMulti.ps1` | Einzelgruppe gegen alle privilegierten Gruppen, zwei PRTG-Sensoren    |
-
-### 1.5 Vorsicht: die Staende haengen teilweise voneinander ab
-
-`MailStoreSnippets_v2.ps1` ruft in Zeile 1744 `Get-MailstoreAndExchangeUsers`
-auf. Definiert ist die Funktion ausschliesslich in `MailStoreSnippets_v1.ps1`
-(Zeile 6). Wer `_v1` als "alten Stand" loescht, bricht `_v2` - und zwar nicht
-beim Laden, sondern erst zur Laufzeit an genau dieser Stelle.
-
-Vor dem Aufraeumen eines Versionspaares deshalb immer
-
-```powershell
-.\tools\Find-ScriptDependency.ps1
-```
-
-laufen lassen. Das Werkzeug meldet Funktionsaufrufe ueber Dateigrenzen und
-trennt dabei Aufrufe innerhalb eines Ordners von solchen darueber hinaus.
-
-### 1.6 BitLocker - der Nachfolger ist schon da
+## 2. BitLocker - Entscheidung steht aus
 
 `scripts/security/bitlocker/`
 
-| Datei                          | Stand      | Inhalt                                                        |
-| ------------------------------ | ---------- | ------------------------------------------------------------- |
-| `Get-BitLockerStatus_de.ps1`   | 2024/2025  | deutschsprachige Ausgabe                                       |
-| `Get-BitLockerStatus_en.ps1`   | 2024/2025  | englischsprachige Ausgabe                                      |
-| `Get-BitLockerStatus_de_v2.ps1`| 2026-06-04 | massiv paralleler Abgleich AD gegen lokale Systeme, mit `.SYNOPSIS` |
+`Get-BitLockerStatus.ps1` ist der vom Autor erklaerte Nachfolger, in der
+Commit-Nachricht aber ausdruecklich als **Beta** gekennzeichnet. Deshalb liegt
+der bewaehrte Vorgaenger weiter unter `archive/Get-BitLockerStatus_legacy.ps1`.
 
-Die Commit-Nachricht des Autors zu `_de_v2` lautet woertlich *"initial commit.
-beta. should replace bitlocker-status-de.ps1"*. Es ist also ein erklaerter
-Nachfolger, aber als Beta gekennzeichnet.
-
-**Offen:** ob `_de_v2` auch die englische Variante ersetzt oder ob die
-Sprachtrennung bestehen bleibt. Danach `_de` (und ggf. `_en`) loeschen.
+**Offen:** sobald der Nachfolger im Betrieb bestaetigt ist, `archive/`
+loeschen. Die frueher daneben liegende englische Fassung war eine reine
+Uebersetzung des Vorgaengers und ist bereits entfernt.
 
 ---
 
-## 2. Comment-Based Help fehlt bei 89 Skripten
+## 3. Mehrfach definierte Hilfsfunktionen
 
-`INDEX.md` weist 78 von 167 Skripten mit `.SYNOPSIS` aus (47%). Bei den
-uebrigen zeigt der Index ersatzweise die erste Kommentarzeile - ein Hinweis,
-keine Beschreibung.
+`Test-ConnectionInParallel` ist in drei Dateien unabhaengig voneinander
+definiert und wird in einer vierten aufgerufen, ohne dort definiert oder
+importiert zu sein:
 
-Arbeitsliste erzeugen:
+| Datei                                                            | Rolle            |
+| ---------------------------------------------------------------- | ---------------- |
+| `scripts/windows/availability/ComputerAvailabilityFunctions.ps1` | definiert        |
+| `scripts/applications/teamviewer/Set-TeamViewerAccess.ps1`       | definiert        |
+| `scripts/security/secure-boot/Test-MultipleHostsSecureBoot.ps1`  | definiert        |
+| `scripts/applications/excel/ConvertFrom-ExcelClipboard.ps1`      | **ruft nur auf** |
 
-```powershell
-.\tools\Build-ScriptIndex.ps1 -PassThru |
-    Where-Object { -not $_.Synopsis } |
-    Select-Object RelativePath
-```
+Dasselbe Muster bei `Write-Log`: fuenf Dateien definieren je eine eigene
+Fassung, `scripts/messaging/exchange/Get-MailboxForwardingRules.ps1` ruft es
+auf, ohne eine zu haben.
 
-Die zehn groessten und riskantesten sind bereits nachgezogen. Sinnvolle
-Reihenfolge fuer den Rest: erst alles, was schreibend oder loeschend arbeitet,
-dann nach Dateigroesse.
+Ein gemeinsames Hilfsmodul waere die saubere Loesung. Bis dahin sind die
+beiden aufrufenden Dateien nicht eigenstaendig lauffaehig - in ihrer
+`.NOTES` steht das jeweils.
 
----
-
-## 3. Einzelne Fundstellen
-
-### 3.1 Fremdcode liegt unter `scripts/`
-
-`scripts/active-directory/token-size/Get-TokenSizeReport.ps1` stammt von
-Jeremy Saunders (jhouseconsulting.com), Release 1.8. Es gehoert nach
-`third-party/` mit einer `ORIGIN.md`, so wie
-`third-party/Check-UEFISecureBootVariables/`.
-
-Ob `_dump-ticketsize.1.7.ps1` (heute `Export-KerberosTokenSize.ps1`) im selben
-Verzeichnis derselben Herkunft ist, wurde nicht geprueft.
-
-### 3.2 Der MailStore-Generator ist zerbrechlich
-
-`New-MailStoreApiFunctionReference.ps1` erzeugt PowerShell-Funktionen aus dem
-HTML der Herstellerdokumentation. Er hat dabei einen leeren Parameter
-ausgegeben
-
-```powershell
-[Parameter(Mandatory = $, ...)]
-[]$,
-```
-
-und damit die Zieldatei unparsbar gemacht. Die Datei
-(`Invoke-MailStoreApiScratch.ps1`, frueher `test.ps1`) ist repariert, der
-Generator nicht. Mindestens sollte er seine Ausgabe nach dem Lauf gegen den
-Parser pruefen:
-
-```powershell
-$errors = $null
-[void][System.Management.Automation.Language.Parser]::ParseFile($ziel, [ref]$null, [ref]$errors)
-```
-
-### 3.3 Aufrufe ins Leere (vorbestehend)
-
-Gefunden durch `tools/Find-ScriptDependency.ps1`. Keiner davon stammt aus der
-Umstrukturierung - die Dateien waren schon vorher nicht eigenstaendig
-lauffaehig:
-
-| Datei                                   | ruft auf                                        | Lage                                                        |
-| --------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------- |
-| `applications/excel/ConvertFrom-ExcelClipboard.ps1` | `Test-ConnectionInParallel`         | nur in drei anderen Dateien definiert, kein Import           |
-| dieselbe Datei                          | `Get-CompuerOnlineStatus` (Kommentar, Zeile 39) | Tippfehler, existiert nirgends - gemeint ist `Get-ComputerOnlineStatus_v1/_v2` |
-| `messaging/exchange/Get-MailboxForwardingRules.ps1` | `Write-Log`                        | definiert sie selbst nicht; fuenf andere Dateien definieren je eine eigene Fassung |
-
-`Write-Log` ist der klassische Fall: ein Allerweltsname, den fuenf Dateien
-unabhaengig voneinander definieren. Ein gemeinsames Hilfsmodul waere hier
-besser als fuenf Kopien.
-
-### 3.4 `third-party/` als Submodul
-
-`third-party/Check-UEFISecureBootVariables/` ist ein ZIP-Download, rund 40
-Dateien. Als Git-Submodul waeren Updates nachvollziehbar und die Dateien
-zaehlten nicht zu diesem Repo. Siehe `third-party/.../ORIGIN.md`.
-
-### 3.5 `_inbox/playground/` aufloesen
-
-Drei Dateien (`New-ADGroupInOU_with_some_stuff.ps1`,
-`meeting_pipeline_setup.sh`, `requirements.txt`). Nach der 30-Tage-Regel
-einsortieren oder loeschen.
-
-### 3.6 Nummerierte Beispieldateien
-
-`scripts/messaging/mailstore/examples/Example1.ps1` bis `Example4.ps1` sagen
-nicht, was sie zeigen. Aussagekraeftige Namen waeren besser, erfordern aber,
-jede Datei zu lesen.
+Pruefen mit `tools/Find-ScriptDependency.ps1`.
 
 ---
 
-### 3.7 Nachweis: keine Abhaengigkeit ging bei der Umstellung verloren
+## 4. Kleinigkeiten
+
+- `scripts/active-directory/token-size/Export-KerberosTokenSize.ps1` traegt
+  keine Herkunftsangabe (Versionshinweise ab 2012). Ob eigene Entwicklung
+  oder uebernommen, liess sich nicht klaeren. Es loest dieselbe Aufgabe wie
+  `third-party/Get-TokenSizeReport/`.
+- `third-party/Check-UEFISecureBootVariables/` ist ein ZIP-Download. Als
+  Git-Submodul waeren Updates nachvollziehbar - dafuer muessten Clones mit
+  `--recurse-submodules` geholt werden, was fuer eine Sammlung zum
+  Durchstoebern ein Nachteil ist. Bewusst nicht umgestellt.
+- In `scripts/applications/zammad/` definieren `Get-ZammadTicket.ps1` und
+  `ZammadApiFunctions.ps1` beide ein `Get-ZammadTickets`. Beim gleichzeitigen
+  Dot-Sourcing gewinnt die zuletzt geladene Fassung.
+
+---
+
+## 5. Nachweis: keine Abhaengigkeit ging bei der Umstellung verloren
 
 Geprueft am 2026-09-18 durch Vergleich des Abhaengigkeitsgraphen vor der
-Umstellung (Commit `9d20efa`) mit dem danach, ueber eine Namensabbildung fuer
-die 104 Umbenennungen:
+Umstellung (Commit `9d20efa`, ueber einen temporaeren Worktree) mit dem
+danach, ueber eine Namensabbildung fuer die Umbenennungen:
 
-| Kennzahl                                    | Wert |
-| ------------------------------------------- | ---- |
-| Abhaengigkeiten vorher (ohne Fremdcode)     | 21   |
-| davon heute verloren                        | **0** |
-| neu hinzugekommen                           | 12 (die PRTG-DSLS-Sensoren zu ihrem Modul, gleicher Ordner) |
+| Kennzahl                                | Wert                                                       |
+| --------------------------------------- | ---------------------------------------------------------- |
+| Abhaengigkeiten vorher (ohne Fremdcode) | 21                                                          |
+| davon verloren                          | **0**                                                       |
+| neu hinzugekommen                       | 12 (die PRTG-DSLS-Sensoren zu ihrem Modul, gleicher Ordner) |
 
-Die zwoelf Abhaengigkeiten innerhalb des Fremdcodes
-(`third-party/Check-UEFISecureBootVariables/`) sind ebenfalls intakt: der
+Die zwoelf Abhaengigkeiten innerhalb von
+`third-party/Check-UEFISecureBootVariables/` sind ebenfalls intakt: der
 Ordner wurde als Ganzes verschoben, die Blob-Hashes aller Dateien sind
 unveraendert.
 
@@ -227,12 +115,12 @@ Wiederholbar mit `tools/Find-ScriptDependency.ps1`.
 
 ---
 
-## 4. History enthaelt firmenspezifische Daten
+## 6. History enthaelt firmenspezifische Daten
 
 Elf Dateien in frueheren Commits enthalten interne Domaenennamen, Hostnamen,
 eine interne IP, drei Benutzernamen und eine interne Helpdesk-URL. Keine
 Zugangsdaten. Die aktuellen Staende sind sauber, die alten Commits liegen
 weiter oeffentlich auf GitHub.
 
-Entscheidung steht aus. Optionen und Abwaegung: siehe
+**Zurueckgestellt.** Optionen und Abwaegung: siehe
 [HISTORY-OPTIONS.md](HISTORY-OPTIONS.md).

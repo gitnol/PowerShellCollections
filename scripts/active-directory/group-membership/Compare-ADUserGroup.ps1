@@ -1,3 +1,21 @@
+<#
+.SYNOPSIS
+    Vergleicht die Gruppenmitgliedschaften zweier AD-Benutzer.
+
+.DESCRIPTION
+    Fragt interaktiv nach zwei Benutzern (Name oder SamAccountName, Wildcards
+    erlaubt) und stellt gegenueber, welche Gruppen beide haben und welche nur
+    einer hat.
+
+    Der typische Anwendungsfall: ein neuer Mitarbeiter soll dieselben Rechte
+    bekommen wie ein bestehender, oder es ist unklar, warum einer von beiden
+    auf etwas zugreifen kann und der andere nicht.
+
+.NOTES
+    Die Vorgabewerte fuer beide Benutzer stehen als $user1default und
+    $user2default am Dateianfang.
+#>
+
 
 # Change the two lines if you do not want to input it
 $user1default = "my.user1"

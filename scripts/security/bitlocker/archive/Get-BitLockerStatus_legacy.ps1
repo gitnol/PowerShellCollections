@@ -1,4 +1,27 @@
-﻿# ARCHIV - nicht mehr der gueltige Stand.
+﻿<#
+.SYNOPSIS
+    ARCHIV - Vorgaengerstand des BitLocker-Abgleichs zwischen AD und lokalen
+    Systemen.
+
+.DESCRIPTION
+    Vergleicht die im Active Directory hinterlegten
+    BitLocker-Wiederherstellungsschluessel mit dem, was die Rechner
+    tatsaechlich melden. Faellt dabei ein Rechner auf, dessen Schluessel nicht
+    im AD steht, ist im Ernstfall keine Wiederherstellung moeglich.
+
+    Abgeloest durch ../Get-BitLockerStatus.ps1. Der Nachfolger ist vom Autor
+    als Beta gekennzeichnet, deshalb bleibt dieser bewaehrte Stand als
+    Rueckfallebene liegen.
+
+.NOTES
+    Erzwingt PowerShell 6 oder neuer.
+
+    Die frueher daneben liegende englische Fassung war eine reine
+    Uebersetzung dieser Datei und wurde entfernt - in der History vorhanden.
+    Siehe docs/BACKLOG.md Abschnitt 1.6.
+#>
+
+# ARCHIV - nicht mehr der gueltige Stand.
 # Abgeloest durch ../Get-BitLockerStatus.ps1. Der Nachfolger ist vom Autor
 # als Beta gekennzeichnet; deshalb bleibt dieser bewaehrte Stand als
 # Rueckfallebene liegen, bis der Nachfolger bestaetigt ist.

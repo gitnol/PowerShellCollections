@@ -1,3 +1,25 @@
+<#
+.SYNOPSIS
+    Funktionsbibliothek fuer die Zammad-REST-API.
+
+.DESCRIPTION
+    18 Funktionen rund um Tickets, Benutzer, Gruppen, Organisationen, Rollen,
+    Tags und Einstellungen, alle ueber Invoke-ZammadRequest als gemeinsamen
+    Einstieg. Get-ZammadGenericEndpoint erlaubt zusaetzlich beliebige
+    Endpunkte, die noch keine eigene Funktion haben.
+
+    Bibliothek, kein ausfuehrbares Skript: per Dot-Sourcing laden.
+
+.NOTES
+    Entstanden aus der Zusammenfuehrung zweier paralleler API-Experimente:
+    New-ZammadUser, Set-ZammadUser und Get-ZammadTicketArticles stammen aus
+    dem aelteren Stand und sind am Dateiende angefuegt.
+
+    Get-ZammadTicket.ps1 im selben Ordner definiert ebenfalls ein
+    Get-ZammadTickets - beim gleichzeitigen Dot-Sourcing gewinnt die zuletzt
+    geladene Fassung.
+#>
+
 # Zammad API PowerShell Modul
 
 function Invoke-ZammadRequest {

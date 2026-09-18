@@ -1,4 +1,23 @@
-﻿$OutGridViewOutput = $false # Set to $false, if there is something being automated... 
+﻿<#
+.SYNOPSIS
+    Listet alle geplanten Aufgaben eines Rechners auf, wahlweise als
+    Gitteransicht, JSON-Datei oder Pipeline-Ausgabe.
+
+.DESCRIPTION
+    Sammelt Aufgaben samt Ausfuehrungskonto, Trigger und letztem Ergebnis.
+    Ueber drei Schalter am Dateianfang laesst sich steuern, ob das Ergebnis
+    in Out-GridView landet, als JSON geschrieben wird oder in die Pipeline
+    geht.
+
+.NOTES
+    Fuer einen automatisierten Lauf $OutGridViewOutput auf $false setzen -
+    sonst blockiert das Fenster.
+
+    Ohne administrative Rechte bleiben Aufgaben anderer Benutzer unsichtbar;
+    das Skript weist darauf hin.
+#>
+
+$OutGridViewOutput = $false # Set to $false, if there is something being automated... 
 $jsonExport = $true
 $jsonExportPath = "c:\install\Tasks_" + $env:COMPUTERNAME + ".json"
 $pipelineoutput = $true

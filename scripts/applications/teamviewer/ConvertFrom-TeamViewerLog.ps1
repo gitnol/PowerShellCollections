@@ -1,4 +1,26 @@
-﻿function Parse-TeamViewerLogFile {
+﻿<#
+.SYNOPSIS
+    Wertet TeamViewer-Logdateien forensisch aus - wer war wann mit wem
+    verbunden.
+
+.DESCRIPTION
+    Ermittelt den Installationspfad aus der Registry, liest die Logdateien
+    und extrahiert daraus Verbindungen mit Zeitpunkt, Gegenstelle und
+    TeamViewer-ID.
+
+    Praktischer Anlass ist meist die Frage, ob und wann jemand per
+    Fernwartung auf einem Rechner war.
+
+.NOTES
+    Grundlagen zur Auswertung:
+    https://medium.com/mii-cybersec/digital-forensic-artifact-of-teamviewer-application-cfd6290dc0a7
+    https://benleeyr.wordpress.com/2020/05/19/teamviewer-forensics-tested-on-v15/
+
+    Offen laut Kommentar im Code: eingehende und ausgehende Verbindungen
+    werden noch nicht getrennt ausgewiesen.
+#>
+
+function Parse-TeamViewerLogFile {
     param (
         [string]$logFilePath
     )

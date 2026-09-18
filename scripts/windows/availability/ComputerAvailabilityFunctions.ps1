@@ -1,4 +1,24 @@
-﻿# # This is also functioning for powershell 5 where "foreach-object -parallel" is missing
+﻿<#
+.SYNOPSIS
+    Funktionsbibliothek zur parallelen Erreichbarkeitspruefung vieler Rechner.
+
+.DESCRIPTION
+    Stellt Test-ConnectionInParallel und Get-ComputerOnlineStatus bereit.
+    Unter PowerShell 7 laeuft die Pruefung ueber ForEach-Object -Parallel,
+    unter Windows PowerShell 5.1 faellt sie auf Hintergrundjobs zurueck -
+    dort gibt es -Parallel nicht.
+
+    Dies ist eine Bibliothek, kein ausfuehrbares Skript: per Dot-Sourcing
+    laden. Das fertige Werkzeug ist Get-ComputerOnlineStatus.ps1 im selben
+    Ordner.
+
+.NOTES
+    Test-ConnectionInParallel wird auch von anderen Skripten aufgerufen, ohne
+    dass sie diese Datei importieren - siehe docs/BACKLOG.md. Vor dem
+    Verschieben oder Umbenennen tools/Find-ScriptDependency.ps1 laufen lassen.
+#>
+
+# # This is also functioning for powershell 5 where "foreach-object -parallel" is missing
 
 # In Powershell > 6 this function makes it easier
 function Test-ConnectionInParallel {

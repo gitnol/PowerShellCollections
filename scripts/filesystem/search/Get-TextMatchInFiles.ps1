@@ -1,4 +1,23 @@
-﻿function Get-TextMatchInFiles {
+﻿<#
+.SYNOPSIS
+    Durchsucht Dateien nach Zeilen, in denen mehrere Begriffe gleichzeitig
+    vorkommen.
+
+.DESCRIPTION
+    Anders als bei Select-String muessen hier ALLE angegebenen Begriffe in
+    derselben Zeile stehen. Damit laesst sich in Logdateien gezielt die eine
+    Zeile finden, die Benutzer und Fehlercode zusammen enthaelt - ohne sich
+    einen regulaeren Ausdruck dafuer zu bauen.
+
+    Der Dateifilter ist per Vorgabe *.txt und laesst sich auf *.log, *.conf
+    und anderes umstellen.
+
+.NOTES
+    Liest die Dateien zeilenweise; auch grosse Logs belasten den Speicher
+    damit nicht.
+#>
+
+function Get-TextMatchInFiles {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]

@@ -1,3 +1,27 @@
+<#
+.SYNOPSIS
+    Wandelt aus Excel kopierte Zellen in PowerShell-Objekte um.
+
+.DESCRIPTION
+    In Excel den Bereich markieren und kopieren (Strg+A, Strg+C), dann in
+    PowerShell `e2p` aufrufen: die Zwischenablage wird als
+    tabulatorgetrennter Text gelesen, die erste Zeile als Spaltenueberschrift
+    genommen und daraus ein Array von PSCustomObject gebaut.
+
+    Spart den Umweg ueber eine CSV-Datei, wenn man nur schnell mit ein paar
+    Zeilen aus einer Tabelle weiterarbeiten will.
+
+.NOTES
+    Die Funktion heisst absichtlich kurz `e2p` (Excel to PowerShell) - sie ist
+    zum Tippen an der Konsole gedacht.
+
+    Ruft Test-ConnectionInParallel auf, definiert die Funktion aber nicht.
+    Dafuer muss ComputerAvailabilityFunctions.ps1 aus
+    scripts/windows/availability/ dot-gesourct sein. Die Kommentarzeile
+    verweist zudem auf ein "Get-CompuerOnlineStatus.ps1", das es nie gab -
+    siehe docs/BACKLOG.md.
+#>
+
 # This function enables you to copy information from Excel to a pscustomobject
 # In Excel CTRL+A CTRL+C, then in powershell type e2p, return is a pscustomobject which can then be used in powershell afterwards
 function e2p {

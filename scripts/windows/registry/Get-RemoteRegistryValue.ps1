@@ -1,3 +1,22 @@
+<#
+.SYNOPSIS
+    Liest einen Registry-Wert von allen Domaenenrechnern aus, die sich
+    zuletzt angemeldet haben.
+
+.DESCRIPTION
+    Schraenkt die Rechnerliste ueber das letzte Anmeldedatum ein, prueft die
+    Erreichbarkeit und liest dann per Invoke-Command den konfigurierten
+    Registry-Wert. Im Auslieferungszustand fragt es die PDMWorks-/SolidWorks-
+    Installation ab.
+
+    Typischer Zweck: flottenweit feststellen, welche Version oder Einstellung
+    wo gesetzt ist.
+
+.NOTES
+    Pfad, Wertname und Zeitfenster stehen als Variablen am Dateianfang und
+    muessen angepasst werden. Braucht WinRM auf den Zielrechnern.
+#>
+
 # Get the remote registry Value of online computers, 
 # which have logged on to the domain at least once in the last xxx days
 

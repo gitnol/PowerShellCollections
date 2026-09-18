@@ -1,4 +1,20 @@
-﻿function New-ADGroupInOU {
+﻿<#
+.SYNOPSIS
+    Legt eine AD-Sicherheitsgruppe in einer OU an und richtet passende
+    Ordnerberechtigungen ein.
+
+.DESCRIPTION
+    Erzeugt die Gruppe mit waehlbarem Gueltigkeitsbereich (Global, Universal,
+    DomainLocal) und Typ (Security, Distribution) und setzt anschliessend die
+    NTFS-Berechtigungen auf einem zugehoerigen Verzeichnis.
+
+.NOTES
+    Stammt aus dem frueheren playground-Ordner und ist entsprechend wenig
+    abgehaertet: Pfade und Rechtezuordnung sind im Skript verdrahtet. Vor dem
+    Einsatz lesen.
+#>
+
+function New-ADGroupInOU {
     param (
         [Parameter(Mandatory)]
         [string]$GroupName,

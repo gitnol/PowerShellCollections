@@ -1,4 +1,25 @@
-﻿# DHCP Leases aus allen autorisierten DHCP-Servern der Domäne abfragen und MAC-Adressen in verschiedenen Formaten ausgeben
+﻿<#
+.SYNOPSIS
+    Sammelt die DHCP-Leases aller autorisierten DHCP-Server der Domaene.
+
+.DESCRIPTION
+    Ermittelt die autorisierten Server ueber Get-DhcpServerInDC, geht deren
+    Bereiche durch und gibt die Leases aus. Format-MAC liefert jede
+    MAC-Adresse zusaetzlich in den fuenf gaengigen Schreibweisen - mit
+    Bindestrich, Doppelpunkt, Punkt, blockweise und ohne Trennzeichen.
+
+    Die verschiedenen Schreibweisen sparen das Umformatieren von Hand, wenn
+    man die Adresse in einer Switch-Oberflaeche oder einem Inventarsystem
+    weitersucht.
+
+.NOTES
+    Der Vorgaengerstand trug die DHCP-Server als feste Liste im Skript; diese
+    Fassung findet sie selbst.
+
+    Braucht Leserechte auf allen DHCP-Servern und das Modul DhcpServer.
+#>
+
+# DHCP Leases aus allen autorisierten DHCP-Servern der Domäne abfragen und MAC-Adressen in verschiedenen Formaten ausgeben
 
 # Funktion für MAC-Formatierungen
 function Format-MAC {

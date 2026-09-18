@@ -1,3 +1,21 @@
+<#
+.SYNOPSIS
+    Holt Anmelde-Events bestimmter Event-IDs oder Benutzer von allen Domain
+    Controllern.
+
+.DESCRIPTION
+    Baut einen XML-Filter fuer einen Zeitraum (Tage rueckwaerts) und fragt
+    damit reihum jeden Domain Controller ab. Filtern laesst sich nach
+    Event-ID und Benutzername.
+
+.NOTES
+    Der Filter wird serverseitig angewendet, die Abfrage bleibt dadurch auch
+    bei grossen Sicherheitsprotokollen handhabbar.
+
+    Fuer fehlgeschlagene Anmeldungen mit aufbereiteten Statuscodes ist
+    Get-ADAuthEventsAllDCs.ps1 im selben Ordner die umfangreichere Variante.
+#>
+
 # This Script returns all logon events of specific EventIDs or user names
 # within a specific time frame (days backwards)
 function get-DC-WinEvents {

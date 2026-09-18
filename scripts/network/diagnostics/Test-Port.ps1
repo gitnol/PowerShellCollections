@@ -1,4 +1,21 @@
-﻿# Funktion, um eine Verbindung zu einem Port mit Timeout zu prüfen
+﻿<#
+.SYNOPSIS
+    Prueft einen TCP-Port mit einstellbarem Zeitlimit.
+
+.DESCRIPTION
+    Baut eine TCP-Verbindung auf und gibt nach dem Zeitlimit auf - per
+    Vorgabe nach einer Sekunde.
+
+    Test-NetConnection ist gruendlicher, braucht dafuer aber merklich laenger
+    und laesst sich im Zeitlimit nicht steuern. Beim Durchprobieren vieler
+    Ziele oder Ports macht das den Unterschied.
+
+.NOTES
+    Ein offener Port heisst nur, dass jemand annimmt - nicht, dass der
+    erwartete Dienst antwortet.
+#>
+
+# Funktion, um eine Verbindung zu einem Port mit Timeout zu prüfen
 function Test-Port {
     param (
         [string]$server,

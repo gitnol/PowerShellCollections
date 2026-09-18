@@ -1,4 +1,22 @@
-﻿$userDN = "myuser"
+﻿<#
+.SYNOPSIS
+    Stellt die rekursive SID-Aufloesung von Gruppenmitgliedschaften der
+    Ausgabe von Get-ADPrincipalGroupMembership gegenueber.
+
+.DESCRIPTION
+    Get-ADPrincipalGroupMembership liefert nicht dasselbe wie eine rekursive
+    Aufloesung ueber das Attribut memberOf: verschachtelte Gruppen, die
+    Primaergruppe und SID-History werden unterschiedlich beruecksichtigt. Das
+    Skript rechnet beide Wege aus und macht die Differenz sichtbar.
+
+    Relevant bei Berechtigungsfragen und bei der Abschaetzung der
+    Kerberos-Tokengroesse.
+
+.NOTES
+    Der Benutzer wird oben im Skript ueber $userDN gesetzt.
+#>
+
+$userDN = "myuser"
 $GroupsOfUser = Get-ADPrincipalGroupMembership -Identity $userDN 
 
 $user = Get-ADUser -Identity $UserDN -Properties MemberOf, SIDHistory

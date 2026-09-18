@@ -1,3 +1,21 @@
+<#
+.SYNOPSIS
+    Findet virtuelle Maschinen mit vorhandenen Snapshots.
+
+.DESCRIPTION
+    Geht die VMs im angemeldeten vCenter durch und meldet die, an denen noch
+    ein Snapshot haengt. Der Betriebszustand laesst sich ueber -PowerState
+    einschraenken, Vorgabe ist PoweredOn.
+
+    Vergessene Snapshots sind ein klassischer Speicherfresser: die Delta-Datei
+    waechst weiter, und ab einer gewissen Groesse dauert das Zusammenfuehren
+    so lange, dass es nur noch im Wartungsfenster geht.
+
+.NOTES
+    Setzt eine bestehende Verbindung ueber Connect-VIServer voraus und
+    braucht das Modul VMware.PowerCLI.
+#>
+
 function Get-VMsWithSnapshots {
     param(
         [ValidateSet('PoweredOn', 'PoweredOff', 'Suspended')]

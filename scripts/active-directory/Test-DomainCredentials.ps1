@@ -1,3 +1,18 @@
+<#
+.SYNOPSIS
+    Prueft, ob Benutzername und Passwort gegen eine Domaene gueltig sind.
+
+.DESCRIPTION
+    Bindet sich ueber System.DirectoryServices.AccountManagement an die
+    angegebene Domaene und gibt $true oder $false zurueck. Die Anmeldedaten
+    lassen sich wahlweise als PSCredential oder als Benutzername plus
+    SecureString uebergeben.
+
+.NOTES
+    Ein fehlgeschlagener Versuch zaehlt auf den Sperrzaehler des Kontos ein.
+    In einer Schleife ueber viele Passwoerter sperrt man damit das Konto.
+#>
+
 # This script checks whether the user name and password are correct and returns true or false accordingly.
 function Test-DomainCredentials {
     param (

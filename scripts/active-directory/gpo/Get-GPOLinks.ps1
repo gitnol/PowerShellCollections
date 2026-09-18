@@ -1,4 +1,19 @@
-﻿# # Alle GPOs inkl. Links
+﻿<#
+.SYNOPSIS
+    Listet alle GPOs mit ihren Verknuepfungen auf und findet unverknuepfte.
+
+.DESCRIPTION
+    Liest je Gruppenrichtlinie den XML-Report und zieht daraus die
+    Verknuepfungen auf Standorte, Domaenen und OUs samt Status (aktiviert,
+    erzwungen). Mit -UnlinkedOnly bleiben nur GPOs uebrig, die nirgends
+    verknuepft sind - typischerweise Altlasten, die bei jeder
+    Richtlinienverarbeitung trotzdem ausgewertet werden koennen.
+
+.NOTES
+    Benoetigt das Modul GroupPolicy.
+#>
+
+# # Alle GPOs inkl. Links
 # Get-GPOLinks
 
 # # Nur eine bestimmte GPO (Name oder GUID, auch mit Wildcard)

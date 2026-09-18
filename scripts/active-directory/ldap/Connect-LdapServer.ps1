@@ -1,3 +1,21 @@
+<#
+.SYNOPSIS
+    Baut eine LDAP-Verbindung auf und fuehrt eine Suche aus - ohne das
+    ActiveDirectory-Modul.
+
+.DESCRIPTION
+    Nutzt System.DirectoryServices.Protocols direkt. Damit laesst sich auch
+    gegen Verzeichnisse abfragen, die kein Active Directory sind, und von
+    Rechnern aus, auf denen die RSAT-Werkzeuge fehlen.
+
+    Connect-LdapServer stellt die Verbindung her, Perform-LdapSearch setzt
+    darauf eine Suche ab.
+
+.NOTES
+    Standardport 389 ist unverschluesselt. Fuer LDAPS Port 636 angeben und
+    die Zertifikatspruefung im Blick behalten.
+#>
+
 function Connect-LdapServer {
     param (
         [string]$HostName,

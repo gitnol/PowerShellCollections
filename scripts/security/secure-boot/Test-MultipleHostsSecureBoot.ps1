@@ -1,4 +1,27 @@
-﻿function Test-ConnectionInParallel {
+﻿<#
+.SYNOPSIS
+    Prueft auf vielen Rechnern parallel den Secure-Boot-Status und das
+    Zertifikat 'Windows UEFI CA 2023'.
+
+.DESCRIPTION
+    Ermittelt die erreichbaren Rechner parallel und fragt bei jedem den
+    Secure-Boot-Zustand sowie das Vorhandensein der UEFI-CA von 2023 ab.
+    Anschliessend laesst sich das Update ueber Invoke-SecureBootCertUpdate.ps1
+    anstossen.
+
+    Hintergrund: die alte 'Microsoft Windows Production PCA 2011' laeuft aus.
+    Systeme ohne das neue Zertifikat starten nach dem Ablauf nicht mehr mit
+    aktiviertem Secure Boot.
+
+.NOTES
+    Erfordert PowerShell 7 (ForEach-Object -Parallel) und WinRM auf den
+    Zielrechnern.
+
+    Die Datei definiert ihre eigene Kopie von Test-ConnectionInParallel -
+    dieselbe Funktion gibt es im Repo noch dreimal, siehe docs/BACKLOG.md.
+#>
+
+function Test-ConnectionInParallel {
     # Only PowerShell 7+ (ForEach-Object -Parallel)
     [CmdletBinding()]
     param (

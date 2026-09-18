@@ -1,4 +1,23 @@
-﻿function Get-ADUserLastLogonCache {
+﻿<#
+.SYNOPSIS
+    Baut eine Nachschlagetabelle SamAccountName -> letzte Anmeldung ueber
+    alle Domain Controller.
+
+.DESCRIPTION
+    Fragt jeden DC einmal ab und behaelt je Benutzer den juengsten
+    lastLogon-Wert. Das Attribut wird nicht repliziert, ein einzelner DC
+    liefert also einen zu alten Wert.
+
+    Gedacht als Vorstufe fuer Auswertungen, die den Wert fuer viele Benutzer
+    brauchen: einmal alle DCs abfragen ist deutlich schneller als je Benutzer
+    einzeln.
+
+.NOTES
+    Rueckgabe ist eine Hashtable mit SamAccountName als Schluessel und einem
+    DateTime als Wert.
+#>
+
+function Get-ADUserLastLogonCache {
     param(
         [string[]]$SamAccountNames
     )

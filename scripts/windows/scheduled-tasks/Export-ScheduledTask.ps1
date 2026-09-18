@@ -1,3 +1,22 @@
+<#
+.SYNOPSIS
+    Exportiert alle geplanten Aufgaben eines Rechners als XML-Dateien.
+
+.DESCRIPTION
+    Laeuft ueber das COM-Objekt Schedule.Service rekursiv durch alle
+    Aufgabenordner und legt je Aufgabe eine XML-Datei an - die
+    Ordnerstruktur der Aufgabenplanung bleibt dabei erhalten.
+
+    Die XML-Dateien lassen sich mit `Register-ScheduledTask -Xml` auf einem
+    anderen Rechner wieder einspielen.
+
+.NOTES
+    Passwoerter hinterlegter Dienstkonten stehen NICHT im Export - beim
+    Zurueckspielen muessen sie neu gesetzt werden.
+
+    Ziel ist per Vorgabe der Desktop des ausfuehrenden Benutzers.
+#>
+
 function Export-AllScheduledTasksAsXml {
     param(
         [string]$ExportRoot = "$env:USERPROFILE\Desktop\TaskExports"

@@ -1,3 +1,25 @@
+<#
+.SYNOPSIS
+    Entfernt doppelte Windows-Firewall-Regeln.
+
+.DESCRIPTION
+    Vergleicht eingehende und ausgehende Regeln mit gesetztem Owner nach
+    Anzeigename und Owner und loescht die Dubletten. Zuvor wird die Anzahl
+    vorher, nachher und die Zahl der zu entfernenden Regeln ausgegeben.
+
+    Solche Dubletten entstehen, wenn Anwendungen bei jedem Start oder Update
+    ihre Regel erneut anlegen. Mit der Zeit sammeln sich hunderte gleicher
+    Eintraege an, die jede Firewall-Auswertung unuebersichtlich machen.
+
+.NOTES
+    Nur Regeln mit gesetztem Owner werden betrachtet - das sind die von
+    Anwendungen erzeugten. Manuell angelegte und per Gruppenrichtlinie
+    verteilte Regeln bleiben unangetastet.
+
+    Erfordert administrative Rechte. Vorher die ausgegebenen Zahlen
+    ansehen.
+#>
+
 # This script removes duplicate firewall rules
 
 # Cleanup Inbound Rules:

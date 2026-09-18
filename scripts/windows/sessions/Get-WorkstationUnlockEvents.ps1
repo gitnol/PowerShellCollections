@@ -1,4 +1,25 @@
-﻿function Extract-MessageDetail {
+﻿<#
+.SYNOPSIS
+    Sammelt Sperr- und Entsperrvorgaenge von Arbeitsplaetzen aus dem
+    Sicherheitsprotokoll.
+
+.DESCRIPTION
+    Wertet die Events 4800 (gesperrt) und 4801 (entsperrt) aus und zerlegt
+    die Meldungen in Benutzer, Zeitpunkt und Rechner. Damit laesst sich
+    nachvollziehen, wann jemand tatsaechlich am Platz war - genauer als ueber
+    An- und Abmeldungen, die oft tagelang bestehen bleiben.
+
+.NOTES
+    Extract-MessageDetail liest den Meldungstext und ist damit
+    sprachabhaengig. Auf einem englischsprachigen System muessen die
+    Suchbegriffe angepasst werden.
+
+    Beide Events muessen ueber die Ueberwachungsrichtlinie "Anmelden/Abmelden
+    -> Andere Anmelde-/Abmeldeereignisse" aktiviert sein; per Vorgabe sind
+    sie es nicht.
+#>
+
+function Extract-MessageDetail {
     param (
         [Parameter(ValueFromPipeline = $true, Mandatory = $true)]
         [PSCustomObject]$Event,
