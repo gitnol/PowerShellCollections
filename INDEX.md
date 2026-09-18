@@ -2,7 +2,7 @@
 
 <!-- Automatisch erzeugt von tools/Build-ScriptIndex.ps1 - nicht von Hand bearbeiten. -->
 
-146 Skripte. 146 mit `.SYNOPSIS` (100%), 0 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
+145 Skripte. 145 mit `.SYNOPSIS` (100%), 0 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
 
 | Markierung | Bedeutung |
 | ---------- | --------- |
@@ -11,6 +11,12 @@
 | **Syntaxfehler** | die Datei parst nicht |
 
 Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
+
+## `modules/PSCollections.Connectivity/`
+
+| Skript | | Beschreibung |
+| ------ | --- | ------------ |
+| [PSCollections.Connectivity.psm1](modules/PSCollections.Connectivity/PSCollections.Connectivity.psm1) | `def` | Prueft die Erreichbarkeit vieler Rechner parallel. |
 
 ## `scripts/active-directory/`
 
@@ -145,7 +151,7 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
 | [ConvertFrom-TeamViewerLog.ps1](scripts/applications/teamviewer/ConvertFrom-TeamViewerLog.ps1) |  | Wertet TeamViewer-Logdateien forensisch aus - wer war wann mit wem verbunden. |
-| [Set-TeamViewerAccess.ps1](scripts/applications/teamviewer/Set-TeamViewerAccess.ps1) | `def` | Setzt die TeamViewer-Zugriffssteuerung auf mehreren Rechnern gleichzeitig. |
+| [Set-TeamViewerAccess.ps1](scripts/applications/teamviewer/Set-TeamViewerAccess.ps1) |  | Setzt die TeamViewer-Zugriffssteuerung auf mehreren Rechnern gleichzeitig. |
 | [Start-TeamViewer.ps1](scripts/applications/teamviewer/Start-TeamViewer.ps1) |  | Startet TeamViewer mit verschiedenen Konfigurationsoptionen und Verbindungsparametern. |
 
 ## `scripts/applications/zammad/`
@@ -288,12 +294,6 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | ------ | --- | ------------ |
 | [Get-BitLockerStatus.ps1](scripts/security/bitlocker/Get-BitLockerStatus.ps1) |  | Gleicht BitLocker-Recovery-Informationen aus dem Active Directory mit den lokalen Systemen massiv parallel ab. |
 
-## `scripts/security/bitlocker/archive/`
-
-| Skript | | Beschreibung |
-| ------ | --- | ------------ |
-| [Get-BitLockerStatus_legacy.ps1](scripts/security/bitlocker/archive/Get-BitLockerStatus_legacy.ps1) |  | ARCHIV - Vorgaengerstand des BitLocker-Abgleichs zwischen AD und lokalen Systemen. |
-
 ## `scripts/security/certificates/`
 
 | Skript | | Beschreibung |
@@ -355,7 +355,6 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [ComputerAvailabilityFunctions.ps1](scripts/windows/availability/ComputerAvailabilityFunctions.ps1) |  | Funktionsbibliothek zur parallelen Erreichbarkeitspruefung vieler Rechner. |
 | [Get-ComputerOnlineStatus.ps1](scripts/windows/availability/Get-ComputerOnlineStatus.ps1) |  | Prüft den Online-Status von Computern aus Active Directory und listet deren IP-Adressen auf. |
 
 ## `scripts/windows/cleanup/`

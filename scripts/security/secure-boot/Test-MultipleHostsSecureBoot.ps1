@@ -17,28 +17,19 @@
     Erfordert PowerShell 7 (ForEach-Object -Parallel) und WinRM auf den
     Zielrechnern.
 
-    Die Datei definiert ihre eigene Kopie von Test-ConnectionInParallel -
-    dieselbe Funktion gibt es im Repo noch dreimal, siehe docs/BACKLOG.md.
+    Test-ConnectionInParallel kommt aus dem Modul
+    modules/PSCollections.Connectivity. Diese Datei trug frueher eine eigene
+    Kopie davon.
 #>
-
-function Test-ConnectionInParallel {
-    # Only PowerShell 7+ (ForEach-Object -Parallel)
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true, ValueFromPipeline = $true, Position = 0)]
-        [string[]]$ComputerNames,
-        [Parameter(Mandatory = $false)]
-        [int]$throttlelimit = 10
-    )
-    $ComputerNames | ForEach-Object -Parallel {
-        Write-Progress -Activity "Checking computer online status" -Status "$_"
-        [PSCustomObject]@{
-            ComputerName = $_
-            Online       = Test-Connection -ComputerName $_ -Count 1 -Quiet -TimeoutSeconds 1
-            IP           = (Test-Connection -ComputerName $_ -Count 1 -TimeoutSeconds 1 -ErrorAction SilentlyContinue).Address.IPAddressToString
-        }
-    } -ThrottleLimit $throttlelimit
+# Gemeinsames Modul laden. Der Suchlauf nach oben macht den Import
+# unabhaengig davon, wie tief die Datei im Verzeichnisbaum liegt.
+$repoRoot = $PSScriptRoot
+while ($repoRoot -and -not (Test-Path (Join-Path $repoRoot 'modules'))) {
+    $repoRoot = Split-Path $repoRoot -Parent
 }
+Import-Module (Join-Path $repoRoot 'modules/PSCollections.Connectivity/PSCollections.Connectivity.psd1') -Force
+
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. Computer-Objekte aus AD abrufen

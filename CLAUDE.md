@@ -48,8 +48,9 @@ betroffen. Im Repo liegen Skripte mit `#Requires -Version 5.1`, die Annahme
 ```
 
 Reine ASCII-Dateien brauchen kein BOM.
-`scripts/messaging/mailstore/api-wrapper/MS.PS.Lib.psd1` liegt als UTF-16 LE
-vor und ist in `.gitattributes` als `binary` markiert - nicht konvertieren.
+`third-party/MailStore-PowerShell-API-Wrapper/api-wrapper/MS.PS.Lib.psd1`
+liegt als UTF-16 LE vor und ist in `.gitattributes` als `binary` markiert -
+nicht konvertieren.
 
 ### Zeilenenden
 
@@ -72,17 +73,15 @@ LF fuer `.sh` und `.githooks/*` (ein Hook mit CRLF scheitert an
 `Test-`.
 
 Die mit "(alt)" markierten Beispiele sind Namen, die es hier tatsaechlich gab -
-sie sind inzwischen umbenannt. Ein Suffix `_v1`/`_v2`/`_old` ist nur dort
-zulaessig, wo mehrere Staende derselben Aufgabe nebeneinanderliegen und noch
-nicht entschieden ist, welcher gilt: [docs/BACKLOG.md](docs/BACKLOG.md).
+sie sind inzwischen umbenannt. Versionssuffixe wie `_v2` oder `_old` gibt es
+nicht mehr: je Aufgabe existiert genau eine Datei.
 
 Verb-Noun gilt fuer **ausfuehrbare Skripte**. Ausgenommen sind:
 
-| Art                   | Benennung                  | Beispiele                                 |
-| --------------------- | -------------------------- | ----------------------------------------- |
-| Module                | nach dem Modul             | `OSBiz.psm1`, `PRTG.Dsls.psm1`, `MS.PS.Lib.psm1` |
-| Funktionsbibliotheken | nach dem Inhalt            | `MailStoreApiFunctions.ps1`, `UserSessionFunctions.ps1` |
-| Nummerierte Beispiele | fortlaufend                | `examples/Example1.ps1`                   |
+| Art                   | Benennung       | Beispiele                                               |
+| --------------------- | --------------- | ------------------------------------------------------- |
+| Module                | nach dem Modul  | `OSBiz.psm1`, `PRTG.Dsls.psm1`, `PSCollections.Connectivity.psm1` |
+| Funktionsbibliotheken | nach dem Inhalt | `MailStoreApiFunctions.ps1`, `UserSessionFunctions.ps1` |
 
 Eine Bibliothek definiert nur Funktionen und wird dot-gesourct; ein Verb waere
 dort irrefuehrend, weil die Datei selbst nichts tut.
@@ -150,33 +149,26 @@ Bypass nur bewusst mit `git commit --no-verify`.
 
 Wer hier arbeitet, sollte das wissen - es ist nicht offensichtlich:
 
-- **Konkurrierende Versionsstaende.** Mehrere Aufgaben liegen in zwei bis vier
-  Staenden nebeneinander, erkennbar am Suffix `_v1`/`_v2`/`_old`.
-  [docs/BACKLOG.md](docs/BACKLOG.md) listet sie mit Datum, Umfang und einer
-  begruendeten Empfehlung auf. Empfohlen heisst nicht entschieden - im
-  Zweifel nachfragen statt raten.
-- **Nur rund ein Drittel der Skripte hat eine `.SYNOPSIS`.** `INDEX.md` zeigt
-  sonst ersatzweise die erste Kommentarzeile, gekennzeichnet mit
-  `(aus Kommentar)`. Das ist ein Hinweis, keine Beschreibung - er kann auch
-  danebenliegen.
 - **Die meisten Dateien fuehren beim Laden Code aus.** Typisch: eine Funktion
   wird definiert und am Dateiende gleich aufgerufen. Dot-Sourcing zum
   Erkunden ist deshalb riskant - manche Skripte greifen dabei sofort auf AD
-  oder Remote-Rechner zu. Nur die mit `def` markierten Dateien (35 von 164)
-  enthalten ausser Definitionen nichts Ausfuehrbares. Im Zweifel lesen statt
-  laden.
+  oder Remote-Rechner zu, eines laedt beim Laden eine Webseite des
+  Herstellers. Nur die mit `def` markierten Dateien (32 von 145) enthalten
+  ausser Definitionen nichts Ausfuehrbares. Im Zweifel lesen statt laden.
 - **Generierter Code kann kaputt sein.** `Invoke-MailStoreApiScratch.ps1` hat
   lange nicht geparst - `New-MailStoreApiFunctionReference.ps1` hatte einen
-  leeren Parameter erzeugt. Repariert; der Generator prueft seine Ausgabe
-  aber weiterhin nicht. Der Index markiert Dateien mit Syntaxfehlern.
-- **Ein paar Skripte brauchen einander.** Meist sind sie eigenstaendig, aber
-  nicht immer: `MailStoreSnippets_v2.ps1` ruft eine Funktion auf, die nur in
-  `_v1` steht, und die MailStore-Beispiele importieren das Modul aus dem
-  Nachbarordner. Vor jedem Verschieben, Umbenennen oder Loeschen:
+  leeren Parameter erzeugt. Beides ist behoben, der Generator prueft seine
+  Ausgabe jetzt selbst. Der Index markiert Dateien mit Syntaxfehlern.
+- **Ein paar Skripte brauchen einander.** Meist sind sie eigenstaendig; wo
+  nicht, laden sie das Modul ausdruecklich per `Import-Module`. Genau diese
+  Unterscheidung trifft das Werkzeug. Vor jedem Verschieben, Umbenennen oder
+  Loeschen:
 
   ```powershell
   .\tools\Find-ScriptDependency.ps1 -CrossFolderOnly
   ```
+
+  Ausgabe `ungedeckt: 0` heisst: kein Aufruf laeuft ins Leere.
 
 - **`third-party/` nicht anfassen.** Fremdcode, unveraendert. Aenderungen
   gehoeren upstream oder in einen eigenen Wrapper.

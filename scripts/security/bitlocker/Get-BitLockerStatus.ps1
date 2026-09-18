@@ -23,75 +23,22 @@
     - WinRM/PowerShell Remoting muss auf den Ziel-Clients aktiviert sein, damit Invoke-Command funktioniert.
     - Berechtigungen zum Lesen der AD-BitLocker-Objekte sowie lokale Admin-Rechte auf den Ziel-Clients.
 #>
-
 # CmdletBinding für erweiterte Parameter-Unterstützung (z.B. -Verbose, -Debug)
 [CmdletBinding()]
 param()
 
+# Gemeinsames Modul laden. Der Suchlauf nach oben macht den Import
+# unabhaengig davon, wie tief die Datei im Verzeichnisbaum liegt.
+$repoRoot = $PSScriptRoot
+while ($repoRoot -and -not (Test-Path (Join-Path $repoRoot 'modules'))) {
+    $repoRoot = Split-Path $repoRoot -Parent
+}
+Import-Module (Join-Path $repoRoot 'modules/PSCollections.Connectivity/PSCollections.Connectivity.psd1') -Force
+
 # -----------------------------------------------------------------------------
 # FUNKTION: Parallele Online-Prüfung
 # -----------------------------------------------------------------------------
-function Get-ComputerOnlineStatus {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $True, ValueFromPipeline = $true)]
-        [string[]]$Computers,
-        
-        [ValidateRange(1, [int]::MaxValue)]
-        [int]$numberConcurrentJobs = 32,
-        
-        [ValidateRange(1, [int]::MaxValue)]
-        [int]$pingCounts = 1
-    )
 
-    $jobs = @()
-    $totalComputers = $Computers.Count
-    $jobsStarted = 0
-
-    foreach ($computer in $Computers) {
-        # Drosselung: Warten, wenn die maximale Anzahl gleichzeitiger Jobs erreicht ist
-        while ((Get-Job -State Running).Count -ge $numberConcurrentJobs) {
-            $now = Get-Date
-            foreach ($job in (Get-Job -State Running)) {
-                # Timeout-Kontrolle: Jobs nach 2 Minuten abbrechen
-                if ($now - (Get-Job -Id $job.Id).PSBeginTime -gt [TimeSpan]::FromMinutes(2)) {
-                    Stop-Job $job
-                    Write-Host ("Job {0} wegen Timeout gestoppt." -f $job.Id) -ForegroundColor Yellow
-                }
-            }
-            Start-Sleep -Milliseconds 500
-        }
-
-        # Starten des Ping-Jobs im Hintergrund
-        $jobs += Start-Job -ScriptBlock {
-            # Zuweisung von $using Variablen in eigene lokale Variablen 
-            $lokalerComputer = $using:computer
-            $lokalerPingCount = $using:pingCounts
-
-            $isOnline = Test-Connection -ComputerName $lokalerComputer -Count $lokalerPingCount -Quiet
-            
-            # Rückgabe als PowerShell Custom Object
-            [pscustomobject]@{
-                Computer = $lokalerComputer
-                Online   = $isOnline
-            }
-        }
-
-        $jobsStarted++
-        Write-Progress -Activity "Prüfe Online-Status" -Status "$jobsStarted von $totalComputers" -PercentComplete (($jobsStarted / $totalComputers) * 100)
-    }
-
-    # Warten, bis alle verbleibenden Jobs abgeschlossen sind
-    While ($jobs | Where-Object { $_.State -eq 'Running' }) {
-        Start-Sleep -Seconds 1
-    }
-
-    # Ergebnisse einsammeln und aufräumen
-    $results = $jobs | Receive-Job
-    $jobs | Remove-Job
-
-    return $results | Select-Object Computer, Online
-}
 
 
 # -----------------------------------------------------------------------------
@@ -108,9 +55,14 @@ Write-Host "Schritt 1: Lese BitLocker-Recovery-Informationen aus dem AD..." -For
 foreach ($CL in $CompList) {
     # Suche nach BitLocker-Recovery-Objekten unterhalb des Computer-Objekts im AD
     $Bitlocker_Objects = Get-ADObject -Filter { objectclass -eq 'msFVE-RecoveryInformation' } -SearchBase $CL.DistinguishedName -Properties 'msFVE-RecoveryPassword'
-    
+
+    # Anzahl der Recovery-Objekte des Rechners, nicht die des einzelnen
+    # Objekts - letzteres waere immer 1 und damit nutzlos. Mehrere Objekte
+    # entstehen bei jeder Neuverschluesselung; der juengste Zeitstempel ist
+    # der gueltige Schluessel.
+    $anzahlkeys = @($Bitlocker_Objects).Count
+
     foreach ($Obj in $Bitlocker_Objects) {
-        $anzahlkeys = $Obj.'msFVE-RecoveryPassword'.Count
         
         # Parsen des DistinguishedName zur Ermittlung von KeyID und Zeitstempel
         $dnTeil1 = ($Obj.DistinguishedName -split ",")[0]
@@ -140,8 +92,8 @@ foreach ($CL in $CompList) {
 $RechnerMitKeys = $AD_Bitlocker_Informationen | Where-Object { $_.BitlockerKeyCount -gt 0 } | Select-Object -ExpandProperty Computername -Unique
 
 Write-Host ("Schritt 2: Prüfe Online-Status von {0} Computern..." -f $RechnerMitKeys.Count) -ForegroundColor Cyan
-$OnlineStatus = Get-ComputerOnlineStatus -Computers $RechnerMitKeys -numberConcurrentJobs 40
-$OnlineRechner = ($OnlineStatus | Where-Object { $_.Online -eq $true }).Computer
+$OnlineStatus = Get-ComputerOnlineStatus -ComputerName $RechnerMitKeys -ThrottleLimit 40
+$OnlineRechner = ($OnlineStatus | Where-Object { $_.Online -eq $true }).ComputerName
 
 
 # --- Schritt 3: Lokale Informationen massiv parallel abrufen ---

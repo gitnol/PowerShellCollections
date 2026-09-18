@@ -15,9 +15,10 @@
     Wirkt erst nach einem Neustart des TeamViewer-Dienstes auf dem
     Zielrechner.
 
-    Die Datei definiert ihre eigene Kopie von Test-ConnectionInParallel -
-    dieselbe Funktion gibt es im Repo noch dreimal. Ein gemeinsames
-    Hilfsmodul waere besser, siehe docs/BACKLOG.md.
+    Test-ConnectionInParallel kommt aus dem Modul
+    modules/PSCollections.Connectivity. Diese Datei trug frueher eine eigene
+    Kopie davon, die den Parameter -Targets statt -ComputerName hiess; der
+    alte Name ist im Modul als Alias erhalten.
 #>
 
 [CmdletBinding()]
@@ -29,25 +30,19 @@ param (
     [ValidateRange(0, 3)]
     [int]$AccessControlType
 )
+# Gemeinsames Modul laden. Der Suchlauf nach oben macht den Import
+# unabhaengig davon, wie tief die Datei im Verzeichnisbaum liegt.
+$repoRoot = $PSScriptRoot
+while ($repoRoot -and -not (Test-Path (Join-Path $repoRoot 'modules'))) {
+    $repoRoot = Split-Path $repoRoot -Parent
+}
+Import-Module (Join-Path $repoRoot 'modules/PSCollections.Connectivity/PSCollections.Connectivity.psd1') -Force
+
+
 
 begin {
     # Definition der Funktion für die parallele Online-Prüfung im Begin-Block
-    function Test-ConnectionInParallel {
-        [CmdletBinding()]
-        param (
-            [Parameter(Mandatory = $true)]
-            [string[]]$Targets,
-            [int]$Throttle = 10
-        )
-        $Targets | ForEach-Object -Parallel {
-            Write-Progress -Activity "Checking computer online status" -Status "$_"
-            [PSCustomObject]@{
-                ComputerName = $_
-                Online       = Test-Connection -ComputerName $_ -Count 1 -Quiet -TimeoutSeconds 1
-                IP           = (Test-Connection -ComputerName $_ -Count 1 -TimeoutSeconds 1 -ErrorAction SilentlyContinue).Address.IPAddressToString
-            }
-        } -ThrottleLimit $Throttle
-    }
+    
 }
 
 process {

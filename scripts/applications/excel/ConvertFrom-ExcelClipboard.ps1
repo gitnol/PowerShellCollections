@@ -15,12 +15,18 @@
     Die Funktion heisst absichtlich kurz `e2p` (Excel to PowerShell) - sie ist
     zum Tippen an der Konsole gedacht.
 
-    Ruft Test-ConnectionInParallel auf, definiert die Funktion aber nicht.
-    Dafuer muss ComputerAvailabilityFunctions.ps1 aus
-    scripts/windows/availability/ dot-gesourct sein. Die Kommentarzeile
-    verweist zudem auf ein "Get-CompuerOnlineStatus.ps1", das es nie gab -
-    siehe docs/BACKLOG.md.
+    Der hintere Teil der Datei prueft zusaetzlich den Online-Status der
+    eingelesenen Rechnernamen. Test-ConnectionInParallel kommt dafuer aus dem
+    Modul modules/PSCollections.Connectivity, das oben geladen wird - frueher
+    wurde die Funktion aufgerufen, ohne dass sie irgendwo herkam.
 #>
+# Gemeinsames Modul laden. Der Suchlauf nach oben macht den Import
+# unabhaengig davon, wie tief die Datei im Verzeichnisbaum liegt.
+$repoRoot = $PSScriptRoot
+while ($repoRoot -and -not (Test-Path (Join-Path $repoRoot 'modules'))) {
+    $repoRoot = Split-Path $repoRoot -Parent
+}
+Import-Module (Join-Path $repoRoot 'modules/PSCollections.Connectivity/PSCollections.Connectivity.psd1') -Force
 
 # This function enables you to copy information from Excel to a pscustomobject
 # In Excel CTRL+A CTRL+C, then in powershell type e2p, return is a pscustomobject which can then be used in powershell afterwards
@@ -60,7 +66,7 @@ $erg = e2p
 # use the $erg where the column Hostname and the column are set and then use the column Hostname to...
 $a = ($erg | Where-Object {$_.Hostname -ne ""} | Select-Object Hostname).Hostname
 # $a = ($erg | Where-Object {$_.Hostname -ne "" -and $_.TeamViewerID -eq ""} | Select-Object Hostname).Hostname
-# ... check the online status of the Hosts --> Search this repo for "Get-CompuerOnlineStatus.ps1"
+# ... Online-Status der Hosts pruefen (Funktion aus PSCollections.Connectivity)
 $online = Test-ConnectionInParallel -ComputerNames $a | Where-Object Online -eq $True
 $online.ComputerName | Set-Clipboard
 # This example is a quick an easy way to convert excel sheet contents into json

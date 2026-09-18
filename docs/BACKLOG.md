@@ -34,42 +34,64 @@ frueheren Pfadanpassung in fuenf Dateien geraten waren.
 
 ---
 
-## 2. BitLocker - Entscheidung steht aus
+## 2. BitLocker - entschieden
 
-`scripts/security/bitlocker/`
+`Get-BitLockerStatus.ps1` ist jetzt der einzige Stand. Der Vorgaenger ist
+geloescht (in der History vorhanden).
 
-`Get-BitLockerStatus.ps1` ist der vom Autor erklaerte Nachfolger, in der
-Commit-Nachricht aber ausdruecklich als **Beta** gekennzeichnet. Deshalb liegt
-der bewaehrte Vorgaenger weiter unter `archive/Get-BitLockerStatus_legacy.ps1`.
+Der Nachfolger war vom Autor als Beta gekennzeichnet. Der Vergleich beider
+Staende ergab, dass die Beta in genau den Punkten besser ist, die im Betrieb
+zaehlen:
 
-**Offen:** sobald der Nachfolger im Betrieb bestaetigt ist, `archive/`
-loeschen. Die frueher daneben liegende englische Fassung war eine reine
-Uebersetzung des Vorgaengers und ist bereits entfernt.
+| Punkt                | Vorgaenger                                        | Nachfolger                                         |
+| -------------------- | -------------------------------------------------- | -------------------------------------------------- |
+| AD-Abfrage           | `Get-ADComputer -Properties *` - alle Attribute     | `-Properties Description` - nur das Benoetigte      |
+| Abruf der Clients    | zwei `Invoke-Command` je Rechner in einer Parallelschleife | ein `Invoke-Command` ueber alle Rechner mit `-ThrottleLimit 50` |
+| unverschluesselt     | faellt stillschweigend raus                         | wird als eigener Zustand ausgewiesen                |
+| Datumsauswertung     | ungeprueft `[DateTime]::Parse`                      | gegen leere Werte abgesichert                       |
+
+Der einzige echte Schwachpunkt der Beta war ihre eingebettete Kopie von
+`Get-ComputerOnlineStatus` mit der globalen `Get-Job`-Verwaltung. Die ist
+durch die korrigierte Fassung aus `modules/PSCollections.Connectivity`
+ersetzt.
+
+Zusaetzlich korrigiert: `BitlockerKeyCount` zaehlte das einzelne
+Recovery-Objekt und war damit immer 1. Jetzt ist es die Anzahl der
+Recovery-Objekte des Rechners - mehrere entstehen bei jeder
+Neuverschluesselung.
 
 ---
 
-## 3. Mehrfach definierte Hilfsfunktionen
+## 3. Mehrfach definierte Hilfsfunktionen - erledigt fuer Connectivity
 
-`Test-ConnectionInParallel` ist in drei Dateien unabhaengig voneinander
-definiert und wird in einer vierten aufgerufen, ohne dort definiert oder
-importiert zu sein:
+`Test-ConnectionInParallel` lag viermal im Repo: dreimal identisch definiert,
+einmal nur aufgerufen. Alle vier nutzen jetzt
+`modules/PSCollections.Connectivity`.
 
-| Datei                                                            | Rolle            |
-| ---------------------------------------------------------------- | ---------------- |
-| `scripts/windows/availability/ComputerAvailabilityFunctions.ps1` | definiert        |
-| `scripts/applications/teamviewer/Set-TeamViewerAccess.ps1`       | definiert        |
-| `scripts/security/secure-boot/Test-MultipleHostsSecureBoot.ps1`  | definiert        |
-| `scripts/applications/excel/ConvertFrom-ExcelClipboard.ps1`      | **ruft nur auf** |
+Die drei Kopien waren inhaltlich gleich und teilten zwei Fehler:
 
-Dasselbe Muster bei `Write-Log`: fuenf Dateien definieren je eine eigene
-Fassung, `scripts/messaging/exchange/Get-MailboxForwardingRules.ps1` ruft es
-auf, ohne eine zu haben.
+1. **Pipeline-Eingabe ging verloren.** `ValueFromPipeline` war deklariert,
+   aber es gab keinen `process`-Block - nur das letzte Element wurde
+   verarbeitet. Nachgemessen: drei Eingaben, ein Ergebnis. Ohne
+   Fehlermeldung.
+2. **`Test-Connection` wurde je Ziel zweimal aufgerufen** - einmal mit
+   `-Quiet` fuer den Status, einmal ohne fuer die IP. Ein Aufruf liefert
+   beides.
 
-Ein gemeinsames Hilfsmodul waere die saubere Loesung. Bis dahin sind die
-beiden aufrufenden Dateien nicht eigenstaendig lauffaehig - in ihrer
-`.NOTES` steht das jeweils.
+Bei `Get-ComputerOnlineStatus` kam ein dritter Fehler dazu: Drosselung und
+Zeitueberwachung liefen ueber `Get-Job -State Running` und betrachteten damit
+**alle** Jobs der Sitzung - eigene Hintergrundjobs des Aufrufers wurden
+mitgezaehlt und nach zwei Minuten per `Stop-Job` beendet.
 
-Pruefen mit `tools/Find-ScriptDependency.ps1`.
+**Offen bleibt `Write-Log`:** fuenf Dateien definieren je eine eigene Fassung
+mit unterschiedlichen Signaturen (eine mit `-Level`, eine mit Dateiausgabe).
+Das ist kein Fehler, solange jede Datei ihre eigene benutzt. Der eine Aufruf
+ins Leere - in `Get-MailboxForwardingRules.ps1`, mit einem Parameter `-path`,
+den keine der Fassungen kennt, und einer nie gesetzten Variablen - ist durch
+ein `Write-Warning` ersetzt.
+
+Pruefen mit `tools/Find-ScriptDependency.ps1`. Die Ausgabe trennt ungedeckte
+Aufrufe von solchen, die per `Import-Module` aufgeloest sind.
 
 ---
 

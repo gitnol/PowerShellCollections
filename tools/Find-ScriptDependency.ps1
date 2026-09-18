@@ -17,10 +17,15 @@
       - kein in der Session bekanntes Cmdlet ist,
       - aber in einer anderen Datei des Repos definiert wird.
 
-    Aufrufe innerhalb desselben Ordners werden getrennt ausgewiesen: sie sind
-    in der Regel gewollt (Skript plus Modul daneben) und ueberstehen ein
-    Verschieben, solange der ganze Ordner wandert. Alles darueber hinaus ist
-    ein Kandidat fuer einen Bruch.
+    Die Treffer werden in drei Gruppen ausgewiesen:
+
+      UNGEDECKT   die Funktion kommt nirgendwoher - der Aufruf scheitert zur
+                  Laufzeit. Das ist die Gruppe, die zaehlt.
+      per Import  die Datei laedt das definierende Modul ausdruecklich per
+                  Import-Module. Gewollt und in Ordnung.
+      im Ordner   Aufrufer und Definition liegen nebeneinander; das
+                  ueberlebt ein Verschieben, solange der Ordner als Ganzes
+                  wandert.
 
 .PARAMETER Path
     Wurzelverzeichnis. Standard: das Repo-Wurzelverzeichnis.
@@ -29,7 +34,7 @@
     Ordnernamen, die uebersprungen werden.
 
 .PARAMETER CrossFolderOnly
-    Nur die kritischen Faelle ueber Ordnergrenzen ausgeben.
+    Nur die ungedeckten Aufrufe ausgeben.
 
 .PARAMETER PassThru
     Gibt Objekte statt Text zurueck.
@@ -43,9 +48,10 @@
     Vor jedem Verschieben, Umbenennen oder Loeschen von Skripten ausfuehren.
 
 .NOTES
-    Falsch positiv sind Namen, die mehrere Dateien unabhaengig voneinander
-    definieren - `Write-Log` ist hier das Beispiel. Das Werkzeug meldet dann
-    alle Definitionsorte; welcher gemeint war, muss man lesen.
+    Definieren mehrere Dateien denselben Namen unabhaengig voneinander, meldet
+    das Werkzeug alle Definitionsorte - welcher gemeint war, muss man lesen.
+    Ein Import wird ueber den Dateinamen im Import-Module-Aufruf erkannt,
+    nicht ueber den aufgeloesten Pfad.
 
     Nicht erkannt werden Aufrufe ueber Variablen (`& $befehl`) und
     Aliasse.
@@ -119,7 +125,24 @@ foreach ($file in $files) {
         if ($name) { [void]$used.Add($name) }
     }
 
-    $perFile[$relative] = @{ Own = $own; Used = $used }
+    # Laedt die Datei ein Modul aus modules/ ausdruecklich per Import-Module,
+    # dann ist eine Abhaengigkeit dorthin gewollt und kein Risiko. Ohne diese
+    # Unterscheidung meldet das Werkzeug jeden sauberen Modulaufruf als
+    # Problem - und was uebrig bleibt, geht im Rauschen unter.
+    $imports = [System.Collections.Generic.HashSet[string]]::new(
+        [System.StringComparer]::OrdinalIgnoreCase)
+
+    foreach ($command in $ast.FindAll(
+            { $args[0] -is [System.Management.Automation.Language.CommandAst] }, $true)) {
+        if ($command.GetCommandName() -ne 'Import-Module') { continue }
+        foreach ($element in $command.CommandElements) {
+            foreach ($match in [regex]::Matches($element.Extent.Text, '[\w.]+(?=\.psd1|\.psm1)')) {
+                [void]$imports.Add($match.Value)
+            }
+        }
+    }
+
+    $perFile[$relative] = @{ Own = $own; Used = $used; Imports = $imports }
 }
 
 $results = foreach ($relative in $perFile.Keys) {
@@ -130,10 +153,15 @@ $results = foreach ($relative in $perFile.Keys) {
 
         foreach ($source in ($definedIn[$name] |
                     Where-Object { $_ -ne $relative } | Select-Object -Unique)) {
+
+            $moduleName = [System.IO.Path]::GetFileNameWithoutExtension($source)
+            $imported = $perFile[$relative].Imports.Contains($moduleName)
+
             [pscustomobject]@{
                 Caller        = $relative
                 Function      = $name
                 DefinedIn     = $source
+                Imported      = $imported
                 SameDirectory = (Split-Path $relative -Parent) -eq (Split-Path $source -Parent)
             }
         }
@@ -143,24 +171,33 @@ $results = foreach ($relative in $perFile.Keys) {
 $results = @($results | Sort-Object Caller, Function)
 
 if ($PassThru) {
-    if ($CrossFolderOnly) { return $results | Where-Object { -not $_.SameDirectory } }
+    if ($CrossFolderOnly) { return $results | Where-Object { -not $_.SameDirectory -and -not $_.Imported } }
     return $results
 }
 
-$cross = @($results | Where-Object { -not $_.SameDirectory })
-$inside = @($results | Where-Object { $_.SameDirectory })
+$unresolved = @($results | Where-Object { -not $_.SameDirectory -and -not $_.Imported })
+$viaImport = @($results | Where-Object { $_.Imported })
+$inside = @($results | Where-Object { $_.SameDirectory -and -not $_.Imported })
 
 Write-Host ''
-Write-Host 'Ueber Ordnergrenzen - bricht beim Verschieben:' -ForegroundColor Yellow
-if ($cross.Count -eq 0) {
+Write-Host 'UNGEDECKT - die Funktion kommt nirgendwoher:' -ForegroundColor Red
+if ($unresolved.Count -eq 0) {
     Write-Host '  keine'
 }
-foreach ($row in $cross) {
+foreach ($row in $unresolved) {
     Write-Host ('  {0}' -f $row.Caller)
-    Write-Host ('      {0}()  definiert in  {1}' -f $row.Function, $row.DefinedIn) -ForegroundColor DarkGray
+    Write-Host ('      {0}()  nur definiert in  {1}' -f $row.Function, $row.DefinedIn) -ForegroundColor DarkGray
 }
 
 if (-not $CrossFolderOnly) {
+    Write-Host ''
+    Write-Host 'Per Import-Module aufgeloest - in Ordnung:' -ForegroundColor Green
+    if ($viaImport.Count -eq 0) { Write-Host '  keine' }
+    foreach ($row in $viaImport) {
+        Write-Host ('  {0}  ->  {1}()  aus  {2}' -f
+            (Split-Path $row.Caller -Leaf), $row.Function, (Split-Path $row.DefinedIn -Leaf))
+    }
+
     Write-Host ''
     Write-Host 'Innerhalb eines Ordners - in der Regel gewollt:' -ForegroundColor Green
     if ($inside.Count -eq 0) { Write-Host '  keine' }
@@ -171,4 +208,5 @@ if (-not $CrossFolderOnly) {
 }
 
 Write-Host ''
-Write-Host ('ueber Ordnergrenzen: {0}   innerhalb: {1}' -f $cross.Count, $inside.Count)
+Write-Host ('ungedeckt: {0}   per Import aufgeloest: {1}   im selben Ordner: {2}' -f
+    $unresolved.Count, $viaImport.Count, $inside.Count)

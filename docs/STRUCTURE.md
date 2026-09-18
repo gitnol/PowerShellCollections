@@ -93,19 +93,41 @@ Besser waere ein Git-Submodul, damit Updates nachvollziehbar bleiben. Solange
 der Code kopiert vorliegt, gilt: dort nichts aendern, eigene Ergaenzungen
 kommen als Wrapper nach `scripts/security/secure-boot/`.
 
-### Keine eigene `modules/`-Ebene
+### Module liegen bei ihrer Fachdomaene - ausser sie haben keine
 
-Naheliegend waere, alle `.psm1`/`.psd1` zentral zu sammeln. Dagegen spricht die
-Zusammengehoerigkeit: `MS.PS.Lib.psm1` ohne die Mailstore-Skripte, mit denen es
-benutzt wird, ist schwerer zu finden und schwerer zu verstehen. Module liegen
-deshalb bei ihrer Fachdomaene:
+Alle `.psm1`/`.psd1` zentral zu sammeln waere naheliegend, kostet aber die
+Zusammengehoerigkeit: `OSBiz.psm1` ohne die OpenScape-Skripte, mit denen es
+benutzt wird, ist schwerer zu finden und schwerer zu verstehen. Module mit
+klarer Fachdomaene liegen deshalb dort:
 
-| Modul                  | Ort                                      |
-| ---------------------- | ---------------------------------------- |
-| `MS.PS.Lib.psm1`       | `scripts/messaging/mailstore/api-wrapper/` |
-| `OSBiz.psm1`           | `scripts/applications/openscape-business/` |
-| `Win10PingMonitor.psm1`| `scripts/monitoring/ping-monitor/`       |
-| `PRTG.Dsls.psm1`       | `scripts/monitoring/prtg/dsls/`          |
+| Modul                   | Ort                                        |
+| ----------------------- | ------------------------------------------ |
+| `OSBiz.psm1`            | `scripts/applications/openscape-business/` |
+| `Win10PingMonitor.psm1` | `scripts/monitoring/ping-monitor/`         |
+| `PRTG.Dsls.psm1`        | `scripts/monitoring/prtg/dsls/`            |
+
+`modules/` gibt es nur fuer Funktionen, die **mehrere Fachdomaenen**
+gemeinsam brauchen - die haben per Definition keinen Platz bei einer davon:
+
+| Modul                        | Ort                                  | gebraucht von                               |
+| ---------------------------- | ------------------------------------ | ------------------------------------------- |
+| `PSCollections.Connectivity` | `modules/PSCollections.Connectivity/` | Windows, TeamViewer, SecureBoot, Excel-Import |
+
+Die Huerde dafuer ist bewusst hoch: erst wenn dieselbe Funktion in **drei**
+Fachdomaenen kopiert wurde, gehoert sie nach `modules/`. Genau so ist
+`PSCollections.Connectivity` entstanden - `Test-ConnectionInParallel` lag
+dreimal identisch im Repo, eine vierte Datei rief sie auf, ohne sie zu haben.
+
+Skripte laden ein solches Modul ueber einen Suchlauf nach oben, damit der
+Import nicht an der Verzeichnistiefe haengt:
+
+```powershell
+$repoRoot = $PSScriptRoot
+while ($repoRoot -and -not (Test-Path (Join-Path $repoRoot 'modules'))) {
+    $repoRoot = Split-Path $repoRoot -Parent
+}
+Import-Module (Join-Path $repoRoot 'modules/PSCollections.Connectivity/PSCollections.Connectivity.psd1') -Force
+```
 
 ## Namenskonventionen
 

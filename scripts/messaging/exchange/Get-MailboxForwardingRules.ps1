@@ -14,8 +14,9 @@
     Die Session wird am Ende wieder abgebaut - sonst laeuft man in das
     Verbindungslimit von Exchange.
 
-    Ruft Write-Log auf, ohne es zu definieren: dafuer muss eine der
-    Nachbardateien im selben Ordner dot-gesourct sein. Siehe docs/BACKLOG.md.
+    Die Datei ist eigenstaendig lauffaehig. Sie rief frueher ein Write-Log
+    auf, das es hier nicht gibt, mit einem Parameter -path, den auch keine
+    der Nachbardefinitionen kennt, und einer nie gesetzten Variablen.
 
     Der Exchange-Server steht als Variable $exchserver am Dateianfang.
 #>
@@ -65,5 +66,9 @@ try {
     Remove-PSSession $Session
 }
 catch {
-    Write-Log "Error when removing the session: $_" -path $logPfad
+    # War frueher ein Write-Log-Aufruf mit -path $logPfad. Beides gab es
+    # nicht: die Funktion wird in dieser Datei nicht definiert, und $logPfad
+    # war nie gesetzt. Der Rest der Datei meldet ueber Write-Error und
+    # Write-Host - hier reicht eine Warnung, die Sitzung ist ohnehin am Ende.
+    Write-Warning "Fehler beim Schliessen der Exchange-Sitzung: $_"
 }
