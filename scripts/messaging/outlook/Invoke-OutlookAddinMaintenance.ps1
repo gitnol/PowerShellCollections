@@ -16,11 +16,11 @@
     Versucht, das angegebene TargetAddin zu reparieren (Resiliency bereinigen, LoadBehavior erzwingen).
 
 .EXAMPLE
-    .\Manage-OutlookAddins.ps1 -List
+    .\Invoke-OutlookAddinMaintenance.ps1 -List
     Zeigt eine Tabelle aller Add-ins.
 
 .EXAMPLE
-    .\Manage-OutlookAddins.ps1 -TargetAddin "PhishAlert.AddinModule" -FixIssues
+    .\Invoke-OutlookAddinMaintenance.ps1 -TargetAddin "PhishAlert.AddinModule" -FixIssues
     Prüft das spezifische Add-in und repariert es bei Fehlern.
 #>
 

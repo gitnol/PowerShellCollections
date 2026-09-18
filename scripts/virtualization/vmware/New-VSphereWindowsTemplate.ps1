@@ -16,11 +16,11 @@
     Führt zum Schluss Sysprep /generalize /oobe /shutdown /mode:vm aus.
 .EXAMPLE
     # Führt den kompletten "Gold Standard"-Lauf durch und versiegelt die VM.
-    .\Create-Windows-VM-vSphere-Template.ps1 -ClearEventLogs -ClearWSUS -AggressiveDISM -SysprepAndShutdown
+    .\New-VSphereWindowsTemplate.ps1 -ClearEventLogs -ClearWSUS -AggressiveDISM -SysprepAndShutdown
 
 .EXAMPLE
     # Führt einen Trockenlauf durch, um alle geplanten Aktionen anzuzeigen.
-    .\Create-Windows-VM-vSphere-Template.ps1 -ClearEventLogs -ClearWSUS -AggressiveDISM -SysprepAndShutdown -WhatIf
+    .\New-VSphereWindowsTemplate.ps1 -ClearEventLogs -ClearWSUS -AggressiveDISM -SysprepAndShutdown -WhatIf
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(

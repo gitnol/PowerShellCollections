@@ -1,4 +1,4 @@
-# Create-PublicSpotUsers.ps1
+# New-PublicSpotUserBulk.ps1
 
 PowerShell-Skript zur automatisierten Massenanlage von **Public Spot Benutzern** auf LANCOM WLC/Routern via REST-API, gesteuert über eine CSV-Eingabedatei.
 
@@ -6,7 +6,7 @@ PowerShell-Skript zur automatisierten Massenanlage von **Public Spot Benutzern**
 
 ## Inhaltsverzeichnis
 
-- [Create-PublicSpotUsers.ps1](#create-publicspotusersps1)
+- [New-PublicSpotUserBulk.ps1](#create-publicspotusersps1)
   - [Inhaltsverzeichnis](#inhaltsverzeichnis)
   - [Voraussetzungen](#voraussetzungen)
   - [Funktionsweise](#funktionsweise)
@@ -151,14 +151,14 @@ Kodierung: **UTF-8**
 
 ```powershell
 $SecurePass = Read-Host -Prompt "LANCOM Admin-Passwort" -AsSecureString
-.\Create-PublicSpotUsers.ps1 -AdminUser "admin" -AdminPass $SecurePass -InputCsv ".\Eingabe_Benutzer.csv"
+.\New-PublicSpotUserBulk.ps1 -AdminUser "admin" -AdminPass $SecurePass -InputCsv ".\Eingabe_Benutzer.csv"
 ```
 
 ### Mit alternativer Router-IP und abweichender Ausgabedatei
 
 ```powershell
 $SecurePass = Read-Host -Prompt "LANCOM Admin-Passwort" -AsSecureString
-.\Create-PublicSpotUsers.ps1 `
+.\New-PublicSpotUserBulk.ps1 `
     -RouterIP "192.168.1.1" `
     -AdminUser "root" `
     -AdminPass $SecurePass `
@@ -170,7 +170,7 @@ $SecurePass = Read-Host -Prompt "LANCOM Admin-Passwort" -AsSecureString
 
 ```powershell
 $SecurePass = Read-Host -Prompt "LANCOM Admin-Passwort" -AsSecureString
-.\Create-PublicSpotUsers.ps1 -AdminUser "admin" -AdminPass $SecurePass -InputCsv ".\users.csv" -SkipCertificateCheck $false
+.\New-PublicSpotUserBulk.ps1 -AdminUser "admin" -AdminPass $SecurePass -InputCsv ".\users.csv" -SkipCertificateCheck $false
 ```
 
 ### Beispielausgabe

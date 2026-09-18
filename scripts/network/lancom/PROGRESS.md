@@ -7,7 +7,7 @@ um alle Kombinationen und Abhängigkeiten abzudecken.
 ---
 
 ## Analysierte Quellen
-- `Create-PublicSpotUsers.ps1` v1.4
+- `New-PublicSpotUserBulk.ps1` v1.4
 - `README.md`
 - LANCOM API-Dokumentation (vom Nutzer bereitgestellt)
 

@@ -29,13 +29,13 @@
     grafische Auswahl automatisch entsperrt.
 
 .EXAMPLE
-    .\Remove-ExcelSheetProtection_v4.ps1 -ExcelFilePath "C:\Daten\Analyse.xlsx"
+    .\Remove-ExcelSheetProtection.ps1 -ExcelFilePath "C:\Daten\Analyse.xlsx"
 
 .EXAMPLE
-    .\Remove-ExcelSheetProtection_v4.ps1 -ExcelFilePath "C:\Daten\Analyse.xlsx" -UnlockAll
+    .\Remove-ExcelSheetProtection.ps1 -ExcelFilePath "C:\Daten\Analyse.xlsx" -UnlockAll
 
 .EXAMPLE
-    .\Remove-ExcelSheetProtection_v4.ps1 -ExcelFilePath "C:\Daten\Analyse.xlsx" -OutputFolder "C:\Export"
+    .\Remove-ExcelSheetProtection.ps1 -ExcelFilePath "C:\Daten\Analyse.xlsx" -OutputFolder "C:\Export"
 #>
 
 [CmdletBinding()]

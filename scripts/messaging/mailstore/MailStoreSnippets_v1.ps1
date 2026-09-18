@@ -1,7 +1,7 @@
 ﻿$myScriptpath = if ($PSScriptRoot) { $PSScriptRoot }else { (Get-Location) }
 
 Import-Module ActiveDirectory
-Import-Module "$myScriptpath\API-Wrapper\MS.PS.Lib.psd1"
+Import-Module "$myScriptpathpi-wrapper\MS.PS.Lib.psd1"
 
 function Get-MailstoreAndExchangeUsers {
     [CmdletBinding()]

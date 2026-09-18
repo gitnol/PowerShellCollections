@@ -27,10 +27,10 @@
     Ping-Timeout in Sekunden (Standard: 2)
     
 .EXAMPLE
-    .\AD-Computer-Inventory-Parallel.ps1 -WeeksBack 4 -ThrottleLimit 15
+    .\Get-ADComputerInventory.ps1 -WeeksBack 4 -ThrottleLimit 15
     
 .EXAMPLE
-    .\AD-Computer-Inventory-Parallel.ps1 -TestMode -Verbose
+    .\Get-ADComputerInventory.ps1 -TestMode -Verbose
 #>
 
 [CmdletBinding()]

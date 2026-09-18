@@ -25,7 +25,7 @@
     Der Name (SamAccountName/DN) der zu überwachenden Gruppe (z.B. 'Domänen-Admins', 'Server-Operatoren').
 
 .EXAMPLE
-    .\Check-ADGroupIntegrity.ps1 -GroupIdentity "Domänen-Admins"
+    .\Test-ADGroupIntegrity.ps1 -GroupIdentity "Domänen-Admins"
 #>
 
 [CmdletBinding()]

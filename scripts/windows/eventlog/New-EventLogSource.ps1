@@ -9,7 +9,7 @@
     im Application-Log und führt einen Test durch.
 
 .EXAMPLE
-    .\Setup-EventLog.ps1
+    .\New-EventLogSource.ps1
     
 .NOTES
     - Muss als Administrator ausgeführt werden
@@ -125,7 +125,7 @@ if (-not (Test-AdminRights)) {
     Write-ColorOutput "So führen Sie das Script als Administrator aus:" $WarningColor
     Write-ColorOutput "1. PowerShell als Administrator öffnen" $WarningColor
     Write-ColorOutput "2. Zu diesem Verzeichnis navigieren" $WarningColor  
-    Write-ColorOutput "3. .\Setup-EventLog.ps1 ausführen" $WarningColor
+    Write-ColorOutput "3. .\New-EventLogSource.ps1 ausführen" $WarningColor
     Write-ColorOutput ""
     Write-ColorOutput "Oder: Rechtsklick auf das Script > 'Mit PowerShell als Administrator ausführen'" $WarningColor
     Write-ColorOutput ""

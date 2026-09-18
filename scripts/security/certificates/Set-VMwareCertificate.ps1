@@ -1,10 +1,10 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    Deploys certificates from Generate-Certificate.ps1 to VMware vCenter and ESXi hosts.
+    Deploys certificates from New-Certificate.ps1 to VMware vCenter and ESXi hosts.
 
 .DESCRIPTION
-    Takes certificate results from Generate-Certificate.ps1 and deploys them to VMware infrastructure.
+    Takes certificate results from New-Certificate.ps1 and deploys them to VMware infrastructure.
 
     Execution order (safe sequence):
       1. Upload CA chain as trusted certificates to all vCenter servers
@@ -20,7 +20,7 @@
     -Confirm by default. Run with -WhatIf first to review all planned actions.
 
 .PARAMETER CertificateResults
-    Array of PSCustomObject from Generate-Certificate.ps1 output.
+    Array of PSCustomObject from New-Certificate.ps1 output.
     Each object must have: HostnameFQDN, CaChainPath, CertificatePath, PrivateKeyPath.
 
 .PARAMETER ConfigPath
@@ -40,18 +40,18 @@
     Skip vCenter machine certificate replacement. Only process ESXi hosts.
 
 .EXAMPLE
-    $certs = .\Generate-Certificate.ps1
-    .\Replace-VMWare-Certificates.ps1 -CertificateResults $certs -WhatIf
+    $certs = .\New-Certificate.ps1
+    .\Set-VMwareCertificate.ps1 -CertificateResults $certs -WhatIf
     Dry run - shows what would happen without making changes.
 
 .EXAMPLE
-    $certs = .\Generate-Certificate.ps1
-    .\Replace-VMWare-Certificates.ps1 -CertificateResults $certs
+    $certs = .\New-Certificate.ps1
+    .\Set-VMwareCertificate.ps1 -CertificateResults $certs
     Full run - prompts for confirmation at each step (ConfirmImpact = High).
 
 .EXAMPLE
-    $certs = .\Generate-Certificate.ps1
-    .\Replace-VMWare-Certificates.ps1 -CertificateResults $certs -SkipEsxi
+    $certs = .\New-Certificate.ps1
+    .\Set-VMwareCertificate.ps1 -CertificateResults $certs -SkipEsxi
     Only replace vCenter machine certificates, skip ESXi hosts.
 #>
 

@@ -10,7 +10,7 @@
 
 .EXAMPLE
     $SecurePass = Read-Host -Prompt "Passwort eingeben" -AsSecureString
-    .\Create-PublicSpotUsers.ps1 -AdminUser "myuser" -AdminPass $SecurePass -InputCsv ".\Eingabe_Benutzer.csv"
+    .\New-PublicSpotUserBulk.ps1 -AdminUser "myuser" -AdminPass $SecurePass -InputCsv ".\Eingabe_Benutzer.csv"
 #>
 
 [CmdletBinding()]

@@ -13,8 +13,8 @@ Requests certificates from an Active Directory Certificate Services (ADCS) CA, e
 
 | File | Description |
 |------|-------------|
-| `Generate-Certificate.ps1` | Main script - orchestrates certificate generation |
-| `Replace-VMWare-Certificates.ps1` | Deploys generated certificates to vCenter and ESXi hosts |
+| `New-Certificate.ps1` | Main script - orchestrates certificate generation |
+| `Set-VMwareCertificate.ps1` | Deploys generated certificates to vCenter and ESXi hosts |
 | `Request-Certificate.ps1` | Low-level ADCS request via `certreq.exe` (by [J0F3](https://github.com/J0F3/PowerShell), modded for PS7) |
 | `config.json` | Your local certificate definitions (gitignored) |
 | `config.example.json` | Example config with the expected JSON schema |
@@ -24,7 +24,7 @@ Requests certificates from an Active Directory Certificate Services (ADCS) CA, e
 ## Workflow
 
 ```
-Generate-Certificate.ps1
+New-Certificate.ps1
         |
         |  1. Reads config.json (or CLI parameters)
         |  2. For each certificate:
@@ -58,10 +58,10 @@ Generate certificates for multiple hosts defined in a JSON config file.
 
 ```powershell
 # Uses config.json in the script directory by default
-.\Generate-Certificate.ps1
+.\New-Certificate.ps1
 
 # Or specify a custom config path
-.\Generate-Certificate.ps1 -ConfigPath .\my-environment.json
+.\New-Certificate.ps1 -ConfigPath .\my-environment.json
 ```
 
 You will be prompted for each certificate's export password (unless set in config).
@@ -72,20 +72,20 @@ Generate one certificate directly from the command line.
 
 ```powershell
 # Minimal - prompts for password, uses all defaults
-.\Generate-Certificate.ps1 -HostnameFQDN "webserver.mycorp.local"
+.\New-Certificate.ps1 -HostnameFQDN "webserver.mycorp.local"
 
 # With DNS SANs
-.\Generate-Certificate.ps1 -HostnameFQDN "webserver.mycorp.local" `
+.\New-Certificate.ps1 -HostnameFQDN "webserver.mycorp.local" `
     -SanDns "webserver","www.mycorp.local"
 
 # With DNS + IP SANs and explicit password
-.\Generate-Certificate.ps1 -HostnameFQDN "webserver.mycorp.local" `
+.\New-Certificate.ps1 -HostnameFQDN "webserver.mycorp.local" `
     -SanDns "webserver","www.mycorp.local" `
     -SanIpAddress "10.0.1.50" `
     -ExportPassword "MyP@ssw0rd"
 
 # Override all defaults
-.\Generate-Certificate.ps1 -HostnameFQDN "webserver.mycorp.local" `
+.\New-Certificate.ps1 -HostnameFQDN "webserver.mycorp.local" `
     -SanDns "webserver" `
     -TemplateName "CustomWebTemplate" `
     -Department "Engineering" `
@@ -99,7 +99,7 @@ The script returns a `PSCustomObject` per certificate, so you can pipe or store 
 
 ```powershell
 # Store results for further processing
-$certs = .\Generate-Certificate.ps1
+$certs = .\New-Certificate.ps1
 
 # Show all generated file paths
 $certs | Format-List
@@ -265,22 +265,22 @@ vCenter certificates are replaced **last** because vCenter services restart afte
 
 ```powershell
 # Step 1: Generate all certificates
-$certs = .\Generate-Certificate.ps1
+$certs = .\New-Certificate.ps1
 
 # Step 2a: Dry run - review what would happen (RECOMMENDED FIRST)
-.\Replace-VMWare-Certificates.ps1 -CertificateResults $certs -WhatIf
+.\Set-VMwareCertificate.ps1 -CertificateResults $certs -WhatIf
 
 # Step 2b: Full deployment (prompts for confirmation at each step)
-.\Replace-VMWare-Certificates.ps1 -CertificateResults $certs
+.\Set-VMwareCertificate.ps1 -CertificateResults $certs
 
 # Only replace vCenter certs, skip ESXi hosts
-.\Replace-VMWare-Certificates.ps1 -CertificateResults $certs -SkipEsxi
+.\Set-VMwareCertificate.ps1 -CertificateResults $certs -SkipEsxi
 
 # Only replace ESXi certs, skip vCenter
-.\Replace-VMWare-Certificates.ps1 -CertificateResults $certs -SkipVcenter
+.\Set-VMwareCertificate.ps1 -CertificateResults $certs -SkipVcenter
 
 # Skip CA chain upload (already done in a previous run)
-.\Replace-VMWare-Certificates.ps1 -CertificateResults $certs -SkipCaChainUpload
+.\Set-VMwareCertificate.ps1 -CertificateResults $certs -SkipCaChainUpload
 ```
 
 ### Safety features

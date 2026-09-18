@@ -39,18 +39,18 @@
     Password for PFX export. If omitted, you will be prompted securely.
 
 .EXAMPLE
-    .\Generate-Certificate.ps1
+    .\New-Certificate.ps1
     Reads config.json from the script directory and generates certificates for all entries.
 
 .EXAMPLE
-    .\Generate-Certificate.ps1 -ConfigPath .\myconfig.json
+    .\New-Certificate.ps1 -ConfigPath .\myconfig.json
 
 .EXAMPLE
-    .\Generate-Certificate.ps1 -HostnameFQDN "server.mycorp.local" -SanDns "server","server.mycorp.local" -SanIpAddress "10.0.1.5"
+    .\New-Certificate.ps1 -HostnameFQDN "server.mycorp.local" -SanDns "server","server.mycorp.local" -SanIpAddress "10.0.1.5"
     Generates a single certificate with DNS and IP SANs. Prompts for export password.
 
 .EXAMPLE
-    .\Generate-Certificate.ps1 -HostnameFQDN "server.mycorp.local" -ExportPassword "mypass" -TemplateName "CustomTemplate"
+    .\New-Certificate.ps1 -HostnameFQDN "server.mycorp.local" -ExportPassword "mypass" -TemplateName "CustomTemplate"
     Generates a single certificate with a custom template and explicit password.
 #>
 

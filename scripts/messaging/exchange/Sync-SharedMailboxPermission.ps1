@@ -28,15 +28,15 @@
     Optionale Anmeldeinformationen. Wenn nicht angegeben, wird die integrierte Authentifizierung (Kerberos) des ausführenden Benutzers verwendet.
 
 .EXAMPLE
-    .\Manage-SharedMailboxPermissions.ps1 -ExchangeServer 'srvex05.mycorp.local' -DomainPrefix 'mycorp'
+    .\Sync-SharedMailboxPermission.ps1 -ExchangeServer 'srvex05.mycorp.local' -DomainPrefix 'mycorp'
     Führt das Skript im produktiven Modus aus.
 
 .EXAMPLE
-    .\Manage-SharedMailboxPermissions.ps1 -ExchangeServer 'srvex05.mycorp.local' -DomainPrefix 'mycorp' -WhatIf
+    .\Sync-SharedMailboxPermission.ps1 -ExchangeServer 'srvex05.mycorp.local' -DomainPrefix 'mycorp' -WhatIf
     Simuliert alle Aktionen, ohne Änderungen vorzunehmen, und zeigt eine Vorschau in der Konsole an.
 
 .EXAMPLE
-    .\Manage-SharedMailboxPermissions.ps1 -ExchangeServer 'srvex05.mycorp.local' -DomainPrefix 'mycorp' -Debug
+    .\Sync-SharedMailboxPermission.ps1 -ExchangeServer 'srvex05.mycorp.local' -DomainPrefix 'mycorp' -Debug
     Führt das Skript mit zusätzlicher, detaillierter Debug-Ausgabe auf der Konsole aus.
 
 .NOTES

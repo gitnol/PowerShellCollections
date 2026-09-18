@@ -30,10 +30,10 @@
 
 .EXAMPLE
     $SecurePass = Read-Host -Prompt "Passwort eingeben" -AsSecureString
-    .\Create-PublicSpotUsers.ps1 -AdminUser "myuser" -AdminPass $SecurePass -InputCsv ".\Eingabe_Benutzer.csv"
+    .\New-PublicSpotUserBulk.ps1 -AdminUser "myuser" -AdminPass $SecurePass -InputCsv ".\Eingabe_Benutzer.csv"
 
 .EXAMPLE
-    .\Create-PublicSpotUsers.ps1 -AdminUser "admin" -AdminPass $SecurePass -InputCsv ".\users.csv" -RouterIP "192.168.1.1" -SkipCertificateCheck $false
+    .\New-PublicSpotUserBulk.ps1 -AdminUser "admin" -AdminPass $SecurePass -InputCsv ".\users.csv" -RouterIP "192.168.1.1" -SkipCertificateCheck $false
 
 .NOTES
     Version : 1.5

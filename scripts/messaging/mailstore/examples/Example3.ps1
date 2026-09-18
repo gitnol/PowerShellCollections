@@ -32,7 +32,7 @@
 
 --------------------------------------------------------------------------#>
 
-Import-Module '..\API-Wrapper\MS.PS.Lib.psd1'
+Import-Module '..pi-wrapper\MS.PS.Lib.psd1'
 
 $msapiclient = New-MSApiClient -Username "admin" -Password "admin" -Server "localhost" -Port 8463 -IgnoreInvalidSSLCerts
 $return = Invoke-MSApiCall $msapiclient "VerifyStore" @{id = "1"}

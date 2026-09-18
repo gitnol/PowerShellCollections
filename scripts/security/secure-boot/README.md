@@ -17,7 +17,7 @@ Systeme ohne Secure Boot sind kurzfristig nicht gefährdet, haben aber geringere
 
 | Skript | Zweck | Ausführungsort | Modus |
 |---|---|---|---|
-| `Check-MultipleHostsSecureBoot.ps1` | Inventar aller AD-Server | Verwaltungs-PC | Remote, parallel |
+| `Test-MultipleHostsSecureBoot_v2.ps1` | Inventar aller AD-Server | Verwaltungs-PC | Remote, parallel |
 | `Test-SecureBootCert2023.ps1` | Schnelltest Einzelsystem | lokal auf dem Zielrechner | nur lesen |
 | `Invoke-SecureBootCertUpdate.ps1 -Status` | Detaillierter Status (genauer) | lokal oder remote | nur lesen |
 | `Invoke-SecureBootCertUpdate.ps1 -AutoConfirm` | Update automatisch einleiten | remote via `Invoke-Command` | schreibend |
@@ -30,12 +30,12 @@ Systeme ohne Secure Boot sind kurzfristig nicht gefährdet, haben aber geringere
 
 ### Server-Inventar (AD-basiert)
 
-Das Skript `Check-MultipleHostsSecureBoot.ps1` prüft automatisch alle aktiven Windows-Server aus dem Active Directory:
+Das Skript `Test-MultipleHostsSecureBoot_v2.ps1` prüft automatisch alle aktiven Windows-Server aus dem Active Directory:
 
 ```powershell
 # Ausführen auf einem Verwaltungs-PC mit AD-Zugriff und PowerShell 7+
 # Erfordert: RSAT, Netzwerkzugriff auf die Zielhosts (WinRM/5985)
-.\Check-MultipleHostsSecureBoot.ps1
+.\Test-MultipleHostsSecureBoot_v2.ps1
 ```
 
 **Was es tut:**
@@ -65,7 +65,7 @@ SecureBootEnabled = True  UND  UEFICA2023InDB = False
 
 ### Client-Inventar
 
-`Check-MultipleHostsSecureBoot.ps1` prüft standardmäßig nur Server. Für Clients den AD-Filter in Zeile 17 anpassen:
+`Test-MultipleHostsSecureBoot_v2.ps1` prüft standardmäßig nur Server. Für Clients den AD-Filter in Zeile 17 anpassen:
 
 ```powershell
 # Nur Server (Standard):
@@ -206,7 +206,7 @@ $data.DBX.SecurityVersionNumber.BootMgr.Version.ToString()
 
 | Anforderung | Details |
 |---|---|
-| PowerShell | 7+ für parallele AD-Abfrage (`Check-MultipleHostsSecureBoot.ps1`), 5.1+ für Einzelskripte |
+| PowerShell | 7+ für parallele AD-Abfrage (`Test-MultipleHostsSecureBoot_v2.ps1`), 5.1+ für Einzelskripte |
 | Rechte | Lokaler Administrator auf Zielrechner; Domänen-Admin für Remote-Betrieb |
 | WinRM | Muss auf Zielhosts aktiv sein (`winrm quickconfig`) |
 | AD-Modul | RSAT: `Install-WindowsFeature RSAT-AD-PowerShell` (Server) oder `Add-WindowsCapability -Name Rsat.ActiveDirectory*` (Client) |
