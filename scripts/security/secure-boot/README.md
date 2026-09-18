@@ -22,7 +22,7 @@ Systeme ohne Secure Boot sind kurzfristig nicht gefährdet, haben aber geringere
 | `Invoke-SecureBootCertUpdate.ps1 -Status` | Detaillierter Status (genauer) | lokal oder remote | nur lesen |
 | `Invoke-SecureBootCertUpdate.ps1 -AutoConfirm` | Update automatisch einleiten | remote via `Invoke-Command` | schreibend |
 | `Invoke-SecureBootCertUpdate_simple.ps1` | Sofort-Update manuell | lokal auf dem Zielrechner | schreibend |
-| `Check-UEFISecureBootVariables-main\` | Tiefenanalyse UEFI-Variablen | lokal auf dem Zielrechner | nur lesen |
+| [`third-party/Check-UEFISecureBootVariables/`](../../../third-party/Check-UEFISecureBootVariables/) | Tiefenanalyse UEFI-Variablen | lokal auf dem Zielrechner | nur lesen |
 
 ---
 
@@ -183,9 +183,9 @@ C:\ProgramData\SecureBootUpdate\update.log
 
 ---
 
-## Tiefenanalyse einzelner Systeme (Check-UEFISecureBootVariables-main)
+## Tiefenanalyse einzelner Systeme (third-party/Check-UEFISecureBootVariables)
 
-Für detaillierte Analyse der UEFI-Variablen (PK, KEK, DB, DBX) steht das externe Tool zur Verfügung. **Lokal auf dem Zielsystem als Administrator ausführen:**
+Für detaillierte Analyse der UEFI-Variablen (PK, KEK, DB, DBX) steht das externe Tool unter [`third-party/Check-UEFISecureBootVariables/`](../../../third-party/Check-UEFISecureBootVariables/) zur Verfügung. **Lokal auf dem Zielsystem als Administrator ausführen:**
 
 | Skript/CMD | Zweck |
 |---|---|
