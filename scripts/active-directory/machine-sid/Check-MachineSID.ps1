@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Prüft den Online-Status von AD-Computern und führt optional einen Neustart oder eine SID-Prüfung durch.
 .PARAMETER Filter

@@ -1,4 +1,4 @@
-function Get-ADComputerLastLogon {
+﻿function Get-ADComputerLastLogon {
     [CmdletBinding()]
     param(
         [string]$Filter = '*'

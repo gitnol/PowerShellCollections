@@ -1,4 +1,4 @@
-# I have added this script to reddit on 20240803
+﻿# I have added this script to reddit on 20240803
 # https://www.reddit.com/r/PowerShell/comments/8r56tr/getting_idle_time_for_logged_on_domain_users/
 
 # Also added it as answer here:

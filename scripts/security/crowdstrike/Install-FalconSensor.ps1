@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Kopiert eine Installationsdatei (z.B. FalconSensor) auf Zielcomputer
     und führt sie dort remote mit Parametern aus.

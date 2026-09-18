@@ -1,4 +1,4 @@
-function Send-WakeOnLan {
+﻿function Send-WakeOnLan {
     <#
     .SYNOPSIS
         Sendet ein Wake-on-LAN Magic Packet an eine MAC-Adresse.

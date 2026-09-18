@@ -1,4 +1,4 @@
-$userDN = "myuser"
+﻿$userDN = "myuser"
 $GroupsOfUser = Get-ADPrincipalGroupMembership -Identity $userDN 
 
 $user = Get-ADUser -Identity $UserDN -Properties MemberOf, SIDHistory

@@ -1,4 +1,4 @@
-function Extract-MessageDetail {
+﻿function Extract-MessageDetail {
     param (
         [Parameter(ValueFromPipeline = $true, Mandatory = $true)]
         [PSCustomObject]$Event,

@@ -1,4 +1,4 @@
-function Get-WebHeaders {
+﻿function Get-WebHeaders {
     <#
 .SYNOPSIS
 Liest HTTP Response-Header und Statuscode aus.

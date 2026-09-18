@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Konfiguriert die Zeitsynchronisierung für den PDC-Emulationsmaster korrekt.
 Besser ist es jedoch, wenn eine GPO für die Zeitsynchronisierung verwendet wird.

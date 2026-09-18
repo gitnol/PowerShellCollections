@@ -1,4 +1,4 @@
-function New-ADGroupInOU {
+﻿function New-ADGroupInOU {
     param (
         [Parameter(Mandatory)]
         [string]$GroupName,

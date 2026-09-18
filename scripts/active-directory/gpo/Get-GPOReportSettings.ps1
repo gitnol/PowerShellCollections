@@ -1,4 +1,4 @@
-Import-Module GroupPolicy # If this does not work with Powershell 7, try it as admin / elevated
+﻿Import-Module GroupPolicy # If this does not work with Powershell 7, try it as admin / elevated
 # This function gets all settings from a GPO. together with "Get-GPO -All"  it is possible to search for settings within the whole domain
 # When you have plenty of GPOs and have no clue which setting is set within which GPO. (without generating an GPResultset for a Computer or user on demand)
  

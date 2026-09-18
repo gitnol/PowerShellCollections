@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 
 # Einfaches PowerShell Script zum Erstellen der Event Log-Quelle
 # Muss als Administrator ausgeführt werden!

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Findet und entfernt doppelte DNS-A-Einträge zonenübergreifend.
 .DESCRIPTION

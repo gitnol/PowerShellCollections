@@ -1,4 +1,4 @@
-function Compress-FilesByMonth {
+﻿function Compress-FilesByMonth {
     param (
         [Parameter(Mandatory = $true)]
         [bool]$Confirm,

@@ -1,4 +1,4 @@
-function Set-WbemTracing {
+﻿function Set-WbemTracing {
     <#
 .SYNOPSIS
 Liest oder ändert WBEM/WMI Tracing-Einstellungen unter HKLM:\SOFTWARE\Microsoft\WBEM\CIMOM.

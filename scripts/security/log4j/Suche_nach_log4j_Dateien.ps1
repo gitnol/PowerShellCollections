@@ -1,4 +1,4 @@
-# Todo ... automatisches Löschen implementieren per Flag...ggf mit einer Filelist Denylist oder Allowlist
+﻿# Todo ... automatisches Löschen implementieren per Flag...ggf mit einer Filelist Denylist oder Allowlist
 # log4j-core-2.15.0.jar
 # log4j-core-2.16*
 

@@ -1,4 +1,4 @@
-
+﻿
 # iwr https://www.wireshark.org/json/manuf.json -OutFile C:\install\manuf.json
 $global:ouilist = (Get-Content -LiteralPath "C:\install\manuf.json" | ConvertFrom-Json -AsHashtable -Depth 10).data
 

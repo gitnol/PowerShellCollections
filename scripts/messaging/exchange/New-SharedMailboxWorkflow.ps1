@@ -1,4 +1,4 @@
-# HINWEIS: DIESE DATEI MUSS MIT DER KODIERUNG "UTF-8 mit BOM" GESPEICHERT WERDEN.
+﻿# HINWEIS: DIESE DATEI MUSS MIT DER KODIERUNG "UTF-8 mit BOM" GESPEICHERT WERDEN.
 <#
 .SYNOPSIS
     Erstellt standardisierte Shared Mailboxes und die dazugehörigen AD-Sicherheitsgruppen für Berechtigungen.

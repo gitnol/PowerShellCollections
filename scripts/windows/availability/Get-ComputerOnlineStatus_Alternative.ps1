@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Prüft den Online-Status von Computern aus Active Directory und listet deren IP-Adressen auf.
 .DESCRIPTION

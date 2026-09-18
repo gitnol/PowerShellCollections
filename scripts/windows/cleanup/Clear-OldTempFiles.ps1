@@ -1,4 +1,4 @@
-function Get-CleanupPaths {
+﻿function Get-CleanupPaths {
     <#
         .SYNOPSIS
         Gibt eine Liste bereinigungswürdiger Verzeichnispfade zurück.

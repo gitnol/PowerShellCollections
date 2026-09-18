@@ -1,4 +1,4 @@
-param (
+﻿param (
     [string]$Suchmuster = "*jndilookup.class*",
     [string]$AusgabePfad = "C:\install\log4j_$($env:COMPUTERNAME).txt",
     [string]$PfadZu7z = "$PSScriptRoot\7z.exe",

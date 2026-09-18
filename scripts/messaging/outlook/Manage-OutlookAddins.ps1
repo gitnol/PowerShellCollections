@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Verwaltet Outlook Add-ins (Status prüfen, Listen, Reparieren).
 

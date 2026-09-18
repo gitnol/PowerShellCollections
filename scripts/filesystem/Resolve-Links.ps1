@@ -1,4 +1,4 @@
-# This function searches for symlinks / junction points and hardlinks in a folder and subfolder.
+﻿# This function searches for symlinks / junction points and hardlinks in a folder and subfolder.
 # Administrative priviledges are needed. Otherwise the target can not be resolved.
 # Due to a bug in Powershell 5.x it is not possible to resolve the target of a symlink. Therefore the execution is being limited to Powershell versions 7.x and above
 function Resolve-Links {

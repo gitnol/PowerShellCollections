@@ -1,4 +1,4 @@
-function Test-WebChanges {
+﻿function Test-WebChanges {
     param (
         [string]$EingabeDatei = "urls.txt",
         [string]$StateDatei = "state.json",

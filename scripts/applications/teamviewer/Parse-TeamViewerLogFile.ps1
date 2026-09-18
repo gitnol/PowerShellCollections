@@ -1,4 +1,4 @@
-function Parse-TeamViewerLogFile {
+﻿function Parse-TeamViewerLogFile {
     param (
         [string]$logFilePath
     )

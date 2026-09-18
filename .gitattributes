@@ -1,0 +1,48 @@
+# Zeilenenden und Dateitypen verbindlich festlegen.
+#
+# Ohne diese Datei haengt es an core.autocrlf des jeweiligen Clones, ob eine
+# Datei im Arbeitsverzeichnis CRLF oder LF bekommt. Das erzeugt Diffs, die
+# niemand geschrieben hat. Im Repository liegt alles als LF; was im
+# Arbeitsverzeichnis ankommt, steht hier.
+
+# Standard: Git erkennt Text selbst und speichert ihn als LF
+* text=auto
+
+# --- Windows-Werkzeuge: CRLF im Arbeitsverzeichnis --------------------------
+# PowerShell und die Windows-Kommandozeile kommen mit LF zwar zurecht, aber
+# Notepad, der ISE-Editor und diverse aeltere Werkzeuge nicht.
+*.ps1    text eol=crlf
+*.psm1   text eol=crlf
+*.psd1   text eol=crlf
+*.bat    text eol=crlf
+*.cmd    text eol=crlf
+*.xml    text eol=crlf
+
+# --- Unix-Werkzeuge: LF ist Pflicht -----------------------------------------
+# Ein Git-Hook mit CRLF scheitert unter Windows an "bad interpreter".
+*.sh            text eol=lf
+.githooks/*     text eol=lf
+
+# --- Reiner Text ------------------------------------------------------------
+*.md     text
+*.txt    text
+*.json   text
+*.csv    text
+*.py     text eol=lf
+
+# --- Binaerdateien: nie konvertieren, nie diffen ----------------------------
+*.png    binary
+*.ico    binary
+*.jpg    binary
+*.bin    binary
+*.lnk    binary
+*.pdf    binary
+*.xlsx   binary
+
+# MS.PS.Lib.psd1 liegt als UTF-16 LE vor. Git wuerde die Datei sonst als Text
+# behandeln, die Zeilenenden umschreiben und sie damit unbrauchbar machen.
+scripts/messaging/mailstore/api-wrapper/MS.PS.Lib.psd1 binary
+
+# --- GitHub-Statistik -------------------------------------------------------
+# Fremdcode nicht in die Sprachstatistik des Repos einrechnen
+third-party/** linguist-vendored

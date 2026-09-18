@@ -1,4 +1,4 @@
-function Parse-FileZillaLog {
+﻿function Parse-FileZillaLog {
     param (
         [string]$LogPath
     )

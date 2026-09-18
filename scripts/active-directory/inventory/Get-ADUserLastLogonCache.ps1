@@ -1,4 +1,4 @@
-function Get-ADUserLastLogonCache {
+﻿function Get-ADUserLastLogonCache {
     param(
         [string[]]$SamAccountNames
     )

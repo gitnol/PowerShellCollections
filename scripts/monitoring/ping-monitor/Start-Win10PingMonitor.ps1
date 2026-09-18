@@ -1,4 +1,4 @@
-# 1. Modul laden
+﻿# 1. Modul laden
 Import-Module .\Win10Monitor.psm1 -Force
 
 # 2. Häufige SMTP-Einstellungen anzeigen

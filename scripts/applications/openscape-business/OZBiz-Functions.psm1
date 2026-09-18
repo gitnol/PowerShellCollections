@@ -1,4 +1,4 @@
-# OSBiz-WSI.psm1
+﻿# OSBiz-WSI.psm1
 # PowerShell-Modul für OSBiz WSI API
 # Alle Funktionen enthalten eine kurze Synopsis und nutzen Invoke-RestMethod
 # Source: https://wiki.unify.com/wiki/OpenScape_Business_Interfaces

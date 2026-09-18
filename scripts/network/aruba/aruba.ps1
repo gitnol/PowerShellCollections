@@ -1,4 +1,4 @@
-# Just a demo script to connect to aruba switches and get the mac address table
+﻿# Just a demo script to connect to aruba switches and get the mac address table
 
 $global:ouilist = (Get-Content -LiteralPath "C:\install\manuf.json" | ConvertFrom-Json -AsHashtable -Depth 10).data
 

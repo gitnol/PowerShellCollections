@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Ruft WMI/CIM-Klasseninformationen effizient ab und stellt eine vereinfachte Schnittstelle bereit.
 

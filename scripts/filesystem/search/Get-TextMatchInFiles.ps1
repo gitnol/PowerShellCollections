@@ -1,4 +1,4 @@
-function Get-TextMatchInFiles {
+﻿function Get-TextMatchInFiles {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory)]

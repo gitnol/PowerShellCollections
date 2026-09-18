@@ -1,4 +1,4 @@
-# Funktion, um eine Verbindung zu einem Port mit Timeout zu prüfen
+﻿# Funktion, um eine Verbindung zu einem Port mit Timeout zu prüfen
 function Test-Port {
     param (
         [string]$server,

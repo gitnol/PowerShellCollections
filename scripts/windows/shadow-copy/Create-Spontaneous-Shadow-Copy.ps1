@@ -1,4 +1,4 @@
-function New-CShadowCopyLink {
+﻿function New-CShadowCopyLink {
     param(
         [string]$Volume = "C:\",
         [string]$LinkPath = "C:\vsslink"

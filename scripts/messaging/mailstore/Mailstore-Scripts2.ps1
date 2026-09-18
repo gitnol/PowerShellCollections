@@ -1,4 +1,4 @@
-$myScriptpath = if ($PSScriptRoot) { $PSScriptRoot }else { (Get-Location) }
+﻿$myScriptpath = if ($PSScriptRoot) { $PSScriptRoot }else { (Get-Location) }
 
 Import-Module ActiveDirectory
 Import-Module "$myScriptpath\API-Wrapper\MS.PS.Lib.psd1"

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Entfernt den Blattschutz (Worksheet Protection) aus einer oder mehreren
     Tabellen einer .xlsx-Datei durch direkte XML-Manipulation.

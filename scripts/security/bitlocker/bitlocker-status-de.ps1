@@ -1,4 +1,4 @@
-# Powershell Version 6 oder höher erzwingen
+﻿# Powershell Version 6 oder höher erzwingen
 if ($PSVersionTable.PSVersion.Major -le 6) {
     pwsh $MyInvocation.InvocationName
 } else {

@@ -1,4 +1,4 @@
-# Diese Funktion liefert die zielgruppenbasierte Zuordnung innerhalb von GPPs bei GPOs.
+﻿# Diese Funktion liefert die zielgruppenbasierte Zuordnung innerhalb von GPPs bei GPOs.
 # Wenn die Spalte SID leer ist, so ist die zielgruppenbasierte Zuordnung nicht gültig, da die Verarbeitung an die SID geknüpft ist.
 
 function Get-GPPItemLevelTargeting {

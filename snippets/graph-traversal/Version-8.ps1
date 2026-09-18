@@ -1,4 +1,4 @@
-# Demo Usage with a JSON graph structure
+﻿# Demo Usage with a JSON graph structure
 # $json = Get-Content -Path "path\to\your\graph.json" | ConvertFrom-Json
 # $edges = Get-EdgeListWithSpaceAndQN -GraphJson $json
 # $shortestPath = Find-ShortestPath -GraphJson $json -StartNode "StartQualifiedName" -EndNode "EndQualifiedName" -ShowDirection

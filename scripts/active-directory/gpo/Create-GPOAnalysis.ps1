@@ -1,4 +1,4 @@
-# GPO Settings Analysis Script
+﻿# GPO Settings Analysis Script
 # Analysiert alle GPOs und vergleicht den Status mit tatsächlichen Einstellungen
 
 # Import GroupPolicy Module

@@ -1,4 +1,4 @@
-function Show-NetConnections {
+﻿function Show-NetConnections {
     <#
 .SYNOPSIS
 Zeigt aktive TCP/UDP-Verbindungen inkl. Prozessinformationen, ähnlich netstat -anob.

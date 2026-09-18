@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     Prüft den Secure Boot Status und das Vorhandensein des Windows UEFI CA 2023 Zertifikats.

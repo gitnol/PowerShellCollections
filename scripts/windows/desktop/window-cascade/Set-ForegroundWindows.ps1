@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Skript zur Wiederherstellung der "Fenster überlappend anzeigen"-Funktion unter Windows 11.
 

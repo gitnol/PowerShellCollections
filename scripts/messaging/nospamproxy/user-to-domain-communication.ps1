@@ -1,4 +1,4 @@
-# Parameter: Start- und Enddatum für den Abfragezeitraum
+﻿# Parameter: Start- und Enddatum für den Abfragezeitraum
 $StartDate = (get-date).AddDays(-1)
 $EndDate = (get-date)
 

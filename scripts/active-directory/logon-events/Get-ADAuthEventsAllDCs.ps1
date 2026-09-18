@@ -1,4 +1,4 @@
-function Get-ADAuthEventsAllDCs {
+﻿function Get-ADAuthEventsAllDCs {
     <#
     .SYNOPSIS
         Sammelt Anmelde-Events (fehlgeschlagen, Lockout, erfolgreich) von allen Domain Controllern inkl. Quell-IP.

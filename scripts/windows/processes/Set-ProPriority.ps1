@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Setzt Prozesspriorität per Name oder PID
 

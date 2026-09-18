@@ -1,4 +1,4 @@
-#Requires -RunAsAdministrator
+﻿#Requires -RunAsAdministrator
 <#
 .SYNOPSIS
     Einmaliges Einleiten des Secure Boot 2023-Zertifikat-Updates (einfache Variante).

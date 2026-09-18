@@ -1,4 +1,4 @@
-function Copy-ADGroupMembers {
+﻿function Copy-ADGroupMembers {
     param (
         [Parameter(Mandatory = $true)]
         [string]$SourceGroup,

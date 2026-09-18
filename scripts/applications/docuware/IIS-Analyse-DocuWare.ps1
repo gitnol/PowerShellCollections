@@ -1,4 +1,4 @@
-function Get-IISLogFull {
+﻿function Get-IISLogFull {
     <#
     .SYNOPSIS
     Gibt alle IIS-Logzeilen der letzten X Minuten als PSCustomObject zurück (alle Felder).

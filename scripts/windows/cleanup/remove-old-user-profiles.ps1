@@ -1,4 +1,4 @@
-function Get-ProfileListInfos() {
+﻿function Get-ProfileListInfos() {
     $profilelist = Get-ChildItem "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList"
     $result = @()
 

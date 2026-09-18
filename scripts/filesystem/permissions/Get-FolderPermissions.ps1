@@ -1,4 +1,4 @@
-# This script looks for folder permissions recursively and lists those ones, which have (non inherited) single user permissions
+﻿# This script looks for folder permissions recursively and lists those ones, which have (non inherited) single user permissions
 # The first function Get-FolderPermissions uses a cache so that Get-ADUser is not being fired all the time.
 # The second function Get-FolderPermissionsOLD has no cache functionality... 
 

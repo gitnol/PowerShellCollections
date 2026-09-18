@@ -1,4 +1,4 @@
-function Test-ConnectionInParallel {
+﻿function Test-ConnectionInParallel {
     # Only Powershell 6 and above (because of ForEach-Object -Parallel)
     [CmdletBinding()]
     param (

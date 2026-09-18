@@ -1,4 +1,4 @@
-function Test-ConnectionInParallel {
+﻿function Test-ConnectionInParallel {
     # Only PowerShell 7+ (ForEach-Object -Parallel)
     [CmdletBinding()]
     param (

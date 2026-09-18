@@ -1,4 +1,4 @@
-# This Script enables you to find failed logonattempts. (on german PCs... you have to adjust it to english words in the function Extract-MessageDetail)
+﻿# This Script enables you to find failed logonattempts. (on german PCs... you have to adjust it to english words in the function Extract-MessageDetail)
 
 function Get-ComputerWinEvents {
     param (

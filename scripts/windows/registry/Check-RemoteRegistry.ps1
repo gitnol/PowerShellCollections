@@ -1,4 +1,4 @@
-function Test-RemoteRegistryPrerequisites {
+﻿function Test-RemoteRegistryPrerequisites {
     param (
         [Parameter(Mandatory)]
         [string]$ComputerName

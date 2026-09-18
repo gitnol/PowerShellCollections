@@ -1,4 +1,4 @@
-function Remove-StuckProcess {
+﻿function Remove-StuckProcess {
 	[CmdletBinding()]
 	param (
 		[Parameter(Mandatory = $true, ValueFromPipeline = $false, ValueFromPipelineByPropertyName = $false)]

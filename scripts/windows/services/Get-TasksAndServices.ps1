@@ -1,4 +1,4 @@
-Import-Module ActiveDirectory
+﻿Import-Module ActiveDirectory
 # make sure, that you have sufficient rights on the target machine
 $credentials = Get-Credential -Message "Input Credentials with administrative priviledges on all PCs"
 

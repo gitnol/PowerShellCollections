@@ -1,4 +1,4 @@
-# # Alle GPOs inkl. Links
+﻿# # Alle GPOs inkl. Links
 # Get-GPOLinks
 
 # # Nur eine bestimmte GPO (Name oder GUID, auch mit Wildcard)

@@ -1,4 +1,4 @@
-# ====================================================================================
+﻿# ====================================================================================
 # Modernes WMI (Windows Management Instrumentation) Reparatur-Skript
 # Autor: Gemini
 # Version: 1.0 (PowerShell)

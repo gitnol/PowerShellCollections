@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Erstellt eine vollständige Aktivitäts-Timeline eines oder mehrerer Rechner aus dem Windows-Eventlog.

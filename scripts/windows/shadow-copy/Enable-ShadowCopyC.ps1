@@ -1,4 +1,4 @@
-function Write-Log {
+﻿function Write-Log {
     param([string]$Message)
     $logPath = "C:\Install"
     $logFile = "$logPath\shadowcopy.log"

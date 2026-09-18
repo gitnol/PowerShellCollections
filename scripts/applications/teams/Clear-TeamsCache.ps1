@@ -1,4 +1,4 @@
-# Beende alle laufenden Teams-Prozesse
+﻿# Beende alle laufenden Teams-Prozesse
 Write-Host "Beende Microsoft Teams..."
 Get-Process -Name "ms-teams", "Teams" -ErrorAction SilentlyContinue | Stop-Process -Force
 

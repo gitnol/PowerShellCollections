@@ -1,4 +1,4 @@
-# Old Version of Elevate.ps1
+﻿# Old Version of Elevate.ps1
 # This script is used to run a PowerShell script with elevated privileges using a batch file.
 <#
 .SYNOPSIS

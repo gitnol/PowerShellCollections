@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
 Aktiviert den Schutz vor versehentlichem Löschen für alle OUs in der Domäne.
 #>

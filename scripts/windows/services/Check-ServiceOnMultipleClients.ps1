@@ -1,4 +1,4 @@
-param (
+﻿param (
     $Computer = @()
 )
 # Annahme: $Computer ist eine Liste/Array von Computernamen

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Bereitet eine Windows-VM als vSphere-Template vor.
 .DESCRIPTION

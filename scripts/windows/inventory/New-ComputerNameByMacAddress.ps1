@@ -1,4 +1,4 @@
-function Get-MyComputerName {
+﻿function Get-MyComputerName {
     <#
     .SYNOPSIS
     Ermittelt AABBCC aus PermanentAddress (alle Trennzeichen entfernt).

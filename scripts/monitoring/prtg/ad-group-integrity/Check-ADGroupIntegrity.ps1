@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Überwacht die Integrität einer AD-Gruppe für PRTG und setzt einen Alarm (Latch/Breach) bei Änderungen.
 

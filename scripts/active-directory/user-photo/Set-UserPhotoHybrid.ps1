@@ -1,4 +1,4 @@
-function Set-UserPhotoHybrid { 
+﻿function Set-UserPhotoHybrid { 
     param (
         [Parameter(Mandatory)][string]$UserPrincipalName,
         [Parameter(Mandatory)][string]$PhotoPath,

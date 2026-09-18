@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Durchsucht ZIP-Archive nach Dateien basierend auf einem Suchmuster.
 

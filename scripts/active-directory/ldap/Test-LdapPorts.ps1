@@ -1,4 +1,4 @@
-function Test-LdapPorts {
+﻿function Test-LdapPorts {
     param(
         [string]$TargetIP              # Ziel-IP-Adresse
     )

@@ -1,4 +1,4 @@
-# mit Richtung. Demo
+﻿# mit Richtung. Demo
 # Find-ShortestPath -GraphJson $erg -StartNode V_CRM_BUYER -EndNode V_CRM_ENDCUSTOMER
 # Find-ShortestPath -GraphJson $erg -StartNode V_CRM_ENDCUSTOMER -EndNode V_CRM_BUYER
 # Find-ShortestPath -GraphJson $erg -StartNode V_CRM_ENDCUSTOMER -EndNode V_CRM_BUYER -ShowDirection

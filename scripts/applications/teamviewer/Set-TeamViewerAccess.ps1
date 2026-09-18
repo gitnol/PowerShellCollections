@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param (
     [Parameter(Mandatory = $true, ValueFromPipeline = $true, HelpMessage = "Liste von Computernamen oder DNSHostNames.")]
     [string[]]$ComputerNames,

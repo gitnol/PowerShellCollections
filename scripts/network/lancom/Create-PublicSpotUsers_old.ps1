@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Erstellt Public Spot Benutzer für LANCOM WLC/Router in Massenverarbeitung basierend auf einer CSV-Datei.
 

@@ -1,4 +1,4 @@
-function Get-LockedOutEventsAllDCs {
+﻿function Get-LockedOutEventsAllDCs {
     <#
     .SYNOPSIS
         Sammelt Account-Lockout-Events von allen Domain Controllern in der Domäne.

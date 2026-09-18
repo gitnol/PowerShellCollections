@@ -1,4 +1,4 @@
-Import-Module ActiveDirectory
+﻿Import-Module ActiveDirectory
 
 $DomainName = "my-domain" # CaseSensitive
 $TopLevelDomainName = "local" # CaseSensitive

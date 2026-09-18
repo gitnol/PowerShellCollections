@@ -1,4 +1,4 @@
-# DHCP Leases aus allen autorisierten DHCP-Servern der Domäne abfragen und MAC-Adressen in verschiedenen Formaten ausgeben
+﻿# DHCP Leases aus allen autorisierten DHCP-Servern der Domäne abfragen und MAC-Adressen in verschiedenen Formaten ausgeben
 
 # Funktion für MAC-Formatierungen
 function Format-MAC {

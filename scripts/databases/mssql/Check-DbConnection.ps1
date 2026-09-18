@@ -1,4 +1,4 @@
-function Test-OleDbConnection {
+﻿function Test-OleDbConnection {
     <#
     .SYNOPSIS
     Prüft eine OLE DB Datenbankverbindung mit interaktiver Passwortabfrage.

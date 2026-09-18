@@ -1,4 +1,4 @@
-# Because Mailstore does not give OpenAPI / Swagger Files... i have to structure it on my own... :(
+﻿# Because Mailstore does not give OpenAPI / Swagger Files... i have to structure it on my own... :(
 
 # Get the content of the page
 $erg = Invoke-WebRequest -UseBasicParsing -Uri "https://help.mailstore.com/en/server/Administration_API_-_Function_Reference"

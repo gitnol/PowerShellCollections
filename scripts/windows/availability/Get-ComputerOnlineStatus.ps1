@@ -1,4 +1,4 @@
-# # This is also functioning for powershell 5 where "foreach-object -parallel" is missing
+﻿# # This is also functioning for powershell 5 where "foreach-object -parallel" is missing
 
 # In Powershell > 6 this function makes it easier
 function Test-ConnectionInParallel {
