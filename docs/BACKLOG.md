@@ -63,7 +63,7 @@ Namen sagen jetzt, was was ist - das war vorher nicht erkennbar.
 | `security/log4j/`            | `Find-Log4jFile_v1` / `_v2`                                     | v2 mit Parametern, Allow-/Denylist, `-Loeschen`, 7z-Aufruf                   | `_v2`      |
 | `security/secure-boot/`      | `Test-MultipleHostsSecureBoot_v1` (29 Z) / `_v2` (48 Z)         | v2 ruft zusaetzlich `Invoke-SecureBootCertUpdate` auf                        | `_v2`      |
 | `windows/availability/`      | `Get-ComputerOnlineStatus_v1` / `_v2`                           | **unklar.** v1: 13 Commits ueber ein Jahr, laeuft ueber Jobs auch unter PS 5.1. v2: 3 Commits, neuer. Hier ist nicht der neuere automatisch der bessere. | pruefen |
-| `messaging/mailstore/`       | `MailStoreApiFunctions.ps1` / `MailStoreSnippets_v1` / `_v2`    | Snippets_v2 ist Obermenge von _v1 (19 der 20 Funktionen). `MailStoreApiFunctions` ist generiert und am vollstaendigsten | ApiFunctions + `_v2` behalten, `_v1` loeschen |
+| `messaging/mailstore/`       | `MailStoreApiFunctions.ps1` / `MailStoreSnippets_v1` / `_v2`    | Snippets_v2 ist fast Obermenge von _v1, **aber** `_v2` Zeile 1744 ruft `Get-MailstoreAndExchangeUsers` auf, das nur in `_v1` definiert ist. `_v1` loeschen bricht `_v2`. | erst die Funktion nach `_v2` uebernehmen, dann `_v1` loeschen |
 | `applications/zammad/`       | `Get-ZammadTicket` / `Invoke-ZammadApi_v1` / `_v2`              | drei parallele API-Experimente vom selben Tag; nur `Get-ZammadTicket` wurde spaeter (2026-02) noch gepflegt | zusammenfuehren |
 
 ### 1.4 Was **keine** Versionskonflikte sind
@@ -76,6 +76,22 @@ Diese Paare sehen so aus, sind aber Absicht - nicht zusammenfuehren:
 | `Get-BitLockerStatus_de.ps1` / `_en.ps1`                       | Sprachvarianten fuer lokalisierte Ausgaben                            |
 | `Invoke-SecureBootCertUpdate.ps1` / `_simple.ps1`              | bewusst schlanke Variante (242 statt 923 Zeilen) fuer den Einzelfall  |
 | `Test-ADGroupIntegrity.ps1` / `Test-ADGroupIntegrityMulti.ps1` | Einzelgruppe gegen alle privilegierten Gruppen, zwei PRTG-Sensoren    |
+
+### 1.5 Vorsicht: die Staende haengen teilweise voneinander ab
+
+`MailStoreSnippets_v2.ps1` ruft in Zeile 1744 `Get-MailstoreAndExchangeUsers`
+auf. Definiert ist die Funktion ausschliesslich in `MailStoreSnippets_v1.ps1`
+(Zeile 6). Wer `_v1` als "alten Stand" loescht, bricht `_v2` - und zwar nicht
+beim Laden, sondern erst zur Laufzeit an genau dieser Stelle.
+
+Vor dem Aufraeumen eines Versionspaares deshalb immer
+
+```powershell
+.\tools\Find-ScriptDependency.ps1
+```
+
+laufen lassen. Das Werkzeug meldet Funktionsaufrufe ueber Dateigrenzen und
+trennt dabei Aufrufe innerhalb eines Ordners von solchen darueber hinaus.
 
 ---
 
@@ -131,6 +147,22 @@ Parser pruefen:
 $errors = $null
 [void][System.Management.Automation.Language.Parser]::ParseFile($ziel, [ref]$null, [ref]$errors)
 ```
+
+### 3.3 Aufrufe ins Leere (vorbestehend)
+
+Gefunden durch `tools/Find-ScriptDependency.ps1`. Keiner davon stammt aus der
+Umstrukturierung - die Dateien waren schon vorher nicht eigenstaendig
+lauffaehig:
+
+| Datei                                   | ruft auf                                        | Lage                                                        |
+| --------------------------------------- | ----------------------------------------------- | ----------------------------------------------------------- |
+| `applications/excel/ConvertFrom-ExcelClipboard.ps1` | `Test-ConnectionInParallel`         | nur in drei anderen Dateien definiert, kein Import           |
+| dieselbe Datei                          | `Get-CompuerOnlineStatus` (Kommentar, Zeile 39) | Tippfehler, existiert nirgends - gemeint ist `Get-ComputerOnlineStatus_v1/_v2` |
+| `messaging/exchange/Get-MailboxForwardingRules.ps1` | `Write-Log`                        | definiert sie selbst nicht; fuenf andere Dateien definieren je eine eigene Fassung |
+
+`Write-Log` ist der klassische Fall: ein Allerweltsname, den fuenf Dateien
+unabhaengig voneinander definieren. Ein gemeinsames Hilfsmodul waere hier
+besser als fuenf Kopien.
 
 ### 3.3 `third-party/` als Submodul
 

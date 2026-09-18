@@ -165,8 +165,19 @@ Wer hier arbeitet, sollte das wissen - es ist nicht offensichtlich:
   oder Remote-Rechner zu. Nur die mit `def` markierten Dateien (35 von 164)
   enthalten ausser Definitionen nichts Ausfuehrbares. Im Zweifel lesen statt
   laden.
-- **`scripts/messaging/mailstore/Invoke-MailStoreApiScratch.ps1` parst nicht**
-  (6 Syntaxfehler, Altbestand). Index und Dateikopf weisen darauf hin.
+- **Generierter Code kann kaputt sein.** `Invoke-MailStoreApiScratch.ps1` hat
+  lange nicht geparst - `New-MailStoreApiFunctionReference.ps1` hatte einen
+  leeren Parameter erzeugt. Repariert; der Generator prueft seine Ausgabe
+  aber weiterhin nicht. Der Index markiert Dateien mit Syntaxfehlern.
+- **Ein paar Skripte brauchen einander.** Meist sind sie eigenstaendig, aber
+  nicht immer: `MailStoreSnippets_v2.ps1` ruft eine Funktion auf, die nur in
+  `_v1` steht, und die MailStore-Beispiele importieren das Modul aus dem
+  Nachbarordner. Vor jedem Verschieben, Umbenennen oder Loeschen:
+
+  ```powershell
+  .\tools\Find-ScriptDependency.ps1 -CrossFolderOnly
+  ```
+
 - **`third-party/` nicht anfassen.** Fremdcode, unveraendert. Aenderungen
   gehoeren upstream oder in einen eigenen Wrapper.
 - **`_inbox/` ist kein Ablageort**, sondern eine Durchgangsstation.

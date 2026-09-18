@@ -2,7 +2,7 @@
 
 <!-- Automatisch erzeugt von tools/Build-ScriptIndex.ps1 - nicht von Hand bearbeiten. -->
 
-164 Skripte. 74 mit `.SYNOPSIS` (45%), 82 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
+165 Skripte. 76 mit `.SYNOPSIS` (46%), 81 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
 
 | Markierung | Bedeutung |
 | ---------- | --------- |
@@ -430,7 +430,7 @@ Davon 35 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | [Get-DomainWideProcessCpuUsage.ps1](scripts/windows/processes/Get-DomainWideProcessCpuUsage.ps1) |  | _(aus Kommentar)_ This script queries remotely the top X process and collect these. |
 | [Remove-StuckProcess.ps1](scripts/windows/processes/Remove-StuckProcess.ps1) |  | _(aus Kommentar)_ Define the process name and the time interval (in seconds) |
 | [Set-ProcessPriority.ps1](scripts/windows/processes/Set-ProcessPriority.ps1) |  | Setzt Prozesspriorität per Name oder PID Um es zu kompilieren, nutze PS2EXE: Install-Module PS2EXE -Scope CurrentUser Invoke-PS2EXE -inputFile "G:\AVERP\Set-ProcPriority.ps1" -outputFile "G:\AVERP\Set-ProcPriority.exe" -noConsole \\myserver\myshare\Set-ProcPriority.exe -Name MYPROCESS -Priority AboveNormal |
-| [Trace-ProcessStartStop.ps1](scripts/windows/processes/Trace-ProcessStartStop.ps1) |  | _(aus Kommentar)_ File to which the processes should be exported to in "json" format. |
+| [Trace-ProcessStartStop.ps1](scripts/windows/processes/Trace-ProcessStartStop.ps1) |  | Protokolliert laufend jeden Prozessstart und jedes Prozessende des lokalen Rechners nach JSON. |
 
 ## `scripts/windows/registry/`
 
@@ -514,5 +514,6 @@ Davon 35 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
 | [Build-ScriptIndex.ps1](tools/Build-ScriptIndex.ps1) |  | Erzeugt INDEX.md - eine durchsuchbare Uebersicht aller Skripte im Repo. |
+| [Find-ScriptDependency.ps1](tools/Find-ScriptDependency.ps1) |  | Findet Funktionsaufrufe, die ueber Dateigrenzen hinweg gehen. |
 | [Repair-ScriptEncoding.ps1](tools/Repair-ScriptEncoding.ps1) |  | Ergaenzt fehlende UTF-8-BOMs in Skripten, die Nicht-ASCII-Zeichen enthalten. |
 
