@@ -1,6 +1,6 @@
 ﻿<#PSScriptInfo
 
-.VERSION 1.6.0 modded for PS7 by gitnol
+.VERSION 1.6.1 modded for PS7 by gitnol
 
 .GUID eb791b3e-fbbe-4685-8c92-5eb0f05688b6
 
@@ -27,6 +27,7 @@
 .RELEASENOTES
 * Fix SAN request by @bruckect in https://github.com/J0F3/PowerShell/pull/23
 * Add option for friendly name by @jmcook1 in https://github.com/J0F3/PowerShell/pull/26
+* v1.6.1: Fix CAName condition bug (!$CAName -eq ""), replace Invoke-Expression with & operator
 #>
 
 <#
@@ -354,7 +355,7 @@ CertificateTemplate = "$TemplateName"
         Get-Content -Path $inf | Write-Verbose
 
         Write-Verbose "generate .req file with certreq.exe"
-        Invoke-Expression -Command "certreq -new `"$inf`" `"$req`""
+        & certreq -new $inf $req
         if (!($LastExitCode -eq 0)) {
             throw "certreq -new command failed"
         }
@@ -362,7 +363,7 @@ CertificateTemplate = "$TemplateName"
         write-verbose "Sending certificate request to CA"
         Write-Debug "CAName = $CAName"
 
-        if (!$PSBoundParameters.ContainsKey('CAName')) {
+        if (-not $PSBoundParameters.ContainsKey('CAName')) {
             $rootDSE = [System.DirectoryServices.DirectoryEntry]'LDAP://RootDSE'
             $searchBase = [System.DirectoryServices.DirectoryEntry]"LDAP://$($rootDSE.configurationNamingContext)"
             $CAs = [System.DirectoryServices.DirectorySearcher]::new($searchBase, 'objectClass=pKIEnrollmentService').FindAll()
@@ -375,12 +376,14 @@ CertificateTemplate = "$TemplateName"
             }
         }
 
-        if (!$CAName -eq "") {
-            $CAName = " -config `"$CAName`""
+        if ($CAName -ne "") {
+            Write-Debug "certreq -submit -config `"$CAName`" `"$req`" `"$cer`""
+            & certreq -submit -config $CAName $req $cer
         }
-
-        Write-Debug "certreq -submit$CAName `"$req`" `"$cer`""
-        Invoke-Expression -Command "certreq -submit$CAName `"$req`" `"$cer`""
+        else {
+            Write-Debug "certreq -submit `"$req`" `"$cer`""
+            & certreq -submit $req $cer
+        }
 
         if (!($LastExitCode -eq 0)) {
             throw "certreq -submit command failed"
@@ -388,7 +391,7 @@ CertificateTemplate = "$TemplateName"
         Write-Debug "request was successful. Result was saved to `"$cer`""
 
         write-verbose "retrieve and install the certificate"
-        Invoke-Expression -Command "certreq -accept `"$cer`""
+        & certreq -accept $cer
 
         if (!($LastExitCode -eq 0)) {
             throw "certreq -accept command failed"

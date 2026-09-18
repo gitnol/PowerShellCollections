@@ -2,7 +2,7 @@
 
 <!-- Automatisch erzeugt von tools/Build-ScriptIndex.ps1 - nicht von Hand bearbeiten. -->
 
-165 Skripte. 76 mit `.SYNOPSIS` (46%), 81 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
+167 Skripte. 78 mit `.SYNOPSIS` (47%), 81 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
 
 | Markierung | Bedeutung |
 | ---------- | --------- |
@@ -314,6 +314,7 @@ Davon 35 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
+| [Get-BitLockerStatus_de_v2.ps1](scripts/security/bitlocker/Get-BitLockerStatus_de_v2.ps1) |  | Gleicht BitLocker-Recovery-Informationen aus dem Active Directory mit den lokalen Systemen massiv parallel ab. |
 | [Get-BitLockerStatus_de.ps1](scripts/security/bitlocker/Get-BitLockerStatus_de.ps1) |  | _(aus Kommentar)_ Powershell Version 6 oder höher erzwingen |
 | [Get-BitLockerStatus_en.ps1](scripts/security/bitlocker/Get-BitLockerStatus_en.ps1) |  | _(aus Kommentar)_ Force Usage of Powershell Version 6 or Higher |
 
@@ -350,6 +351,7 @@ Davon 35 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | ------ | --- | ------------ |
 | [Invoke-SecureBootCertUpdate_simple.ps1](scripts/security/secure-boot/Invoke-SecureBootCertUpdate_simple.ps1) |  | Einmaliges Einleiten des Secure Boot 2023-Zertifikat-Updates (einfache Variante). |
 | [Invoke-SecureBootCertUpdate.ps1](scripts/security/secure-boot/Invoke-SecureBootCertUpdate.ps1) |  | Secure Boot UEFI CA 2023 - Update Manager |
+| [Test-LocalSecureBootVariable.ps1](scripts/security/secure-boot/Test-LocalSecureBootVariable.ps1) |  | Prüft lokal Secure Boot PK, db und KEK inkl. Handlungsempfehlung. > |
 | [Test-MultipleHostsSecureBoot_v1.ps1](scripts/security/secure-boot/Test-MultipleHostsSecureBoot_v1.ps1) |  | _(aus Kommentar)_ Only Powershell 6 and above (because of ForEach-Object -Parallel) |
 | [Test-MultipleHostsSecureBoot_v2.ps1](scripts/security/secure-boot/Test-MultipleHostsSecureBoot_v2.ps1) |  | _(aus Kommentar)_ Only PowerShell 7+ (ForEach-Object -Parallel) |
 | [Test-SecureBootCert2023.ps1](scripts/security/secure-boot/Test-SecureBootCert2023.ps1) |  | Prüft den Secure Boot Status und das Vorhandensein des Windows UEFI CA 2023 Zertifikats. |
