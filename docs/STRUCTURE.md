@@ -25,11 +25,13 @@ Restekiste. `unsorted-stuff` (42 Dateien) und `Server-Client-Helper-Stuff`
 
 Zwei Faelle aus der Umstellung, an denen sich die Regel zeigt:
 
-- `Check-ADGroupIntegrity.ps1` lag unter `Active-Directory/`, gibt aber
+- `Check-ADGroupIntegrity.ps1` (heute `Test-ADGroupIntegrity.ps1`) lag unter
+  `Active-Directory/`, gibt aber
   PRTG-XML aus und pflegt `PRTG_Baseline_*`-Dateien. Es liegt jetzt unter
   `scripts/monitoring/prtg/ad-group-integrity/`. Wer den naechsten Sensor
   baut, sucht bei PRTG - nicht bei AD.
-- `bitlocker-status-de.ps1` lag ebenfalls unter `Active-Directory/`, weil es
+- `bitlocker-status-de.ps1` (heute `Get-BitLockerStatus_de.ps1`) lag ebenfalls
+  unter `Active-Directory/`, weil es
   die Rechnerliste per `Get-ADComputer` holt. Das Thema ist aber BitLocker,
   nicht AD - AD ist nur die Bezugsquelle. Es liegt jetzt unter
   `scripts/security/bitlocker/`.
@@ -66,7 +68,7 @@ _inbox/                Zwischenablage, siehe unten
 Die naheliegende Trennung nach Client und Server haette das Ausgangsproblem
 reproduziert: ein Grossteil der Skripte laeuft per `Invoke-Command` gegen
 beliebige Domaenenrechner und ist damit weder das eine noch das andere.
-`Get-LoggedInUsers`, `Clear-OldTempFiles` oder `Get-Process-CPU-Usage-DomainWide`
+`Get-LoggedInUsers*`, `Clear-OldTempFiles*` oder `Get-DomainWideProcessCpuUsage`
 haetten jeweils zwei plausible Orte gehabt - und genau daraus entsteht die
 naechste Restekiste. Eine Achse weniger ist hier mehr wert als die feinere
 Unterteilung.
@@ -101,19 +103,19 @@ deshalb bei ihrer Fachdomaene:
 | Modul                  | Ort                                      |
 | ---------------------- | ---------------------------------------- |
 | `MS.PS.Lib.psm1`       | `scripts/messaging/mailstore/api-wrapper/` |
-| `OZBiz-Functions.psm1` | `scripts/applications/openscape-business/` |
+| `OSBiz.psm1`           | `scripts/applications/openscape-business/` |
 | `Win10PingMonitor.psm1`| `scripts/monitoring/ping-monitor/`       |
 | `PRTG.Dsls.psm1`       | `scripts/monitoring/prtg/dsls/`          |
 
 ## Namenskonventionen
 
-Die Ordner sind umgestellt, die **Dateinamen noch nicht** - das ist ein
-eigener Schritt, damit die Umstellung nachvollziehbar bleibt. Fuer neue
-Dateien gilt ab sofort:
+Ordner und Dateinamen sind umgestellt. 104 Dateien wurden umbenannt; die
+"Nein"-Spalte zeigt Namen, die es hier tatsaechlich gab.
 
 | Regel                   | Ja                          | Nein                                            |
 | ----------------------- | --------------------------- | ----------------------------------------------- |
 | PowerShell Verb-Noun    | `Get-ADUserLastLogon.ps1`   | `check-for-bad-passwords.ps1`                   |
+| Kein Umlaut/Kein Deutsch | `Find-Log4jFile_v2.ps1`    | `Suche_nach_log4j_Dateien_optimiert.ps1`        |
 | Nur freigegebene Verben | `Get-`, `Set-`, `Test-`     | `Check-`, `Create-`, `Manage-`                  |
 | Englisch                | `Set-FolderPermission.ps1`  | `Fileserver-Einzelberechtigungen-fuer-User.ps1` |
 | ASCII in Pfaden         | `temporary/`                | `Temporäre-Gruppenmitgliedschaften-Verwalten/`  |
@@ -130,15 +132,17 @@ bei der Umstellung verschwunden.
 
 ### Versionsstaende
 
-`Clear-OldTempFiles` liegt in vier Varianten nebeneinander,
-`temp_gruppenmitgliedschaft_bearbeiten` in drei, dazu `Elevate(Old).ps1` und
-`Create-PublicSpotUsers_old.ps1`. Das beantwortet nicht, welche man nehmen
-soll. Die Umstellung hat sie bewusst **nicht** angefasst - welcher Stand der
-gueltige ist, weisst nur du.
+Wo mehrere Staende derselben Aufgabe nebeneinanderliegen, tragen sie jetzt
+einheitlich `_v1`/`_v2`/`_old` statt vier verschiedener Schreibweisen
+(`_v4`, `(Old)`, `_old`, `_Alternative`, `aruba1`). Das macht die Lage
+sichtbar, loest sie aber nicht auf.
 
-> Ziel: genau **eine** kanonische Datei pro Aufgabe. Alte Staende loescht man -
-> die History hat sie. Ist ein alter Stand bewusst als Referenz gewollt, kommt
-> er nach `archive/` mit einer Zeile Begruendung im Header.
+[BACKLOG.md](BACKLOG.md) enthaelt die Gegenueberstellung: Datum, Umfang,
+inhaltlicher Unterschied und eine begruendete Empfehlung je Paar.
+
+> Ziel bleibt genau **eine** kanonische Datei pro Aufgabe. Alte Staende
+> loescht man - die History hat sie. Ist ein alter Stand bewusst als Referenz
+> gewollt, kommt er nach `archive/` mit einer Zeile Begruendung im Header.
 
 ## Auffindbarkeit
 

@@ -10,7 +10,8 @@ Netzwerk-Hardware und diverse Fachanwendungen.
 | -------------------------------------- | --------------------------------------------------------- |
 | [INDEX.md](INDEX.md)                   | durchsuchbare Liste aller Skripte mit Kurzbeschreibung     |
 | [docs/STRUCTURE.md](docs/STRUCTURE.md) | Ablageregeln, Namenskonventionen, Migrationsplan           |
-| [CLAUDE.md](CLAUDE.md)                 | Regel: keine firmenspezifischen Daten im Repo              |
+| [CLAUDE.md](CLAUDE.md)                 | Arbeitsregeln: Ablage, Kodierung, Namen, Secrets           |
+| [docs/BACKLOG.md](docs/BACKLOG.md)     | bekannte offene Punkte, u.a. konkurrierende Versionsstaende |
 
 Ein Skript suchen:
 

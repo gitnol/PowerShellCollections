@@ -62,18 +62,30 @@ LF fuer `.sh` und `.githooks/*` (ein Hook mit CRLF scheitert an
 
 | Regel                   | Ja                         | Nein                             |
 | ----------------------- | -------------------------- | -------------------------------- |
-| Verb-Noun               | `Get-ADUserLastLogon.ps1`  | `check-for-bad-passwords.ps1`    |
+| Verb-Noun               | `Get-ADUserLastLogon.ps1`  | `check-for-bad-passwords.ps1` (alt) |
 | Freigegebene Verben     | `Get-`, `Set-`, `Test-`    | `Check-`, `Create-`, `Manage-`   |
-| Englisch                | `Set-FolderPermission.ps1` | `Fileserver-Einzelberechtigungen-fuer-User.ps1` |
+| Englisch                | `Set-FolderPermission.ps1` | `Fileserver-Einzelberechtigungen-fuer-User.ps1` (alt) |
 | ASCII in Pfaden         | `temporary/`               | `Temporäre-.../`                 |
 | Ordner kebab-case       | `active-directory/`        | `Server-Client-Helper-Stuff/`    |
 
 `Get-Verb` listet die zulaessigen Verben. `Check-` gibt es nicht - das heisst
 `Test-`.
 
-Der **Altbestand erfuellt diese Regeln noch nicht**. Das ist bekannt und ein
-eigener Arbeitsschritt; bestehende Dateien nicht nebenbei umbenennen, sonst
-wird der Diff unpruefbar.
+Die mit "(alt)" markierten Beispiele sind Namen, die es hier tatsaechlich gab -
+sie sind inzwischen umbenannt. Ein Suffix `_v1`/`_v2`/`_old` ist nur dort
+zulaessig, wo mehrere Staende derselben Aufgabe nebeneinanderliegen und noch
+nicht entschieden ist, welcher gilt: [docs/BACKLOG.md](docs/BACKLOG.md).
+
+Verb-Noun gilt fuer **ausfuehrbare Skripte**. Ausgenommen sind:
+
+| Art                   | Benennung                  | Beispiele                                 |
+| --------------------- | -------------------------- | ----------------------------------------- |
+| Module                | nach dem Modul             | `OSBiz.psm1`, `PRTG.Dsls.psm1`, `MS.PS.Lib.psm1` |
+| Funktionsbibliotheken | nach dem Inhalt            | `MailStoreApiFunctions.ps1`, `UserSessionFunctions.ps1` |
+| Nummerierte Beispiele | fortlaufend                | `examples/Example1.ps1`                   |
+
+Eine Bibliothek definiert nur Funktionen und wird dot-gesourct; ein Verb waere
+dort irrefuehrend, weil die Datei selbst nichts tut.
 
 ### Comment-Based Help
 
@@ -138,10 +150,11 @@ Bypass nur bewusst mit `git commit --no-verify`.
 
 Wer hier arbeitet, sollte das wissen - es ist nicht offensichtlich:
 
-- **Konkurrierende Versionsstaende.** `Clear-OldTempFiles` gibt es viermal,
-  `temp_gruppenmitgliedschaft_bearbeiten` dreimal, dazu `Elevate(Old).ps1`
-  und `Create-PublicSpotUsers_old.ps1`. Welcher Stand gilt, steht nirgends.
-  Nicht raten - nachfragen.
+- **Konkurrierende Versionsstaende.** Mehrere Aufgaben liegen in zwei bis vier
+  Staenden nebeneinander, erkennbar am Suffix `_v1`/`_v2`/`_old`.
+  [docs/BACKLOG.md](docs/BACKLOG.md) listet sie mit Datum, Umfang und einer
+  begruendeten Empfehlung auf. Empfohlen heisst nicht entschieden - im
+  Zweifel nachfragen statt raten.
 - **Nur rund ein Drittel der Skripte hat eine `.SYNOPSIS`.** `INDEX.md` zeigt
   sonst ersatzweise die erste Kommentarzeile, gekennzeichnet mit
   `(aus Kommentar)`. Das ist ein Hinweis, keine Beschreibung - er kann auch
@@ -152,8 +165,8 @@ Wer hier arbeitet, sollte das wissen - es ist nicht offensichtlich:
   oder Remote-Rechner zu. Nur die mit `def` markierten Dateien (35 von 164)
   enthalten ausser Definitionen nichts Ausfuehrbares. Im Zweifel lesen statt
   laden.
-- **`scripts/messaging/mailstore/test.ps1` parst nicht** (6 Syntaxfehler,
-  Altbestand). Der Index markiert das.
+- **`scripts/messaging/mailstore/Invoke-MailStoreApiScratch.ps1` parst nicht**
+  (6 Syntaxfehler, Altbestand). Index und Dateikopf weisen darauf hin.
 - **`third-party/` nicht anfassen.** Fremdcode, unveraendert. Aenderungen
   gehoeren upstream oder in einen eigenen Wrapper.
 - **`_inbox/` ist kein Ablageort**, sondern eine Durchgangsstation.
