@@ -3,7 +3,7 @@
 # pre-commit: verhindert, dass firmenspezifische Details oder Secrets
 #             ins oeffentliche Repo committet werden.
 #
-# Geprueft werden alle gestageten Text-Dateien gegen zwei Regex-Listen:
+# Geprueft werden die gestageten Text-Dateien gegen zwei Regex-Listen:
 #
 #   .githooks/forbidden-patterns.txt         versioniert, generische Muster
 #   .githooks/forbidden-patterns.local.txt   lokal (gitignored), Firmenbegriffe
@@ -48,52 +48,68 @@ pattern=$(cat "$shared_patterns" "$local_patterns" 2>/dev/null \
 
 [ -n "$pattern" ] || exit 0
 
-report=$(mktemp)
 known=$(mktemp)
-trap 'rm -f "$report" "$known"' EXIT
+candidates=$(mktemp)
+report=$(mktemp)
+trap 'rm -f "$known" "$candidates" "$report"' EXIT
 
-# Alle Blob-Hashes, die bereits im letzten Commit stecken. Inhalt, der da schon
-# drin ist, kann dieser Hook nicht mehr verhindern - er ist bereits
-# veroeffentlicht. Wird eine Datei nur verschoben oder umbenannt, entsteht kein
-# neuer Inhalt, und ein Treffer darin waere reines Rauschen: er wuerde jedes
-# `git mv` blockieren und einem antrainieren, mit --no-verify zu arbeiten.
+# Alle Blob-Hashes aus dem letzten Commit. Inhalt, der dort schon steckt, kann
+# dieser Hook nicht mehr verhindern - er ist bereits veroeffentlicht. Wird eine
+# Datei nur verschoben oder umbenannt, entsteht kein neuer Inhalt; ein Treffer
+# darin waere reines Rauschen und wuerde jedes `git mv` blockieren.
 # Altbestand bereinigt man getrennt, nicht ueber einen Commit-Hook.
 git ls-tree -r HEAD 2>/dev/null | awk '{print $3}' | sort -u > "$known"
 
-# Gestagete Dateien (Added/Copied/Modified/Renamed). Die while-Schleife laeuft
-# in einer Subshell, deshalb sammeln wir Treffer in einer Datei statt in einer
-# Variablen.
-git diff --cached --name-only --diff-filter=ACMR | while IFS= read -r file; do
-    # Hook-Verzeichnis selbst nicht pruefen (enthaelt die Muster im Klartext)
-    case "$file" in
-        .githooks/*) continue ;;
-    esac
+# Kandidaten bestimmen: gestagete Dateien, deren Blob noch nicht im letzten
+# Commit vorkommt. --raw liefert Ziel-Blob und Pfad in einem Aufruf, und die
+# Bekanntheitspruefung laeuft in demselben awk. Eine Shell-Schleife mit einem
+# `grep` pro Datei kostet bei hundert Dateien unter Windows zweistellige
+# Sekunden - Prozessstart ist hier die teuerste Operation.
+#
+# --raw-Format:  :100644 100644 <src-blob> <dst-blob> M<TAB>pfad
+git diff --cached --raw --no-renames --diff-filter=ACM \
+    | awk -v knownfile="$known" '
+        BEGIN {
+            while ((getline line < knownfile) > 0) { known[line] = 1 }
+        }
+        {
+            blob = $4
+            path = substr($0, index($0, "\t") + 1)
+            if (path ~ /^\.githooks\//) next
+            if (blob in known) next
+            print path
+        }' > "$candidates"
 
-    # Unveraenderter Inhalt an neuem Pfad: nichts Neues im Repo
-    blob=$(git rev-parse ":$file" 2>/dev/null)
-    if [ -n "$blob" ] && grep -qxF "$blob" "$known"; then
-        continue
-    fi
+[ -s "$candidates" ] || exit 0
 
-    # Binaerdateien ueberspringen (grep -I laesst Binaeres durchfallen)
-    git show ":$file" 2>/dev/null | grep -qI '' || continue
-
-    # Zeilen mit dem Marker bewusst durchlassen - fuer Platzhalter in
-    # Beispielcode, die sich per Regex nicht von echten Secrets trennen lassen.
-    hits=$(git show ":$file" 2>/dev/null \
-        | grep -n -i -E "$pattern" \
-        | grep -v -i 'allowlist secret')
-    if [ -n "$hits" ]; then
-        printf '  %s\n' "$file" >> "$report"
-        printf '%s\n\n' "$hits" | sed 's/^/      /' >> "$report"
-    fi
-done
+# Ein einziger `git grep` ueber alle Kandidaten statt zwei Prozesse pro Datei.
+# Bei einer Umstrukturierung mit hundert Dateien ist das der Unterschied
+# zwischen einer Sekunde und ueber einer Minute.
+#   --cached  durchsucht den Index, nicht das Arbeitsverzeichnis
+#   -I        laesst Binaerdateien aus
+# Zeilen mit dem Marker 'allowlist secret' sind bewusst freigegeben - fuer
+# Platzhalter in Beispielcode, die sich per Regex nicht von echten Secrets
+# unterscheiden lassen.
+# GIT_LITERAL_PATHSPECS verhindert, dass Klammern oder Sternchen im Dateinamen
+# als Muster gelesen werden (hier z.B. "Elevate(Old).ps1"). xargs -0 uebergibt
+# die Pfade nullterminiert und kommt damit auch mit Leerzeichen zurecht.
+tr '\n' '\0' < "$candidates" \
+    | GIT_LITERAL_PATHSPECS=1 xargs -0 git grep --cached -I -n -i -E "$pattern" -- 2>/dev/null \
+    | grep -v -i 'allowlist secret' \
+    | awk -F: '{
+        file = $1
+        line = $2
+        sub(/^[^:]*:[^:]*:/, "")
+        printf "  %s:%s\n      %s\n", file, line, $0
+      }' \
+    > "$report"
 
 if [ -s "$report" ]; then
     echo ""
     echo "COMMIT ABGEBROCHEN - schuetzenswerte Inhalte gefunden:"
     echo ""
     cat "$report"
+    echo ""
     echo "  Bitte durch neutrale Beispielwerte ersetzen, z.B.:"
     echo "      Domaene   -> contoso.local / example.com"
     echo "      Server    -> DC01, SRV01, FS01"
@@ -103,6 +119,7 @@ if [ -s "$report" ]; then
     echo "  Muster pflegen in:"
     echo "      .githooks/forbidden-patterns.txt        (generisch, versioniert)"
     echo "      .githooks/forbidden-patterns.local.txt  (firmenspezifisch, lokal)"
+    echo "  Einzelne Zeile freigeben: 'allowlist secret' in einen Kommentar"
     echo "  Bewusster Bypass: git commit --no-verify"
     echo ""
     exit 1
