@@ -7,7 +7,7 @@ Stand: 2026-09-18.
 
 ## 1. Konkurrierende Versionsstaende
 
-Zwoelf Aufgaben liegen in mehreren Staenden nebeneinander. Die Benennung ist
+Dreizehn Aufgaben liegen in mehreren Staenden nebeneinander. Die Benennung ist
 seit der Umstellung einheitlich (`_v1`/`_v2`/`_old`), damit die Lage sichtbar
 ist - aufgeloest ist sie damit nicht.
 
@@ -73,7 +73,7 @@ Diese Paare sehen so aus, sind aber Absicht - nicht zusammenfuehren:
 | Dateien                                                        | Grund                                                                 |
 | -------------------------------------------------------------- | --------------------------------------------------------------------- |
 | `Get-LoggedInUsersCim.ps1` / `Get-LoggedInUsersInvokeCommand.ps1` | zwei Wege wegen eines PowerShell-7.4-Bugs; der Dateikopf verlinkt ihn |
-| `Get-BitLockerStatus_de.ps1` / `_en.ps1`                       | Sprachvarianten fuer lokalisierte Ausgaben                            |
+| `Get-BitLockerStatus_de.ps1` / `_en.ps1`                       | Sprachvarianten fuer lokalisierte Ausgaben - **aber** siehe 1.6       |
 | `Invoke-SecureBootCertUpdate.ps1` / `_simple.ps1`              | bewusst schlanke Variante (242 statt 923 Zeilen) fuer den Einzelfall  |
 | `Test-ADGroupIntegrity.ps1` / `Test-ADGroupIntegrityMulti.ps1` | Einzelgruppe gegen alle privilegierten Gruppen, zwei PRTG-Sensoren    |
 
@@ -93,13 +93,30 @@ Vor dem Aufraeumen eines Versionspaares deshalb immer
 laufen lassen. Das Werkzeug meldet Funktionsaufrufe ueber Dateigrenzen und
 trennt dabei Aufrufe innerhalb eines Ordners von solchen darueber hinaus.
 
+### 1.6 BitLocker - der Nachfolger ist schon da
+
+`scripts/security/bitlocker/`
+
+| Datei                          | Stand      | Inhalt                                                        |
+| ------------------------------ | ---------- | ------------------------------------------------------------- |
+| `Get-BitLockerStatus_de.ps1`   | 2024/2025  | deutschsprachige Ausgabe                                       |
+| `Get-BitLockerStatus_en.ps1`   | 2024/2025  | englischsprachige Ausgabe                                      |
+| `Get-BitLockerStatus_de_v2.ps1`| 2026-06-04 | massiv paralleler Abgleich AD gegen lokale Systeme, mit `.SYNOPSIS` |
+
+Die Commit-Nachricht des Autors zu `_de_v2` lautet woertlich *"initial commit.
+beta. should replace bitlocker-status-de.ps1"*. Es ist also ein erklaerter
+Nachfolger, aber als Beta gekennzeichnet.
+
+**Offen:** ob `_de_v2` auch die englische Variante ersetzt oder ob die
+Sprachtrennung bestehen bleibt. Danach `_de` (und ggf. `_en`) loeschen.
+
 ---
 
-## 2. Comment-Based Help fehlt bei 90 Skripten
+## 2. Comment-Based Help fehlt bei 89 Skripten
 
-`INDEX.md` weist 74 von 164 Skripten mit `.SYNOPSIS` aus. Bei den uebrigen
-zeigt der Index ersatzweise die erste Kommentarzeile - ein Hinweis, keine
-Beschreibung.
+`INDEX.md` weist 78 von 167 Skripten mit `.SYNOPSIS` aus (47%). Bei den
+uebrigen zeigt der Index ersatzweise die erste Kommentarzeile - ein Hinweis,
+keine Beschreibung.
 
 Arbeitsliste erzeugen:
 
@@ -164,23 +181,49 @@ lauffaehig:
 unabhaengig voneinander definieren. Ein gemeinsames Hilfsmodul waere hier
 besser als fuenf Kopien.
 
-### 3.3 `third-party/` als Submodul
+### 3.4 `third-party/` als Submodul
 
 `third-party/Check-UEFISecureBootVariables/` ist ein ZIP-Download, rund 40
 Dateien. Als Git-Submodul waeren Updates nachvollziehbar und die Dateien
 zaehlten nicht zu diesem Repo. Siehe `third-party/.../ORIGIN.md`.
 
-### 3.4 `_inbox/playground/` aufloesen
+### 3.5 `_inbox/playground/` aufloesen
 
 Drei Dateien (`New-ADGroupInOU_with_some_stuff.ps1`,
 `meeting_pipeline_setup.sh`, `requirements.txt`). Nach der 30-Tage-Regel
 einsortieren oder loeschen.
 
-### 3.5 Nummerierte Beispieldateien
+### 3.6 Nummerierte Beispieldateien
 
 `scripts/messaging/mailstore/examples/Example1.ps1` bis `Example4.ps1` sagen
 nicht, was sie zeigen. Aussagekraeftige Namen waeren besser, erfordern aber,
 jede Datei zu lesen.
+
+---
+
+### 3.7 Nachweis: keine Abhaengigkeit ging bei der Umstellung verloren
+
+Geprueft am 2026-09-18 durch Vergleich des Abhaengigkeitsgraphen vor der
+Umstellung (Commit `9d20efa`) mit dem danach, ueber eine Namensabbildung fuer
+die 104 Umbenennungen:
+
+| Kennzahl                                    | Wert |
+| ------------------------------------------- | ---- |
+| Abhaengigkeiten vorher (ohne Fremdcode)     | 21   |
+| davon heute verloren                        | **0** |
+| neu hinzugekommen                           | 12 (die PRTG-DSLS-Sensoren zu ihrem Modul, gleicher Ordner) |
+
+Die zwoelf Abhaengigkeiten innerhalb des Fremdcodes
+(`third-party/Check-UEFISecureBootVariables/`) sind ebenfalls intakt: der
+Ordner wurde als Ganzes verschoben, die Blob-Hashes aller Dateien sind
+unveraendert.
+
+Die einzige tatsaechlich gebrochene Abhaengigkeit entstand nicht durch das
+Verschieben, sondern durch die Umbenennung des Ordners `API-Wrapper` zu
+`api-wrapper`: die MailStore-Beispiele importierten den alten Pfad. Unter
+Windows folgenlos, unter Linux ein harter Fehler. Behoben.
+
+Wiederholbar mit `tools/Find-ScriptDependency.ps1`.
 
 ---
 
