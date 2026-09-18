@@ -108,6 +108,40 @@ function Get-ScriptFacts {
         $synopsis = ($help.Synopsis -replace '\s+', ' ').Trim()
     }
 
+    # GetHelpContent() findet Comment-Based Help nur an den dafuer vorgesehenen
+    # Stellen: direkt vor oder direkt nach dem Funktionskopf bzw. am
+    # Skriptanfang. Steht der Hilfeblock woanders - etwa nach einem
+    # #Requires-Block, hinter Code oder vor der zweiten von mehreren Funktionen -
+    # liefert die API nichts zurueck, obwohl eine .SYNOPSIS da ist. Das betraf
+    # hier 15 Dateien. Deshalb zusaetzlich ein textueller Durchgang durch die
+    # Kommentar-Token.
+    if (-not $synopsis) {
+        foreach ($token in $tokens) {
+            if ($token.Kind -ne 'Comment') { continue }
+            if ($token.Text -notmatch '(?im)^\s*[#\s]*\.SYNOPSIS\s*$') { continue }
+
+            $lines = $token.Text -split "`r?`n"
+            $index = 0
+            while ($index -lt $lines.Count -and $lines[$index] -notmatch '(?i)^\s*[#\s]*\.SYNOPSIS\s*$') {
+                $index++
+            }
+
+            # Alles bis zur naechsten Hilfe-Direktive oder zum Blockende sammeln
+            $collected = [System.Collections.Generic.List[string]]::new()
+            for ($i = $index + 1; $i -lt $lines.Count; $i++) {
+                $line = ($lines[$i] -replace '^\s*#*', '').Trim()
+                if ($line -match '^\.[A-Z]+' -or $line -match '^#>') { break }
+                if ($line) { $collected.Add($line) }
+                elseif ($collected.Count -gt 0) { break }
+            }
+
+            if ($collected.Count -gt 0) {
+                $synopsis = ($collected -join ' ' -replace '\s+', ' ').Trim()
+                break
+            }
+        }
+    }
+
     # --- Ersatz: erste brauchbare Kommentarzeile ---
     $commentHint = $null
     if (-not $synopsis) {

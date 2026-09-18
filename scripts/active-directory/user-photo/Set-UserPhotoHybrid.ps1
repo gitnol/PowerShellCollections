@@ -1,4 +1,28 @@
-﻿function Set-UserPhotoHybrid { 
+﻿<#
+.SYNOPSIS
+    Setzt das Benutzerfoto gleichzeitig im lokalen AD (thumbnailPhoto) und in
+    Entra ID / Teams.
+
+.DESCRIPTION
+    Skaliert ein Bild zweimal und verteilt es an beide Ziele, weil sie
+    unterschiedliche Groessen erwarten: 96x96 fuer das AD-Attribut
+    thumbnailPhoto (Groessenlimit), 648x648 fuer Entra ID ueber Microsoft
+    Graph.
+
+    Fehlt -ADCredential, wird das lokale AD uebersprungen; mit -SkipGraph
+    entfaellt der Entra-Teil. Schreibfehler ins AD (fehlende Rechte auf
+    thumbnailPhoto) brechen den Ablauf nicht ab, damit der Entra-Teil noch
+    laeuft.
+
+    Benoetigt das Modul Microsoft.Graph.Users und eine bestehende
+    Graph-Verbindung mit dem Scope 'User.ReadWrite.All'.
+
+.NOTES
+    Zum Zuschneiden der Vorlage gibt es photo-cropper/MyPhotoCropper.html
+    im selben Verzeichnis.
+#>
+
+function Set-UserPhotoHybrid { 
     param (
         [Parameter(Mandatory)][string]$UserPrincipalName,
         [Parameter(Mandatory)][string]$PhotoPath,
