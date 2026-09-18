@@ -15,13 +15,28 @@
 #   DC/Server  -> DC01, DC02, SRV01, FS01
 #   Benutzer   -> m.mustermann, m.mueller, j.doe
 #   IP         -> 192.0.2.x / 198.51.100.x / 203.0.113.x (RFC 5737)
+#
+# Einzelne Zeile bewusst durchlassen: den Marker
+#
+#     allowlist secret
+#
+# in einen Kommentar auf derselben Zeile schreiben. Gedacht fuer Platzhalter
+# in Beispielcode, die sich per Regex nicht von echten Secrets unterscheiden
+# lassen ("your-api-token", "changeme").
 
 # --- Zugangsdaten / Secrets -------------------------------------------------
-# Klartext-Passwort in einer Zuweisung
-(password|passwort|kennwort|pwd)[[:space:]]*=[[:space:]]*['\"][^'\"]+['\"]
+# Klartext-Passwort in einer Zuweisung.
+# Werte mit '$' sind ausgenommen: password = "$password" ist eine
+# Variableninterpolation, kein hinterlegtes Passwort. Ohne diese Ausnahme
+# schlaegt die Regel bei jedem API-Wrapper an, der einen Parameter
+# durchreicht - und wird dadurch wertlos.
+(password|passwort|kennwort|pwd|secret)[[:space:]]*=[[:space:]]*['"][^'"$]+['"]
+
 # API-/Access-Token in einer Zuweisung
-(api[_-]?key|apitoken|access[_-]?token|client[_-]?secret)[[:space:]]*=[[:space:]]*['\"][^'\"]+['\"]
-# ConvertTo-SecureString mit Klartext
-ConvertTo-SecureString[[:space:]]+.*-AsPlainText
+(api[_-]?key|api[_-]?token|access[_-]?token|client[_-]?secret|bearer)[[:space:]]*=[[:space:]]*['"][^'"$]+['"]
+
+# ConvertTo-SecureString mit einem Literal statt einer Variablen
+ConvertTo-SecureString([[:space:]]+-String)?[[:space:]]+['"][^'"$]+['"].*-AsPlainText
+
 # Private-Key-Bloecke
 BEGIN (RSA |OPENSSH |EC |DSA |PGP )?PRIVATE KEY

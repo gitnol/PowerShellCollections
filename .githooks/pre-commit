@@ -49,7 +49,16 @@ pattern=$(cat "$shared_patterns" "$local_patterns" 2>/dev/null \
 [ -n "$pattern" ] || exit 0
 
 report=$(mktemp)
-trap 'rm -f "$report"' EXIT
+known=$(mktemp)
+trap 'rm -f "$report" "$known"' EXIT
+
+# Alle Blob-Hashes, die bereits im letzten Commit stecken. Inhalt, der da schon
+# drin ist, kann dieser Hook nicht mehr verhindern - er ist bereits
+# veroeffentlicht. Wird eine Datei nur verschoben oder umbenannt, entsteht kein
+# neuer Inhalt, und ein Treffer darin waere reines Rauschen: er wuerde jedes
+# `git mv` blockieren und einem antrainieren, mit --no-verify zu arbeiten.
+# Altbestand bereinigt man getrennt, nicht ueber einen Commit-Hook.
+git ls-tree -r HEAD 2>/dev/null | awk '{print $3}' | sort -u > "$known"
 
 # Gestagete Dateien (Added/Copied/Modified/Renamed). Die while-Schleife laeuft
 # in einer Subshell, deshalb sammeln wir Treffer in einer Datei statt in einer
@@ -60,10 +69,20 @@ git diff --cached --name-only --diff-filter=ACMR | while IFS= read -r file; do
         .githooks/*) continue ;;
     esac
 
+    # Unveraenderter Inhalt an neuem Pfad: nichts Neues im Repo
+    blob=$(git rev-parse ":$file" 2>/dev/null)
+    if [ -n "$blob" ] && grep -qxF "$blob" "$known"; then
+        continue
+    fi
+
     # Binaerdateien ueberspringen (grep -I laesst Binaeres durchfallen)
     git show ":$file" 2>/dev/null | grep -qI '' || continue
 
-    hits=$(git show ":$file" 2>/dev/null | grep -n -i -E "$pattern")
+    # Zeilen mit dem Marker bewusst durchlassen - fuer Platzhalter in
+    # Beispielcode, die sich per Regex nicht von echten Secrets trennen lassen.
+    hits=$(git show ":$file" 2>/dev/null \
+        | grep -n -i -E "$pattern" \
+        | grep -v -i 'allowlist secret')
     if [ -n "$hits" ]; then
         printf '  %s\n' "$file" >> "$report"
         printf '%s\n\n' "$hits" | sed 's/^/      /' >> "$report"

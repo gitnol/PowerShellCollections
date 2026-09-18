@@ -40,20 +40,34 @@ Details in [CLAUDE.md](CLAUDE.md).
 
 ## Struktur
 
-Die Ablage wird gerade von einer flachen, gewachsenen Struktur auf die in
-[docs/STRUCTURE.md](docs/STRUCTURE.md) beschriebene umgestellt. Neue Skripte
-kommen bereits unter `scripts/<system>/`; die alten Ordner auf oberster Ebene
-werden schrittweise dorthin ueberfuehrt.
+Ein Skript liegt unter dem System, gegen das es laeuft. Die vollstaendige
+Regel samt Begruendung steht in [docs/STRUCTURE.md](docs/STRUCTURE.md).
 
-Referenzbeispiel fuer die Zielstruktur:
+| Verzeichnis                                       | Inhalt                                              |
+| ------------------------------------------------- | --------------------------------------------------- |
+| [scripts/active-directory/](scripts/active-directory/) | AD-Objekte, GPO, DNS, LDAP, Anmelde-Events      |
+| [scripts/windows/](scripts/windows/)              | Sessions, Prozesse, Dienste, Tasks, WMI, Eventlog   |
+| [scripts/security/](scripts/security/)            | Zertifikate, SecureBoot, BitLocker, Passwoerter     |
+| [scripts/network/](scripts/network/)              | LANCOM, Aruba, DHCP, Firewall, WOL, Diagnose        |
+| [scripts/monitoring/](scripts/monitoring/)        | PRTG-Sensoren, Ping-Monitor, Web-Aenderungen        |
+| [scripts/messaging/](scripts/messaging/)          | Exchange, Outlook, Mailstore, NoSpamProxy           |
+| [scripts/databases/](scripts/databases/)          | MSSQL, Firebird                                     |
+| [scripts/applications/](scripts/applications/)    | DocuWare, Zammad, TeamViewer, Kyocera, FileZilla    |
+| [scripts/filesystem/](scripts/filesystem/)        | Berechtigungen, Suche, Links                        |
+| [scripts/virtualization/](scripts/virtualization/) | VMware                                             |
+| [snippets/](snippets/)                            | Code-Beispiele ohne Betriebszweck                   |
+| [third-party/](third-party/)                      | fremder, unveraenderter Code                        |
+| [_inbox/](_inbox/)                                | Zwischenablage, 30-Tage-Regel                       |
+
+Referenzbeispiel fuer den Zuschnitt eines Themas:
 [scripts/monitoring/prtg/](scripts/monitoring/prtg/)
 
 ## Zustand der Skripte
 
 Die Sammlung ist ueber Jahre entstanden und nicht durchgaengig gepflegt.
-Qualitaet und Aktualitaet schwanken; `LOST+FOUND+UNTESTED/` ist als solches
-gekennzeichnet. Vor dem Produktiveinsatz lesen und in einer Testumgebung
-ausprobieren.
+Qualitaet und Aktualitaet schwanken, mehrere Aufgaben liegen in konkurrierenden
+Versionsstaenden nebeneinander (`_v2`, `_v3`, `_old`). Vor dem Produktiveinsatz
+lesen und in einer Testumgebung ausprobieren.
 
 ## Lizenz
 

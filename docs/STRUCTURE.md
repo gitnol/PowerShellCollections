@@ -1,20 +1,19 @@
 # Repository-Struktur
 
-## Das Problem, das diese Struktur loest
+## Das Problem, das diese Struktur geloest hat
 
-Die gewachsene Ablage mischt drei verschiedene Ordnungsachsen auf derselben
-Ebene:
+Die gewachsene Ablage mischte drei Ordnungsachsen auf derselben Ebene:
 
-| Achse            | Beispiele                                      |
-| ---------------- | ---------------------------------------------- |
-| Fachdomaene      | `Active-Directory`, `Exchange_Outlook`         |
-| Hersteller       | `Aruba`, `LANCOM`, `Kyocera`, `VMware`         |
-| Restekiste       | `unsorted-stuff`, `LOST+FOUND+UNTESTED`, `Server-Client-Helper-Stuff` |
+| Achse       | Beispiele                                                             |
+| ----------- | --------------------------------------------------------------------- |
+| Fachdomaene | `Active-Directory`, `Exchange_Outlook`                                |
+| Hersteller  | `Aruba`, `LANCOM`, `Kyocera`, `VMware`                                |
+| Restekiste  | `unsorted-stuff`, `LOST+FOUND+UNTESTED`, `Server-Client-Helper-Stuff` |
 
-Solange mehrere Achsen gleichberechtigt nebeneinander stehen, hat jede neue
+Solange mehrere Achsen gleichberechtigt nebeneinanderstehen, hat jede neue
 Datei mehrere gleich plausible Ablageorte - und landet deshalb in der
 Restekiste. `unsorted-stuff` (42 Dateien) und `Server-Client-Helper-Stuff`
-(92 Dateien) sind nicht die Ursache, sondern das Symptom.
+(92 Dateien) waren nicht die Ursache, sondern das Symptom.
 
 ## Die Entscheidungsregel
 
@@ -24,101 +23,143 @@ Restekiste. `unsorted-stuff` (42 Dateien) und `Server-Client-Helper-Stuff`
 > (PRTG-XML, Nagios-Exitcode, Icinga), dann ist **die Plattform** das System -
 > nicht das abgefragte Produkt.
 
-Konkretes Beispiel: ein Sensor, der den Dassault-Lizenzserver abfragt und
-PRTG-XML ausgibt, liegt unter `scripts/monitoring/prtg/dsls/` - nicht unter
-`scripts/applications/dassault/`. Begruendung: wiederverwendbar ist an dem
-Skript der PRTG-Vertrag, nicht das DSLS-Wissen. Wer einen weiteren Sensor
-baut, sucht bei PRTG.
+Zwei Faelle aus der Umstellung, an denen sich die Regel zeigt:
 
-Zweite Regel fuer den Zweifelsfall:
+- `Check-ADGroupIntegrity.ps1` lag unter `Active-Directory/`, gibt aber
+  PRTG-XML aus und pflegt `PRTG_Baseline_*`-Dateien. Es liegt jetzt unter
+  `scripts/monitoring/prtg/ad-group-integrity/`. Wer den naechsten Sensor
+  baut, sucht bei PRTG - nicht bei AD.
+- `bitlocker-status-de.ps1` lag ebenfalls unter `Active-Directory/`, weil es
+  die Rechnerliste per `Get-ADComputer` holt. Das Thema ist aber BitLocker,
+  nicht AD - AD ist nur die Bezugsquelle. Es liegt jetzt unter
+  `scripts/security/bitlocker/`.
+
+Fuer den Zweifelsfall:
 
 > **Wonach wuerdest du in sechs Monaten suchen?** Danach wird abgelegt.
 
-## Zielstruktur
+## Struktur
 
 ```
 scripts/
-  active-directory/       AD, GPO, DNS, DHCP, LDAP
-  windows-client/         Arbeitsplatz: Profile, Temp, Telemetrie, Fenster
-  windows-server/         Serverdienste: Tasks, Shadow Copy, WMI, Firewall
-  security/               Zertifikate, SecureBoot, BitLocker, Schwachstellensuche
-  network/                LANCOM, Aruba, Ports, Verbindungen, WOL
-  virtualization/         VMware
-  databases/              MSSQL, Firebird, Sync
-  messaging/              Exchange, Outlook, Mailstore, NoSpamProxy
-  monitoring/             PRTG und andere Monitoring-Plattformen
-  applications/           DocuWare, Zammad, TeamViewer, Kyocera, FileZilla, ...
-modules/                  wiederverwendbare .psm1/.psd1
-tools/                    Werkzeuge fuer dieses Repo selbst (Index-Generator)
-third-party/              fremder, unveraenderter Code
-docs/                     Doku zum Repo
-_inbox/                   Zwischenablage, siehe unten
+  active-directory/    AD-Objekte, GPO, DNS, LDAP, Anmelde-Events, Zeitsync
+  windows/             Betriebssystem: Sessions, Prozesse, Dienste, Tasks,
+                       WMI, Eventlog, Bereinigung, Inventar, Desktop
+  security/            Zertifikate, SecureBoot, BitLocker, Passwoerter, EDR
+  network/             LANCOM, Aruba, DHCP, Firewall, WOL, Diagnose
+  virtualization/      VMware
+  databases/           MSSQL, Firebird, Sync
+  messaging/           Exchange, Outlook, Mailstore, NoSpamProxy
+  monitoring/          PRTG, Ping-Monitor, Web-Aenderungen
+  applications/        DocuWare, Zammad, TeamViewer, Kyocera, FileZilla,
+                       OpenScape, Excel, Teams
+  filesystem/          Berechtigungen, Suche, Links, Archivierung
+snippets/              Code-Beispiele ohne Betriebszweck
+third-party/           fremder, unveraenderter Code
+tools/                 Werkzeuge fuer dieses Repo selbst
+docs/                  Doku zum Repo
+_inbox/                Zwischenablage, siehe unten
 ```
+
+### Warum `windows/` statt `windows-client/` und `windows-server/`
+
+Die naheliegende Trennung nach Client und Server haette das Ausgangsproblem
+reproduziert: ein Grossteil der Skripte laeuft per `Invoke-Command` gegen
+beliebige Domaenenrechner und ist damit weder das eine noch das andere.
+`Get-LoggedInUsers`, `Clear-OldTempFiles` oder `Get-Process-CPU-Usage-DomainWide`
+haetten jeweils zwei plausible Orte gehabt - und genau daraus entsteht die
+naechste Restekiste. Eine Achse weniger ist hier mehr wert als die feinere
+Unterteilung.
 
 ### `_inbox/` statt `unsorted-stuff/`
 
-Eine Restekiste laesst sich nicht wegdefinieren - aber begrenzen. `_inbox/`
-ist explizit als Durchgangsstation benannt und hat eine Regel:
+Eine Restekiste laesst sich nicht wegdefinieren - aber befristen:
 
 > Was laenger als 30 Tage in `_inbox/` liegt, wird einsortiert oder geloescht.
 
-Der Unterschied zu `unsorted-stuff` ist nicht der Name, sondern dass der
-Zustand "unsortiert" damit sichtbar und befristet ist.
+Der Unterschied zum Vorgaenger ist nicht der Name, sondern dass "unsortiert"
+damit ein sichtbarer, befristeter Zustand ist.
 
 ### `third-party/`
 
-`Server-Client-Helper-Stuff/SecureBoot/Check-UEFISecureBootVariables-main/`
-sind ~40 Dateien fremder Code, einmal als ZIP hineinkopiert. Sie stellen
-damit rund ein Sechstel aller Dateien im Repo, ohne eigene Arbeit zu sein.
-Fremdcode gehoert nach `third-party/<projekt>/` mit einer `ORIGIN.md`
-(Quelle, Version, Abrufdatum, Lizenz) - oder besser als Git-Submodul, damit
-Updates nachvollziehbar bleiben.
+`Check-UEFISecureBootVariables` waren ~40 Dateien fremder Code, einmal als ZIP
+nach `Server-Client-Helper-Stuff/SecureBoot/` hineinkopiert - rund ein Sechstel
+aller Dateien im Repo, ohne eigene Arbeit zu sein. Fremdcode liegt jetzt unter
+`third-party/<projekt>/` mit einer `ORIGIN.md` (Quelle, Stand, Lizenz).
+
+Besser waere ein Git-Submodul, damit Updates nachvollziehbar bleiben. Solange
+der Code kopiert vorliegt, gilt: dort nichts aendern, eigene Ergaenzungen
+kommen als Wrapper nach `scripts/security/secure-boot/`.
+
+### Keine eigene `modules/`-Ebene
+
+Naheliegend waere, alle `.psm1`/`.psd1` zentral zu sammeln. Dagegen spricht die
+Zusammengehoerigkeit: `MS.PS.Lib.psm1` ohne die Mailstore-Skripte, mit denen es
+benutzt wird, ist schwerer zu finden und schwerer zu verstehen. Module liegen
+deshalb bei ihrer Fachdomaene:
+
+| Modul                  | Ort                                      |
+| ---------------------- | ---------------------------------------- |
+| `MS.PS.Lib.psm1`       | `scripts/messaging/mailstore/api-wrapper/` |
+| `OZBiz-Functions.psm1` | `scripts/applications/openscape-business/` |
+| `Win10PingMonitor.psm1`| `scripts/monitoring/ping-monitor/`       |
+| `PRTG.Dsls.psm1`       | `scripts/monitoring/prtg/dsls/`          |
 
 ## Namenskonventionen
 
-| Regel                         | Ja                          | Nein                                    |
-| ----------------------------- | --------------------------- | --------------------------------------- |
-| PowerShell Verb-Noun          | `Get-ADUserLastLogon.ps1`   | `check-for-bad-passwords.ps1`           |
-| Nur freigegebene Verben       | `Get-`, `Set-`, `Test-`     | `Check-`, `Create-`, `Manage-`          |
-| Englisch                      | `Set-FolderPermission.ps1`  | `Fileserver-Einzelberechtigungen-fuer-User.ps1` |
-| ASCII in Pfaden               | `temporary-group-membership/` | `Temporäre-Gruppenmitgliedschaften-Verwalten/` |
-| Ordner: kebab-case            | `active-directory/`         | `Server-Client-Helper-Stuff/`           |
+Die Ordner sind umgestellt, die **Dateinamen noch nicht** - das ist ein
+eigener Schritt, damit die Umstellung nachvollziehbar bleibt. Fuer neue
+Dateien gilt ab sofort:
+
+| Regel                   | Ja                          | Nein                                            |
+| ----------------------- | --------------------------- | ----------------------------------------------- |
+| PowerShell Verb-Noun    | `Get-ADUserLastLogon.ps1`   | `check-for-bad-passwords.ps1`                   |
+| Nur freigegebene Verben | `Get-`, `Set-`, `Test-`     | `Check-`, `Create-`, `Manage-`                  |
+| Englisch                | `Set-FolderPermission.ps1`  | `Fileserver-Einzelberechtigungen-fuer-User.ps1` |
+| ASCII in Pfaden         | `temporary/`                | `Temporäre-Gruppenmitgliedschaften-Verwalten/`  |
+| Ordner: kebab-case      | `active-directory/`         | `Server-Client-Helper-Stuff/`                   |
 
 `Check-` ist kein freigegebenes PowerShell-Verb - das Gegenstueck heisst
 `Test-`. Ebenso `Create-` -> `New-`, `Manage-` -> `Set-`/`Update-`.
+`Get-Verb` listet die zulaessigen Verben auf.
 
 Umlaute in Pfaden sind nicht nur Geschmack: Git gibt sie als
 `Tempor\303\244re-...` aus, und diverse Werkzeugketten (Tab-Completion ueber
-SSH, Archive, CI-Runner) stolpern darueber.
+SSH, Archive, CI-Runner) stolpern darueber. Die beiden Ordner mit Umlaut sind
+bei der Umstellung verschwunden.
 
 ### Versionsstaende
 
-`Clear-OldTempFiles_v2/_v3/_v4`, `temporary-groupmembership_v2/_v3`,
-`Elevate(Old).ps1` - vier Varianten nebeneinander beantworten nicht die
-Frage, welche man nehmen soll.
+`Clear-OldTempFiles` liegt in vier Varianten nebeneinander,
+`temp_gruppenmitgliedschaft_bearbeiten` in drei, dazu `Elevate(Old).ps1` und
+`Create-PublicSpotUsers_old.ps1`. Das beantwortet nicht, welche man nehmen
+soll. Die Umstellung hat sie bewusst **nicht** angefasst - welcher Stand der
+gueltige ist, weisst nur du.
 
-> Es gibt genau **eine** kanonische Datei pro Aufgabe. Alte Staende loescht
-> man - die History hat sie. Ist ein alter Stand bewusst als Referenz
-> gewollt, kommt er nach `archive/` mit einer Zeile Begruendung im Header.
+> Ziel: genau **eine** kanonische Datei pro Aufgabe. Alte Staende loescht man -
+> die History hat sie. Ist ein alter Stand bewusst als Referenz gewollt, kommt
+> er nach `archive/` mit einer Zeile Begruendung im Header.
 
 ## Auffindbarkeit
 
 Jedes Skript bekommt Comment-Based Help mit mindestens `.SYNOPSIS`.
 `tools/Build-ScriptIndex.ps1` liest diese aus und erzeugt `INDEX.md` -
 eine durchsuchbare Tabelle aller Skripte mit Pfad und Kurzbeschreibung.
-Damit wird das Repo per Volltextsuche im Browser oder per `grep INDEX.md`
-erschliessbar, ohne 156 Dateien zu oeffnen.
 
-## Migrationspfad
+```powershell
+# Index neu erzeugen
+.\tools\Build-ScriptIndex.ps1
 
-Die Umstellung muss nicht auf einmal passieren. Sinnvolle Reihenfolge:
+# Arbeitsliste: was hat noch keine .SYNOPSIS?
+.\tools\Build-ScriptIndex.ps1 -PassThru |
+    Where-Object { -not $_.Synopsis } |
+    Select-Object RelativePath
+```
 
-1. `third-party/` herausloesen - groesster Effekt, kein inhaltliches Risiko
-2. `scripts/monitoring/` als erstes neues Zuhause (siehe PRTG-Beispiel)
-3. `Active-Directory/` -> `scripts/active-directory/` mit Umbenennungen
-4. `Server-Client-Helper-Stuff/` auf `windows-client` / `windows-server` /
-   `security` / `network` aufteilen
-5. `unsorted-stuff/` -> `_inbox/`, dann die 30-Tage-Regel anwenden
+## Was als Naechstes ansteht
 
-Verschiebungen mit `git mv` ausfuehren, damit die History der Dateien
-erhalten bleibt.
+1. Dateinamen auf Verb-Noun und Englisch umstellen (eigener Durchgang)
+2. Versionsstaende zusammenfuehren: pro Aufgabe eine kanonische Datei
+3. `.SYNOPSIS` nachziehen - der Index zeigt, wo sie fehlt
+4. `third-party/Check-UEFISecureBootVariables` durch ein Submodul ersetzen
+5. `_inbox/playground/` nach der 30-Tage-Regel aufloesen
