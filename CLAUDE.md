@@ -1,53 +1,159 @@
-# Projektregeln
+# Arbeiten in diesem Repository
 
-## Keine firmenspezifischen Details im Repo
+Sammlung von PowerShell-Skripten aus dem Windows-/AD-Betrieb. Oeffentliches
+Repository, ueber Jahre gewachsen, ein Autor.
 
-Dieses Repository ist oeffentlich. Vor **jedem** Commit gilt: Skripte, Kommentare,
-Beispiele und `.EXAMPLE`-Bloecke duerfen keine internen Bezeichner enthalten.
+## Zuerst lesen
 
-Verboten sind u.a.:
+| Frage                                  | Antwort steht in                         |
+| -------------------------------------- | ---------------------------------------- |
+| Welches Skript macht was?              | [INDEX.md](INDEX.md) - generiert          |
+| Wohin gehoert eine neue Datei?         | [docs/STRUCTURE.md](docs/STRUCTURE.md)    |
+| Wie ist ein Thema zugeschnitten?       | [scripts/monitoring/prtg/](scripts/monitoring/prtg/) als Referenz |
 
-- Firmen- und Standortnamen sowie interne AD-/DNS-Domaenen
-- Echte Benutzernamen, E-Mail-Adressen, Personennamen
-- Echte Server-/DC-/Host-Namen und interne IP-Adressen
-- Interne Freigaben, UNC-Pfade, Seriennummern
+`INDEX.md` ist der schnellste Einstieg: eine Zeile pro Skript mit Pfad und
+Kurzbeschreibung. `grep -i "lockout" INDEX.md` beantwortet die meisten
+Suchfragen, ohne Dateien zu oeffnen.
+
+## Ablage
+
+> **Ein Skript liegt unter dem System, gegen das es laeuft.**
+>
+> Existiert es nur wegen des Ausgabe-Vertrags einer Plattform (PRTG-XML,
+> Nagios-Exitcode), ist **die Plattform** das System - nicht das abgefragte
+> Produkt.
+
+Ein Skript, das per `Get-ADComputer` nur die Rechnerliste holt, gehoert nicht
+unter `active-directory/` - AD ist dort die Bezugsquelle, nicht das Thema.
+
+Nie gefunden, wohin damit? Nach `_inbox/`, nicht irgendwohin. Dort gilt die
+30-Tage-Regel.
+
+## Konventionen
+
+### Kodierung - wichtig
+
+Enthaelt eine `.ps1`/`.psm1` Nicht-ASCII-Zeichen (Umlaute), **muss** sie ein
+UTF-8-BOM haben. Windows PowerShell 5.1 liest sonst in der ANSI-Codepage:
+aus `Prüfe` wird `PrÃ¼fe`, und regulaere Ausdruecke mit Umlauten matchen
+nicht mehr - ohne Fehlermeldung. Mehrere Skripte hier werten
+deutschsprachige Eventlog- und Programmausgaben aus und waeren davon
+betroffen. Im Repo liegen Skripte mit `#Requires -Version 5.1`, die Annahme
+"alles laeuft unter PS7" traegt also nicht.
+
+```powershell
+# Pruefen und reparieren
+.\tools\Repair-ScriptEncoding.ps1 -WhatIf
+.\tools\Repair-ScriptEncoding.ps1
+```
+
+Reine ASCII-Dateien brauchen kein BOM.
+`scripts/messaging/mailstore/api-wrapper/MS.PS.Lib.psd1` liegt als UTF-16 LE
+vor und ist in `.gitattributes` als `binary` markiert - nicht konvertieren.
+
+### Zeilenenden
+
+Festgelegt in [.gitattributes](.gitattributes): im Repository LF, im
+Arbeitsverzeichnis CRLF fuer `.ps1`/`.psm1`/`.psd1`/`.bat`/`.cmd`/`.xml`,
+LF fuer `.sh` und `.githooks/*` (ein Hook mit CRLF scheitert an
+`bad interpreter`). Nicht von Hand umstellen.
+
+### Namensgebung
+
+| Regel                   | Ja                         | Nein                             |
+| ----------------------- | -------------------------- | -------------------------------- |
+| Verb-Noun               | `Get-ADUserLastLogon.ps1`  | `check-for-bad-passwords.ps1`    |
+| Freigegebene Verben     | `Get-`, `Set-`, `Test-`    | `Check-`, `Create-`, `Manage-`   |
+| Englisch                | `Set-FolderPermission.ps1` | `Fileserver-Einzelberechtigungen-fuer-User.ps1` |
+| ASCII in Pfaden         | `temporary/`               | `Temporäre-.../`                 |
+| Ordner kebab-case       | `active-directory/`        | `Server-Client-Helper-Stuff/`    |
+
+`Get-Verb` listet die zulaessigen Verben. `Check-` gibt es nicht - das heisst
+`Test-`.
+
+Der **Altbestand erfuellt diese Regeln noch nicht**. Das ist bekannt und ein
+eigener Arbeitsschritt; bestehende Dateien nicht nebenbei umbenennen, sonst
+wird der Diff unpruefbar.
+
+### Comment-Based Help
+
+Jedes neue Skript bekommt mindestens `.SYNOPSIS`. Der Index liest sie aus.
+Nach dem Anlegen oder Umbenennen von Skripten:
+
+```powershell
+.\tools\Build-ScriptIndex.ps1
+```
+
+## Keine firmenspezifischen Details
+
+Das Repository ist oeffentlich. Verboten sind:
+
+- Firmen- und Standortnamen, interne AD-/DNS-Domaenen
+- echte Benutzernamen, E-Mail-Adressen, Personennamen
+- echte Server-/Host-Namen, interne IP-Adressen, UNC-Pfade
 - Passwoerter, API-Keys, Tokens, private Schluessel
 
-Stattdessen neutrale Platzhalter verwenden:
+Platzhalter stattdessen:
 
-| Typ      | Beispielwert                                           |
+| Typ      | Wert                                                   |
 | -------- | ------------------------------------------------------ |
 | Domaene  | `contoso.local`, `example.com`                         |
 | Server   | `DC01`, `DC02`, `SRV01`, `FS01`                        |
 | Benutzer | `m.mustermann`, `m.mueller`, `j.doe`                   |
 | E-Mail   | `max.mustermann@example.com`                           |
 | IP       | `192.0.2.10`, `198.51.100.5`, `203.0.113.7` (RFC 5737) |
-| Netz     | `192.0.2.0/24`                                         |
 
 ### Durchsetzung
 
-Ein versionierter Git-Hook prueft das bei jedem Commit:
+`.githooks/pre-commit` prueft das bei jedem Commit.
 
-| Datei                                        | Versioniert | Inhalt                                          |
-| -------------------------------------------- | ----------- | ----------------------------------------------- |
-| `.githooks/pre-commit`                       | ja          | der Hook selbst                                 |
-| `.githooks/forbidden-patterns.txt`           | ja          | generische Muster (Secrets, Tokens, Keys)       |
-| `.githooks/forbidden-patterns.local.txt`     | **nein**    | die konkreten Firmen-, Personen- und Hostnamen  |
-| `.githooks/forbidden-patterns.local.txt.example` | ja      | Vorlage fuer die lokale Datei                   |
+| Datei                                            | Versioniert | Inhalt                          |
+| ------------------------------------------------ | ----------- | ------------------------------- |
+| `.githooks/pre-commit`                           | ja          | der Hook                        |
+| `.githooks/forbidden-patterns.txt`               | ja          | generische Muster (Secrets)     |
+| `.githooks/forbidden-patterns.local.txt`         | **nein**    | die konkreten Namen             |
+| `.githooks/forbidden-patterns.local.txt.example` | ja          | Vorlage                         |
 
-Die lokale Liste ist bewusst per `.gitignore` ausgeschlossen: sie enthaelt genau
-die Begriffe, die nicht ins oeffentliche Repo sollen. Waere sie versioniert,
-wuerde der Schutzmechanismus selbst zum Leck.
+Die lokale Liste ist bewusst per `.gitignore` ausgeschlossen: waere sie
+versioniert, stuenden genau die zu schuetzenden Begriffe im oeffentlichen
+Repo - der Schutz waere selbst das Leck.
 
-Einrichtung einmalig pro Clone:
+Einrichtung pro Clone:
 
 ```sh
 git config core.hooksPath .githooks
 cp .githooks/forbidden-patterns.local.txt.example \
    .githooks/forbidden-patterns.local.txt
-# lokale Datei um die eigenen Begriffe ergaenzen
 ```
 
-Fehlt die lokale Datei, warnt der Hook sichtbar und prueft nur die generischen
-Muster. Der Commit wird abgebrochen und mit Datei + Zeilennummer aufgelistet.
+Der Hook prueft nur Inhalt, der neu ins Repository kommt - eine reine
+Verschiebung loest ihn nicht aus. Altbestand bereinigt man getrennt, nicht
+ueber einen Commit-Hook. Platzhalter in Beispielcode, die sich per Regex
+nicht von echten Secrets trennen lassen, bekommen `allowlist secret` in
+einen Kommentar auf derselben Zeile.
+
 Bypass nur bewusst mit `git commit --no-verify`.
+
+## Fallstricke in diesem Bestand
+
+Wer hier arbeitet, sollte das wissen - es ist nicht offensichtlich:
+
+- **Konkurrierende Versionsstaende.** `Clear-OldTempFiles` gibt es viermal,
+  `temp_gruppenmitgliedschaft_bearbeiten` dreimal, dazu `Elevate(Old).ps1`
+  und `Create-PublicSpotUsers_old.ps1`. Welcher Stand gilt, steht nirgends.
+  Nicht raten - nachfragen.
+- **Nur rund ein Drittel der Skripte hat eine `.SYNOPSIS`.** `INDEX.md` zeigt
+  sonst ersatzweise die erste Kommentarzeile, gekennzeichnet mit
+  `(aus Kommentar)`. Das ist ein Hinweis, keine Beschreibung - er kann auch
+  danebenliegen.
+- **Die meisten Dateien fuehren beim Laden Code aus.** Typisch: eine Funktion
+  wird definiert und am Dateiende gleich aufgerufen. Dot-Sourcing zum
+  Erkunden ist deshalb riskant - manche Skripte greifen dabei sofort auf AD
+  oder Remote-Rechner zu. Nur die mit `def` markierten Dateien (35 von 164)
+  enthalten ausser Definitionen nichts Ausfuehrbares. Im Zweifel lesen statt
+  laden.
+- **`scripts/messaging/mailstore/test.ps1` parst nicht** (6 Syntaxfehler,
+  Altbestand). Der Index markiert das.
+- **`third-party/` nicht anfassen.** Fremdcode, unveraendert. Aenderungen
+  gehoeren upstream oder in einen eigenen Wrapper.
+- **`_inbox/` ist kein Ablageort**, sondern eine Durchgangsstation.

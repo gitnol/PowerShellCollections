@@ -3,17 +3,21 @@
     Erzeugt INDEX.md - eine durchsuchbare Uebersicht aller Skripte im Repo.
 
 .DESCRIPTION
-    Liest jede .ps1/.psm1 mit dem PowerShell-Parser ein und zieht die
-    .SYNOPSIS aus der Comment-Based Help. Das Ergebnis ist eine nach Ordner
-    gruppierte Markdown-Tabelle.
+    Liest jede .ps1/.psm1 mit dem PowerShell-Parser ein und erzeugt eine nach
+    Ordner gruppierte Markdown-Tabelle.
+
+    Je Skript werden ermittelt:
+
+    - die .SYNOPSIS aus der Comment-Based Help; fehlt sie, ersatzweise die
+      erste Kommentarzeile, gekennzeichnet mit "(aus Kommentar)"
+    - ob die Datei ausser Funktionsdefinitionen nichts ausfuehrt und damit
+      gefahrlos per Dot-Sourcing geladen werden kann
+    - Syntaxfehler
 
     Der Parser wird bewusst statt Get-Help benutzt: Get-Help wuerde das Skript
     in die Session laden (Dot-Sourcing, Modul-Importe, Code auf oberster
     Ebene). Der AST liest nur, ohne auszufuehren - bei fremdem oder altem
     Code der einzig vertretbare Weg.
-
-    Skripte ohne .SYNOPSIS werden mit einem Hinweis aufgefuehrt, damit der
-    Index gleichzeitig als Arbeitsliste fuer fehlende Doku dient.
 
 .PARAMETER Path
     Wurzelverzeichnis. Standard: das Repo-Wurzelverzeichnis.
@@ -35,8 +39,14 @@
         Where-Object { -not $_.Synopsis } |
         Select-Object RelativePath
 
-    Listet alle Skripte ohne Comment-Based Help auf - die Arbeitsliste fuer
-    nachzudokumentierende Dateien.
+    Arbeitsliste: Skripte ohne Comment-Based Help.
+
+.EXAMPLE
+    .\tools\Build-ScriptIndex.ps1 -PassThru |
+        Where-Object DefinitionsOnly |
+        Select-Object RelativePath
+
+    Dateien, die gefahrlos per Dot-Sourcing geladen werden koennen.
 
 .NOTES
     Autor: IT-Administration
@@ -59,10 +69,19 @@ if (-not $Path) { $Path = Split-Path -Parent $PSScriptRoot }
 $Path = (Resolve-Path -LiteralPath $Path).Path
 if (-not $OutputPath) { $OutputPath = Join-Path $Path 'INDEX.md' }
 
-function Get-ScriptSynopsis {
+# Befehle, die auf oberster Ebene nur die Ausfuehrungsumgebung herrichten und
+# keine Arbeit verrichten. Ohne diese Ausnahme gilt praktisch jede Datei als
+# "fuehrt Code aus" und die Angabe verliert ihren Wert.
+$setupCommands = @(
+    'Set-StrictMode', 'Import-Module', 'Add-Type', 'Set-Alias', 'New-Alias',
+    'Export-ModuleMember', 'Join-Path', 'Split-Path'
+)
+
+function Get-ScriptFacts {
     <#
     .SYNOPSIS
-        Liest die .SYNOPSIS einer Datei ueber den AST, ohne sie auszufuehren.
+        Liest Synopsis, Nebenwirkungsfreiheit und Syntaxfehler einer Datei
+        ueber den AST, ohne sie auszufuehren.
     #>
     [CmdletBinding()]
     param(
@@ -75,8 +94,7 @@ function Get-ScriptSynopsis {
     $ast = [System.Management.Automation.Language.Parser]::ParseFile(
         $FilePath, [ref]$tokens, [ref]$errors)
 
-    # Erst die Skript-Ebene, sonst die erste enthaltene Funktion: viele Dateien
-    # hier definieren nur eine Funktion und tragen die Hilfe dort.
+    # --- Synopsis: erst Skript-Ebene, dann erste Funktion ---
     $help = $ast.GetHelpContent()
     if (-not $help -or -not $help.Synopsis) {
         $firstFunction = $ast.FindAll(
@@ -90,9 +108,47 @@ function Get-ScriptSynopsis {
         $synopsis = ($help.Synopsis -replace '\s+', ' ').Trim()
     }
 
+    # --- Ersatz: erste brauchbare Kommentarzeile ---
+    $commentHint = $null
+    if (-not $synopsis) {
+        foreach ($token in $tokens) {
+            if ($token.Kind -ne 'Comment') { continue }
+
+            $text = $token.Text -replace '^<#', '' -replace '#>$', ''
+            foreach ($line in ($text -split "`r?`n")) {
+                $clean = ($line -replace '^\s*#+', '').Trim()
+                # Requires-Direktiven und Trennlinien taugen nicht als Beschreibung
+                if ($clean -match '^(requires\b|[-=*_#\s]*$)') { continue }
+                if ($clean.Length -lt 8) { continue }
+                $commentHint = $clean
+                break
+            }
+            if ($commentHint) { break }
+        }
+    }
+
+    # --- Nebenwirkungsfrei? ---
+    $topLevel = @()
+    if ($ast.EndBlock -and $ast.EndBlock.Statements) {
+        $topLevel = $ast.EndBlock.Statements | Where-Object {
+            $_ -isnot [System.Management.Automation.Language.FunctionDefinitionAst]
+        }
+    }
+
+    $realCommands = foreach ($statement in $topLevel) {
+        $found = $statement.FindAll(
+            { $args[0] -is [System.Management.Automation.Language.CommandAst] }, $true)
+        foreach ($command in $found) {
+            $name = $command.GetCommandName()
+            if ($name -and $setupCommands -notcontains $name) { $name }
+        }
+    }
+
     [pscustomobject]@{
-        Synopsis    = $synopsis
-        ParseErrors = @($errors).Count
+        Synopsis        = $synopsis
+        CommentHint     = $commentHint
+        DefinitionsOnly = -not @($realCommands).Count
+        ParseErrors     = @($errors).Count
     }
 }
 
@@ -130,22 +186,27 @@ function Test-IsExcluded {
 $scripts = Get-ChildItem -LiteralPath $Path -Recurse -File -Include '*.ps1', '*.psm1' |
     Where-Object { -not (Test-IsExcluded -FullName $_.FullName -Root $Path) } |
     ForEach-Object {
-        $info = Get-ScriptSynopsis -FilePath $_.FullName
+        $facts = Get-ScriptFacts -FilePath $_.FullName
         $relative = $_.FullName.Substring($Path.Length + 1).Replace(
             [System.IO.Path]::DirectorySeparatorChar, '/')
 
         [pscustomobject]@{
-            Name         = $_.Name
-            RelativePath = $relative
-            Directory    = [System.IO.Path]::GetDirectoryName($relative).Replace(
+            Name            = $_.Name
+            RelativePath    = $relative
+            Directory       = [System.IO.Path]::GetDirectoryName($relative).Replace(
                 [System.IO.Path]::DirectorySeparatorChar, '/')
-            Synopsis     = $info.Synopsis
-            ParseErrors  = $info.ParseErrors
+            Synopsis        = $facts.Synopsis
+            CommentHint     = $facts.CommentHint
+            DefinitionsOnly = $facts.DefinitionsOnly
+            ParseErrors     = $facts.ParseErrors
         }
     } | Sort-Object Directory, Name
 
 $total = @($scripts).Count
 $documented = @($scripts).Where({ $_.Synopsis }).Count
+$hinted = @($scripts).Where({ -not $_.Synopsis -and $_.CommentHint }).Count
+$safe = @($scripts).Where({ $_.DefinitionsOnly }).Count
+$broken = @($scripts).Where({ $_.ParseErrors -gt 0 }).Count
 $percent = if ($total -gt 0) { [math]::Round(100 * $documented / $total) } else { 0 }
 
 $md = [System.Collections.Generic.List[string]]::new()
@@ -153,7 +214,15 @@ $md.Add('# Skript-Index')
 $md.Add('')
 $md.Add('<!-- Automatisch erzeugt von tools/Build-ScriptIndex.ps1 - nicht von Hand bearbeiten. -->')
 $md.Add('')
-$md.Add("$total Skripte, davon $documented mit ``.SYNOPSIS`` ($percent%).")
+$md.Add("$total Skripte. $documented mit ``.SYNOPSIS`` ($percent%), $hinted weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.")
+$md.Add('')
+$md.Add('| Markierung | Bedeutung |')
+$md.Add('| ---------- | --------- |')
+$md.Add('| _(aus Kommentar)_ | keine `.SYNOPSIS` - Text stammt aus der ersten Kommentarzeile und ist ein Hinweis, keine Beschreibung |')
+$md.Add('| `def` | enthaelt ausser Funktionsdefinitionen keinen ausfuehrbaren Code, laesst sich also gefahrlos per Dot-Sourcing laden |')
+$md.Add('| **Syntaxfehler** | die Datei parst nicht |')
+$md.Add('')
+$md.Add("Davon $safe nebenwirkungsfrei, $broken mit Syntaxfehlern.")
 $md.Add('')
 
 foreach ($group in ($scripts | Group-Object Directory)) {
@@ -161,29 +230,34 @@ foreach ($group in ($scripts | Group-Object Directory)) {
 
     $md.Add("## $directory")
     $md.Add('')
-    $md.Add('| Skript | Beschreibung |')
-    $md.Add('| ------ | ------------ |')
+    $md.Add('| Skript | | Beschreibung |')
+    $md.Add('| ------ | --- | ------------ |')
 
     foreach ($script in $group.Group) {
         # Pipes in der Beschreibung wuerden die Markdown-Tabelle zerlegen.
         $description = if ($script.Synopsis) {
             $script.Synopsis.Replace('|', '\|')
         }
+        elseif ($script.CommentHint) {
+            '_(aus Kommentar)_ ' + $script.CommentHint.Replace('|', '\|')
+        }
         else {
-            '_keine .SYNOPSIS_'
+            '_keine Beschreibung_'
         }
 
         if ($script.ParseErrors -gt 0) {
-            $description += " _(Achtung: $($script.ParseErrors) Parserfehler)_"
+            $description = "**Syntaxfehler ($($script.ParseErrors))** - $description"
         }
 
-        $md.Add("| [$($script.Name)]($($script.RelativePath)) | $description |")
+        $flag = if ($script.DefinitionsOnly) { '`def`' } else { '' }
+
+        $md.Add("| [$($script.Name)]($($script.RelativePath)) | $flag | $description |")
     }
 
     $md.Add('')
 }
 
 Set-Content -LiteralPath $OutputPath -Value $md -Encoding UTF8
-Write-Verbose "Index geschrieben: $OutputPath ($total Skripte, $documented dokumentiert)"
+Write-Verbose "Index geschrieben: $OutputPath ($total Skripte, $documented dokumentiert, $hinted mit Kommentar-Hinweis)"
 
 if ($PassThru) { $scripts }
