@@ -1,3 +1,40 @@
+<#
+.SYNOPSIS
+    Protokolliert laufend jeden Prozessstart und jedes Prozessende des lokalen
+    Rechners nach JSON.
+
+.DESCRIPTION
+    Registriert zwei WMI-Ereignisabonnements auf __InstanceCreationEvent und
+    __InstanceDeletionEvent fuer Win32_Process (Abfrageintervall 1 Sekunde).
+    Jedes Ereignis wird als eine JSON-Zeile angehaengt und waehrenddessen
+    farbig auf der Konsole gemeldet.
+
+    Gedacht fuer die Beobachtung eines laufenden Vorgangs: welcher Prozess
+    startet kurz und verschwindet wieder, was startet ein Installer im
+    Hintergrund, wer beendet einen Dienst.
+
+    Das Skript blockiert, bis eine Taste gedrueckt wird. Danach werden die
+    Abonnements entfernt und die gesammelten Ereignisse in einem
+    Out-GridView-Fenster geoeffnet.
+
+.NOTES
+    Verhalten, das man vorher wissen sollte:
+
+    - Das Zielverzeichnis C:\install muss existieren. Out-File legt die Datei
+      an, aber nicht den Ordner.
+    - Beim Aufraeumen laeuft `Get-EventSubscriber | Unregister-Event`. Das
+      entfernt ALLE Ereignisabonnements der Session, nicht nur die beiden
+      hier registrierten. Wer in derselben Session eigene Abonnements hat,
+      verliert sie.
+    - Die Abbruchbedingung liest [System.Console]::KeyAvailable. In Hosts
+      ohne echte Konsole (ISE, manche Remoting-Szenarien) trifft die
+      Bedingung nie zu.
+    - Bei hoher Prozessaktivitaet waechst die Datei schnell; je Ereignis
+      entsteht eine Zeile mit allen Win32_Process-Eigenschaften.
+
+    Autor: IT-Administration
+#>
+
 # File to which the processes should be exported to in "json" format.
 $global:mylogfileJson = "C:\install\{0}_processes.json" -f (Get-Date -Format 'yyyyMMdd')
 
@@ -32,7 +69,9 @@ Register-CimIndicationEvent -Namespace root/cimv2 -Query "SELECT * FROM __Instan
 
 # # Keep the script running to listen for events
 Write-Host("Listening for process start and stop events. Press Any Key to exit.")
-Write-Host("LogFile: $logfileJson")
+# $logfileJson existiert nur innerhalb von $action; auf Skriptebene war die
+# Meldung bisher leer.
+Write-Host("LogFile: $global:mylogfileJson")
 
 $sec = 0 
 do {
