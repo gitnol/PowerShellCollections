@@ -1,4 +1,10 @@
-﻿# Powershell Version 6 oder höher erzwingen
+﻿# ARCHIV - nicht mehr der gueltige Stand.
+# Abgeloest durch ../Get-BitLockerStatus.ps1. Der Nachfolger ist vom Autor
+# als Beta gekennzeichnet; deshalb bleibt dieser bewaehrte Stand als
+# Rueckfallebene liegen, bis der Nachfolger bestaetigt ist.
+# Die frueher danebenliegende englische Fassung war eine reine Uebersetzung
+# dieser Datei und wurde entfernt (in der History vorhanden).
+# Powershell Version 6 oder höher erzwingen
 if ($PSVersionTable.PSVersion.Major -le 6) {
     pwsh $MyInvocation.InvocationName
 } else {

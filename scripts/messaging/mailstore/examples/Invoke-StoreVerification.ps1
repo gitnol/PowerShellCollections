@@ -1,6 +1,6 @@
 ﻿<#--------------------------------------------------------------------------
 
- Example Script 4
+ Example Script 3
  
  for PowerShell Scripting Tutorial
  for MailStore Server 9.1
@@ -32,12 +32,8 @@
 
 --------------------------------------------------------------------------#>
 
-Import-Module '..pi-wrapper\MS.PS.Lib.psd1'
+Import-Module '..\api-wrapper\MS.PS.Lib.psd1'
 
 $msapiclient = New-MSApiClient -Username "admin" -Password "admin" -Server "localhost" -Port 8463 -IgnoreInvalidSSLCerts
-$return = Start-MSApiCall $msapiclient "VerifyStore" @{id = "1"}
-if ($return.statusCode -eq "running") {
-    $mssevent = Register-EngineEvent -SourceIdentifier $return.Token -Action {write-host $event.MessageData}
-} else {
-    $return | Format-List
-}
+$return = Invoke-MSApiCall $msapiclient "VerifyStore" @{id = "1"}
+$return | Format-List

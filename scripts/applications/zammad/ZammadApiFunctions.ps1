@@ -150,3 +150,44 @@ function Get-ZammadSettings {
 # $ScriptPath = "$env:TEMP\ZammadAPI.ps1.txt"
 # Get-Content $PSCommandPath | Set-Content -Path $ScriptPath
 # Write-Output "Das Skript wurde gespeichert unter: $ScriptPath"
+
+# --- aus Invoke-ZammadApi_v1.ps1 uebernommen, bevor diese geloescht wurde ---
+
+function New-ZammadUser {
+    param (
+        [Parameter(Mandatory)] [string]$Firstname,
+        [Parameter(Mandatory)] [string]$Lastname,
+        [Parameter(Mandatory)] [string]$Email,
+        [Parameter(Mandatory)] [string]$Token,
+        [Parameter(Mandatory)] [string]$BaseUrl
+    )
+    
+    $Body = @{ 
+        firstname = $Firstname
+        lastname = $Lastname
+        email = $Email
+    }
+    
+    Invoke-ZammadRequest -Method POST -Endpoint "users" -Body $Body -Token $Token -BaseUrl $BaseUrl
+}
+
+function Set-ZammadUser {
+    param (
+        [Parameter(Mandatory)] [int]$UserId,
+        [Parameter(Mandatory)] [hashtable]$UpdateFields,
+        [Parameter(Mandatory)] [string]$Token,
+        [Parameter(Mandatory)] [string]$BaseUrl
+    )
+    
+    Invoke-ZammadRequest -Method PUT -Endpoint "users/$UserId" -Body $UpdateFields -Token $Token -BaseUrl $BaseUrl
+}
+
+function Get-ZammadTicketArticles {
+    param (
+        [Parameter(Mandatory)] [int]$TicketId,
+        [Parameter(Mandatory)] [string]$Token,
+        [Parameter(Mandatory)] [string]$BaseUrl
+    )
+    
+    Invoke-ZammadRequest -Method GET -Endpoint "tickets/$TicketId/articles" -Token $Token -BaseUrl $BaseUrl
+}

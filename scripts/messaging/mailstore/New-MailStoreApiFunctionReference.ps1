@@ -440,3 +440,47 @@ $functionstring
 }
 
 $myNewFunctionDefinitions | Where-Object function -eq 'SetUserPrivileges' #| New-PowershellFunctionFromDefinition
+function Test-GeneratedScript {
+    <#
+    .SYNOPSIS
+        Prueft erzeugten PowerShell-Code auf Syntaxfehler, bevor er gespeichert wird.
+
+    .DESCRIPTION
+        Der Generator leitet Funktionen aus dem HTML der Herstellerdokumentation
+        ab. Aendert sich dort der Aufbau, entstehen unvollstaendige Deklarationen -
+        einmal etwa ein Parameter ohne Typ und ohne Namen, der die komplette
+        Zieldatei unparsbar machte. Auffallen muss das hier, nicht erst beim
+        naechsten Dot-Sourcing.
+
+    .PARAMETER Code
+        Der erzeugte Quelltext.
+
+    .EXAMPLE
+        $code = $myNewFunctionDefinitions | New-PowershellFunctionFromDefinition
+        if (Test-GeneratedScript -Code ($code -join "`n")) {
+            Set-Content -Path .\MailStoreApiFunctions.ps1 -Value $code -Encoding UTF8
+        }
+    #>
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param(
+        [Parameter(Mandatory)]
+        [AllowEmptyString()]
+        [string]$Code
+    )
+
+    $errors = $null
+    [void][System.Management.Automation.Language.Parser]::ParseInput(
+        $Code, [ref]$null, [ref]$errors)
+
+    if ($errors) {
+        foreach ($parseError in $errors) {
+            Write-Warning ("Zeile {0}: {1}" -f
+                $parseError.Extent.StartLineNumber, $parseError.Message)
+        }
+        Write-Warning "Erzeugter Code hat $(@($errors).Count) Syntaxfehler - nicht speichern."
+        return $false
+    }
+
+    return $true
+}

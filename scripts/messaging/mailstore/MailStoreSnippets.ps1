@@ -21,7 +21,7 @@
 $myScriptpath = if ($PSScriptRoot) { $PSScriptRoot }else { (Get-Location) }
 
 Import-Module ActiveDirectory
-Import-Module "$myScriptpathpi-wrapper\MS.PS.Lib.psd1"
+Import-Module "$myScriptpath\api-wrapper\MS.PS.Lib.psd1"
 
 # # ---------------------------------------------------------------- #
 # # Private Methods                                                  #
@@ -1754,3 +1754,40 @@ catch {
 }
 
 #endregion
+
+# --- uebernommen aus dem abgeloesten Vorgaengerstand, bevor dieser geloescht wurde ---
+
+function Get-MailstoreAndExchangeUsers {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true, ValueFromPipeline = $false, ValueFromPipelineByPropertyName = $false)]
+        $allusers
+    )
+    # Ensure the Active Directory module is imported
+    Import-Module ActiveDirectory
+	
+    # Get all users with a non-empty email address
+    $usersWithEmail = Get-ADUser -Filter { EmailAddress -like "*" } -Property EmailAddress
+	
+    $usersWithEmail | ForEach-Object {
+        $groupmemberDN = $_.distinguishedName
+        $groupmemberName = $_.Name
+        $groupmemberSamAccountName = $_.samAccountName
+        $CheckMailStoreUser = $allusers | Where-Object distinguishedName -eq $groupmemberDN
+        if ($CheckMailStoreUser) {
+            [pscustomobject]@{
+                MailstoreUserFound	= $true
+                distinguishedName  = $groupmemberDN
+                Name               = $groupmemberName
+                samAccountName     = $groupmemberSamAccountName
+            }
+        } else {
+            [pscustomobject]@{
+                MailstoreUserFound	= $false
+                distinguishedName  = $groupmemberDN
+                Name               = $groupmemberName
+                samAccountName     = $groupmemberSamAccountName
+            }
+        }
+    }
+}

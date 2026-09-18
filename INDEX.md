@@ -2,7 +2,7 @@
 
 <!-- Automatisch erzeugt von tools/Build-ScriptIndex.ps1 - nicht von Hand bearbeiten. -->
 
-167 Skripte. 78 mit `.SYNOPSIS` (47%), 81 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
+151 Skripte. 69 mit `.SYNOPSIS` (46%), 75 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
 
 | Markierung | Bedeutung |
 | ---------- | --------- |
@@ -10,13 +10,7 @@
 | `def` | enthaelt ausser Funktionsdefinitionen keinen ausfuehrbaren Code, laesst sich also gefahrlos per Dot-Sourcing laden |
 | **Syntaxfehler** | die Datei parst nicht |
 
-Davon 35 nebenwirkungsfrei, 0 mit Syntaxfehlern.
-
-## `_inbox/playground/`
-
-| Skript | | Beschreibung |
-| ------ | --- | ------------ |
-| [New-ADGroupInOU_with_some_stuff.ps1](_inbox/playground/New-ADGroupInOU_with_some_stuff.ps1) |  | _(aus Kommentar)_ Prüfen, ob OU existiert |
+Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 ## `scripts/active-directory/`
 
@@ -47,16 +41,15 @@ Davon 35 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | [Compare-ADGroupSidResolution.ps1](scripts/active-directory/group-membership/Compare-ADGroupSidResolution.ps1) |  | _(aus Kommentar)_ ($user.MemberOf).count |
 | [Compare-ADUserGroup.ps1](scripts/active-directory/group-membership/Compare-ADUserGroup.ps1) |  | _(aus Kommentar)_ Change the two lines if you do not want to input it |
 | [Copy-ADGroupMember.ps1](scripts/active-directory/group-membership/Copy-ADGroupMember.ps1) | `def` | _keine Beschreibung_ |
+| [New-ADGroupInOU.ps1](scripts/active-directory/group-membership/New-ADGroupInOU.ps1) |  | _(aus Kommentar)_ Prüfen, ob OU existiert |
 | [Resolve-ADGroupRecursive.ps1](scripts/active-directory/group-membership/Resolve-ADGroupRecursive.ps1) |  | _(aus Kommentar)_ CaseSensitive |
 
 ## `scripts/active-directory/group-membership/temporary/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Show-TemporaryGroupMembershipGui_v1.ps1](scripts/active-directory/group-membership/temporary/Show-TemporaryGroupMembershipGui_v1.ps1) |  | GUI zum Vergeben zeitlich begrenzter AD-Gruppenmitgliedschaften ueber das PAM-Feature (Stand v1). |
-| [Show-TemporaryGroupMembershipGui_v2.ps1](scripts/active-directory/group-membership/temporary/Show-TemporaryGroupMembershipGui_v2.ps1) |  | Bietet eine grafische Benutzeroberfläche (GUI) zur Verwaltung von temporären Active Directory-Gruppenmitgliedschaften mithilfe des PAM-Features. |
-| [Sync-TemporaryGroupMembershipFromCsv_v2.ps1](scripts/active-directory/group-membership/temporary/Sync-TemporaryGroupMembershipFromCsv_v2.ps1) |  | Automatisiert temporäre Active Directory-Gruppenmitgliedschaften für Auszubildende und andere Benutzer basierend auf Abteilungszuordnungen. |
-| [Sync-TemporaryGroupMembershipFromCsv_v3.ps1](scripts/active-directory/group-membership/temporary/Sync-TemporaryGroupMembershipFromCsv_v3.ps1) |  | Automatisiert temporäre und permanente Active Directory-Gruppenmitgliedschaften basierend auf CSV-Dateien. |
+| [Show-TemporaryGroupMembershipGui.ps1](scripts/active-directory/group-membership/temporary/Show-TemporaryGroupMembershipGui.ps1) |  | Bietet eine grafische Benutzeroberfläche (GUI) zur Verwaltung von temporären Active Directory-Gruppenmitgliedschaften mithilfe des PAM-Features. |
+| [Sync-TemporaryGroupMembershipFromCsv.ps1](scripts/active-directory/group-membership/temporary/Sync-TemporaryGroupMembershipFromCsv.ps1) |  | Automatisiert temporäre und permanente Active Directory-Gruppenmitgliedschaften basierend auf CSV-Dateien. |
 
 ## `scripts/active-directory/inventory/`
 
@@ -102,7 +95,6 @@ Davon 35 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
 | [Export-KerberosTokenSize.ps1](scripts/active-directory/token-size/Export-KerberosTokenSize.ps1) |  | _(aus Kommentar)_ collects all Users of the local domain and exports their groupmember count and estimated ticketsize |
-| [Get-TokenSizeReport.ps1](scripts/active-directory/token-size/Get-TokenSizeReport.ps1) |  | Ermittelt fuer alle Domaenenbenutzer die geschaetzte Kerberos-Tokengroesse und meldet die groessten. |
 
 ## `scripts/active-directory/user-photo/`
 
@@ -161,8 +153,7 @@ Davon 35 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
 | [Get-ZammadTicket.ps1](scripts/applications/zammad/Get-ZammadTicket.ps1) |  | _(aus Kommentar)_ Base URL of Zammad API |
-| [Invoke-ZammadApi_v1.ps1](scripts/applications/zammad/Invoke-ZammadApi_v1.ps1) | `def` | _keine Beschreibung_ |
-| [Invoke-ZammadApi_v2.ps1](scripts/applications/zammad/Invoke-ZammadApi_v2.ps1) | `def` | _(aus Kommentar)_ Zammad API PowerShell Modul |
+| [ZammadApiFunctions.ps1](scripts/applications/zammad/ZammadApiFunctions.ps1) | `def` | _(aus Kommentar)_ Zammad API PowerShell Modul |
 
 ## `scripts/databases/mssql/`
 
@@ -207,8 +198,7 @@ Davon 35 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | ------ | --- | ------------ |
 | [Invoke-MailStoreApiScratch.ps1](scripts/messaging/mailstore/Invoke-MailStoreApiScratch.ps1) | `def` | _(aus Kommentar)_ HINWEIS: Diese Datei ist eine Arbeitskopie (frueher test.ps1) mit |
 | [MailStoreApiFunctions.ps1](scripts/messaging/mailstore/MailStoreApiFunctions.ps1) | `def` | PowerShell-Huelle um die Administrations-API des MailStore Server. |
-| [MailStoreSnippets_v1.ps1](scripts/messaging/mailstore/MailStoreSnippets_v1.ps1) |  | _(aus Kommentar)_ Ensure the Active Directory module is imported |
-| [MailStoreSnippets_v2.ps1](scripts/messaging/mailstore/MailStoreSnippets_v2.ps1) |  | Aeltere Sammlung von MailStore-API-Funktionen samt Anwendungsbeispielen (Stand v2). |
+| [MailStoreSnippets.ps1](scripts/messaging/mailstore/MailStoreSnippets.ps1) |  | Aeltere Sammlung von MailStore-API-Funktionen samt Anwendungsbeispielen (Stand v2). |
 | [New-MailStoreApiFunctionReference.ps1](scripts/messaging/mailstore/New-MailStoreApiFunctionReference.ps1) |  | Erzeugt aus der Online-Funktionsreferenz von MailStore PowerShell-Huellen fuer jede API-Methode. |
 
 ## `scripts/messaging/mailstore/api-wrapper/`
@@ -221,10 +211,10 @@ Davon 35 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Example1.ps1](scripts/messaging/mailstore/examples/Example1.ps1) |  | _(aus Kommentar)_ Example Script 1 |
-| [Example2.ps1](scripts/messaging/mailstore/examples/Example2.ps1) |  | _(aus Kommentar)_ Example Script 2 |
-| [Example3.ps1](scripts/messaging/mailstore/examples/Example3.ps1) |  | _(aus Kommentar)_ Example Script 3 |
-| [Example4.ps1](scripts/messaging/mailstore/examples/Example4.ps1) |  | _(aus Kommentar)_ Example Script 4 |
+| [Get-AllUserInfo.ps1](scripts/messaging/mailstore/examples/Get-AllUserInfo.ps1) |  | _(aus Kommentar)_ Example Script 2 |
+| [Get-ServerInfo.ps1](scripts/messaging/mailstore/examples/Get-ServerInfo.ps1) |  | _(aus Kommentar)_ Example Script 1 |
+| [Invoke-StoreVerification.ps1](scripts/messaging/mailstore/examples/Invoke-StoreVerification.ps1) |  | _(aus Kommentar)_ Example Script 3 |
+| [Invoke-StoreVerificationAsync.ps1](scripts/messaging/mailstore/examples/Invoke-StoreVerificationAsync.ps1) |  | _(aus Kommentar)_ Example Script 4 |
 
 ## `scripts/messaging/nospamproxy/`
 
@@ -271,15 +261,13 @@ Davon 35 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-ArubaMacTable_v1.ps1](scripts/network/aruba/Get-ArubaMacTable_v1.ps1) |  | _(aus Kommentar)_ Just a demo script to connect to aruba switches and get the mac address table |
-| [Get-ArubaMacTable_v2.ps1](scripts/network/aruba/Get-ArubaMacTable_v2.ps1) |  | _(aus Kommentar)_ iwr https://www.wireshark.org/json/manuf.json -OutFile C:\install\manuf.json |
+| [Get-ArubaMacTable.ps1](scripts/network/aruba/Get-ArubaMacTable.ps1) |  | _(aus Kommentar)_ iwr https://www.wireshark.org/json/manuf.json -OutFile C:\install\manuf.json |
 
 ## `scripts/network/dhcp/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-DhcpServerLease_v1.ps1](scripts/network/dhcp/Get-DhcpServerLease_v1.ps1) |  | _(aus Kommentar)_ This script get all DHCP Leases from the DHCP Server and list then together with the MAC Addresses in the valid RFC formats |
-| [Get-DhcpServerLease_v2.ps1](scripts/network/dhcp/Get-DhcpServerLease_v2.ps1) |  | _(aus Kommentar)_ DHCP Leases aus allen autorisierten DHCP-Servern der Domäne abfragen und MAC-Adressen in verschiedenen Formaten ausgeben |
+| [Get-DhcpServerLease.ps1](scripts/network/dhcp/Get-DhcpServerLease.ps1) |  | _(aus Kommentar)_ DHCP Leases aus allen autorisierten DHCP-Servern der Domäne abfragen und MAC-Adressen in verschiedenen Formaten ausgeben |
 
 ## `scripts/network/diagnostics/`
 
@@ -300,7 +288,6 @@ Davon 35 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
 | [New-PublicSpotUser.ps1](scripts/network/lancom/New-PublicSpotUser.ps1) |  | Registers a new Public Spot user via a REST API call to a specified server. |
-| [New-PublicSpotUserBulk_old.ps1](scripts/network/lancom/New-PublicSpotUserBulk_old.ps1) |  | Erstellt Public Spot Benutzer für LANCOM WLC/Router in Massenverarbeitung basierend auf einer CSV-Datei. |
 | [New-PublicSpotUserBulk.ps1](scripts/network/lancom/New-PublicSpotUserBulk.ps1) |  | Erstellt Public Spot Benutzer für LANCOM WLC/Router in Massenverarbeitung basierend auf einer CSV-Datei. |
 
 ## `scripts/network/wake-on-lan/`
@@ -314,9 +301,13 @@ Davon 35 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-BitLockerStatus_de_v2.ps1](scripts/security/bitlocker/Get-BitLockerStatus_de_v2.ps1) |  | Gleicht BitLocker-Recovery-Informationen aus dem Active Directory mit den lokalen Systemen massiv parallel ab. |
-| [Get-BitLockerStatus_de.ps1](scripts/security/bitlocker/Get-BitLockerStatus_de.ps1) |  | _(aus Kommentar)_ Powershell Version 6 oder höher erzwingen |
-| [Get-BitLockerStatus_en.ps1](scripts/security/bitlocker/Get-BitLockerStatus_en.ps1) |  | _(aus Kommentar)_ Force Usage of Powershell Version 6 or Higher |
+| [Get-BitLockerStatus.ps1](scripts/security/bitlocker/Get-BitLockerStatus.ps1) |  | Gleicht BitLocker-Recovery-Informationen aus dem Active Directory mit den lokalen Systemen massiv parallel ab. |
+
+## `scripts/security/bitlocker/archive/`
+
+| Skript | | Beschreibung |
+| ------ | --- | ------------ |
+| [Get-BitLockerStatus_legacy.ps1](scripts/security/bitlocker/archive/Get-BitLockerStatus_legacy.ps1) |  | _(aus Kommentar)_ ARCHIV - nicht mehr der gueltige Stand. |
 
 ## `scripts/security/certificates/`
 
@@ -336,8 +327,7 @@ Davon 35 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Find-Log4jFile_v1.ps1](scripts/security/log4j/Find-Log4jFile_v1.ps1) |  | _(aus Kommentar)_ Todo ... automatisches Löschen implementieren per Flag...ggf mit einer Filelist Denylist oder Allowlist |
-| [Find-Log4jFile_v2.ps1](scripts/security/log4j/Find-Log4jFile_v2.ps1) |  | _(aus Kommentar)_ Vorbereitungen |
+| [Find-Log4jFile.ps1](scripts/security/log4j/Find-Log4jFile.ps1) |  | _(aus Kommentar)_ Vorbereitungen |
 
 ## `scripts/security/passwords/`
 
@@ -352,8 +342,7 @@ Davon 35 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | [Invoke-SecureBootCertUpdate_simple.ps1](scripts/security/secure-boot/Invoke-SecureBootCertUpdate_simple.ps1) |  | Einmaliges Einleiten des Secure Boot 2023-Zertifikat-Updates (einfache Variante). |
 | [Invoke-SecureBootCertUpdate.ps1](scripts/security/secure-boot/Invoke-SecureBootCertUpdate.ps1) |  | Secure Boot UEFI CA 2023 - Update Manager |
 | [Test-LocalSecureBootVariable.ps1](scripts/security/secure-boot/Test-LocalSecureBootVariable.ps1) |  | Prüft lokal Secure Boot PK, db und KEK inkl. Handlungsempfehlung. > |
-| [Test-MultipleHostsSecureBoot_v1.ps1](scripts/security/secure-boot/Test-MultipleHostsSecureBoot_v1.ps1) |  | _(aus Kommentar)_ Only Powershell 6 and above (because of ForEach-Object -Parallel) |
-| [Test-MultipleHostsSecureBoot_v2.ps1](scripts/security/secure-boot/Test-MultipleHostsSecureBoot_v2.ps1) |  | _(aus Kommentar)_ Only PowerShell 7+ (ForEach-Object -Parallel) |
+| [Test-MultipleHostsSecureBoot.ps1](scripts/security/secure-boot/Test-MultipleHostsSecureBoot.ps1) |  | _(aus Kommentar)_ Only PowerShell 7+ (ForEach-Object -Parallel) |
 | [Test-SecureBootCert2023.ps1](scripts/security/secure-boot/Test-SecureBootCert2023.ps1) |  | Prüft den Secure Boot Status und das Vorhandensein des Windows UEFI CA 2023 Zertifikats. |
 
 ## `scripts/virtualization/vmware/`
@@ -381,31 +370,26 @@ Davon 35 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-ComputerOnlineStatus_v1.ps1](scripts/windows/availability/Get-ComputerOnlineStatus_v1.ps1) |  | _(aus Kommentar)_ # This is also functioning for powershell 5 where "foreach-object -parallel" is missing |
-| [Get-ComputerOnlineStatus_v2.ps1](scripts/windows/availability/Get-ComputerOnlineStatus_v2.ps1) |  | Prüft den Online-Status von Computern aus Active Directory und listet deren IP-Adressen auf. |
+| [ComputerAvailabilityFunctions.ps1](scripts/windows/availability/ComputerAvailabilityFunctions.ps1) |  | _(aus Kommentar)_ # This is also functioning for powershell 5 where "foreach-object -parallel" is missing |
+| [Get-ComputerOnlineStatus.ps1](scripts/windows/availability/Get-ComputerOnlineStatus.ps1) |  | Prüft den Online-Status von Computern aus Active Directory und listet deren IP-Adressen auf. |
 
 ## `scripts/windows/cleanup/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Clear-OldTempFiles_v1.ps1](scripts/windows/cleanup/Clear-OldTempFiles_v1.ps1) | `def` | Gibt eine Liste bereinigungswürdiger Verzeichnispfade zurück. Bezieht sowohl systemweite als auch benutzerspezifische Pfade ein. |
-| [Clear-OldTempFiles_v2.ps1](scripts/windows/cleanup/Clear-OldTempFiles_v2.ps1) |  | Erweiterte Windows-Bereinigung für temporäre Dateien und Cache-Verzeichnisse |
-| [Clear-OldTempFiles_v3.ps1](scripts/windows/cleanup/Clear-OldTempFiles_v3.ps1) |  | Erweiterte Windows-Bereinigung für temporäre Dateien und Cache-Verzeichnisse |
-| [Clear-OldTempFiles_v4.ps1](scripts/windows/cleanup/Clear-OldTempFiles_v4.ps1) |  | Ultimate Windows Cleanup Tool v4.0 (Fixed) - Stabile Version |
+| [Clear-OldTempFiles.ps1](scripts/windows/cleanup/Clear-OldTempFiles.ps1) |  | Ultimate Windows Cleanup Tool v4.0 (Fixed) - Stabile Version |
 | [Remove-OldUserProfile.ps1](scripts/windows/cleanup/Remove-OldUserProfile.ps1) |  | Findet verwaiste und alte Windows-Benutzerprofile und loescht sie. |
 
 ## `scripts/windows/desktop/window-cascade/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Set-CascadedWindow_v1.ps1](scripts/windows/desktop/window-cascade/Set-CascadedWindow_v1.ps1) |  | Skript zur Wiederherstellung der "Fenster überlappend anzeigen"-Funktion unter Windows 11. |
-| [Set-CascadedWindow_v2.ps1](scripts/windows/desktop/window-cascade/Set-CascadedWindow_v2.ps1) |  | Skript zur Wiederherstellung der "Fenster überlappend anzeigen"-Funktion unter Windows 11. |
+| [Set-CascadedWindow.ps1](scripts/windows/desktop/window-cascade/Set-CascadedWindow.ps1) |  | Skript zur Wiederherstellung der "Fenster überlappend anzeigen"-Funktion unter Windows 11. |
 
 ## `scripts/windows/elevation/`
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Invoke-RunAsElevated_old.ps1](scripts/windows/elevation/Invoke-RunAsElevated_old.ps1) | `def` | Elevate a PowerShell script to run with administrative privileges using a batch file. |
 | [Invoke-RunAsElevated.ps1](scripts/windows/elevation/Invoke-RunAsElevated.ps1) | `def` | _(aus Kommentar)_ What does this function do? |
 
 ## `scripts/windows/eventlog/`
