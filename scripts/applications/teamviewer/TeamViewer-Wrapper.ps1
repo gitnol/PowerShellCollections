@@ -1,4 +1,4 @@
-function Start-TeamViewer {
+﻿function Start-TeamViewer {
     <#
     .SYNOPSIS
     Startet TeamViewer mit verschiedenen Konfigurationsoptionen und Verbindungsparametern.
@@ -58,12 +58,12 @@ function Start-TeamViewer {
     Startet TeamViewer minimiert
     
     .EXAMPLE
-    $securePassword = ConvertTo-SecureString "mypassword" -AsPlainText -Force
+    $securePassword = Read-Host -AsSecureString -Prompt 'TeamViewer-Passwort'
     Start-TeamViewer -ID 123456789 -Password $securePassword
     Stellt eine Remote Control-Verbindung mit ID und sicherem Passwort her
     
     .EXAMPLE
-    $securePasswordB64 = ConvertTo-SecureString "bXlwYXNzd29yZA==" -AsPlainText -Force
+    $securePasswordB64 = Read-Host -AsSecureString -Prompt 'Base64-kodiertes Passwort'
     Start-TeamViewer -ID 123456789 -PasswordB64 $securePasswordB64 -Mode vpn -Quality 2
     Stellt eine VPN-Verbindung mit Base64-Passwort und hoher Qualität her
     
@@ -76,9 +76,9 @@ function Start-TeamViewer {
     Sendet Dateien an einen Partner (Partner-Auswahl wird angezeigt)
     
     .EXAMPLE
-    $proxyPassword = ConvertTo-SecureString "proxypass" -AsPlainText -Force
-    $teamviewerPassword = ConvertTo-SecureString "abc" -AsPlainText -Force
-    Start-TeamViewer -ID 123456789 -Password $teamviewerPassword -ProxyIP "192.168.1.1:8080" -ProxyUser "admin" -ProxyPassword $proxyPassword
+    $proxyPassword = Read-Host -AsSecureString -Prompt 'Proxy-Passwort'
+    $teamviewerPassword = Read-Host -AsSecureString -Prompt 'TeamViewer-Passwort'
+    Start-TeamViewer -ID 123456789 -Password $teamviewerPassword -ProxyIP "192.0.2.10:8080" -ProxyUser "admin" -ProxyPassword $proxyPassword
     Verbindung über Proxy-Server mit Authentifizierung
     
     .NOTES

@@ -1,4 +1,4 @@
-# Version 1.0 geklaut aus diversen Quellen und abgeändert durch M.Arnoldi am 10.08.2021
+﻿# Version 1.0 geklaut aus diversen Quellen und abgeändert durch Gitnol am 10.08.2021
 # Version 1.1 diverse Änderungen u.a. mehrfaches Hinzufügen bei laufendem Dialog // Mehrfachauswahl bei Listenfeld inkl STRG+C Funktion zum kopieren!
 # Version 1.2 Tastenkombinationen hinzufügt.
 # Quellen:

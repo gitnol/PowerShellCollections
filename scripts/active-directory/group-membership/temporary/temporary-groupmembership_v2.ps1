@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Bietet eine grafische Benutzeroberfläche (GUI) zur Verwaltung von temporären 
     Active Directory-Gruppenmitgliedschaften mithilfe des PAM-Features.
@@ -18,10 +18,10 @@
     2.0 - Refactored by Gemini
     Version 1.2 Tastenkombinationen hinzufügt.
     Version 1.1 diverse Änderungen u.a. mehrfaches Hinzufügen bei laufendem Dialog // Mehrfachauswahl bei Listenfeld inkl STRG+C Funktion zum kopieren!
-    Version 1.0 geklaut aus diversen Quellen und abgeändert durch M.Arnoldi am 10.08.2021
+    Version 1.0 geklaut aus diversen Quellen und abgeändert durch Gitnol am 10.08.2021
 
 .AUTHOR
-    Original by M.Arnoldi, Refactored for efficiency and readability.
+    Original by Gitnol, Refactored for efficiency and readability.
 
     Quellen:
     https://www.windowspro.de/marcel-kueppers/windows-server-2016-temporaere-mitgliedschaft-administrativen-gruppen-konfigurieren
