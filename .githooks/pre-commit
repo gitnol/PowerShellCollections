@@ -67,7 +67,13 @@ git ls-tree -r HEAD 2>/dev/null | awk '{print $3}' | sort -u > "$known"
 # Sekunden - Prozessstart ist hier die teuerste Operation.
 #
 # --raw-Format:  :100644 100644 <src-blob> <dst-blob> M<TAB>pfad
-git diff --cached --raw --no-renames --diff-filter=ACM \
+#
+# --abbrev=40 ist zwingend: `git diff --raw` kuerzt Objekt-Hashes auf sieben
+# Zeichen, `git ls-tree` gibt sie voll aus. Ohne die Option vergleicht man
+# "72dea93" mit "72dea9389323...", der Abgleich trifft nie zu, und der Hook
+# prueft bei jeder Umbenennung stillschweigend wieder den kompletten
+# Altbestand - ohne dass das auffaellt, solange nichts gefunden wird.
+git diff --cached --raw --abbrev=40 --no-renames --diff-filter=ACM \
     | awk -v knownfile="$known" '
         BEGIN {
             while ((getline line < knownfile) > 0) { known[line] = 1 }
@@ -91,7 +97,7 @@ git diff --cached --raw --no-renames --diff-filter=ACM \
 # Platzhalter in Beispielcode, die sich per Regex nicht von echten Secrets
 # unterscheiden lassen.
 # GIT_LITERAL_PATHSPECS verhindert, dass Klammern oder Sternchen im Dateinamen
-# als Muster gelesen werden (hier z.B. "Elevate(Old).ps1"). xargs -0 uebergibt
+# als Muster gelesen werden. xargs -0 uebergibt
 # die Pfade nullterminiert und kommt damit auch mit Leerzeichen zurecht.
 tr '\n' '\0' < "$candidates" \
     | GIT_LITERAL_PATHSPECS=1 xargs -0 git grep --cached -I -n -i -E "$pattern" -- 2>/dev/null \
