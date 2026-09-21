@@ -1,6 +1,6 @@
 # Backlog
 
-Offene Punkte. Stand: 2026-09-18.
+Offene Punkte. Stand: 2026-09-21.
 
 Die urspruenglichen Punkte 1 bis 3 - konkurrierende Versionsstaende, fehlende
 Comment-Based Help, falsch abgelegter Fremdcode, `_inbox/`, nummerierte
@@ -15,7 +15,7 @@ gelernt wurde, steht in [../CLAUDE.md](../CLAUDE.md) und
 | Punkt                          | Ergebnis                                                                 |
 | ------------------------------ | ------------------------------------------------------------------------ |
 | Konkurrierende Versionsstaende | aufgeloest, je Aufgabe eine kanonische Datei                              |
-| Comment-Based Help             | 146 von 146 Skripten haben eine `.SYNOPSIS`                               |
+| Comment-Based Help             | jedes Skript hat eine `.SYNOPSIS`                                         |
 | Fremdcode unter `scripts/`     | `Get-TokenSizeReport` und der MailStore-Wrapper nach `third-party/`, je mit `ORIGIN.md` |
 | `_inbox/playground/`           | aufgeloest                                                                |
 | Nummerierte Beispieldateien    | nach Inhalt benannt                                                       |
@@ -83,35 +83,112 @@ Zeitueberwachung liefen ueber `Get-Job -State Running` und betrachteten damit
 **alle** Jobs der Sitzung - eigene Hintergrundjobs des Aufrufers wurden
 mitgezaehlt und nach zwei Minuten per `Stop-Job` beendet.
 
-**Offen bleibt `Write-Log`:** fuenf Dateien definieren je eine eigene Fassung
-mit unterschiedlichen Signaturen (eine mit `-Level`, eine mit Dateiausgabe).
-Das ist kein Fehler, solange jede Datei ihre eigene benutzt. Der eine Aufruf
-ins Leere - in `Get-MailboxForwardingRules.ps1`, mit einem Parameter `-path`,
-den keine der Fassungen kennt, und einer nie gesetzten Variablen - ist durch
-ein `Write-Warning` ersetzt.
-
 Pruefen mit `tools/Find-ScriptDependency.ps1`. Die Ausgabe trennt ungedeckte
 Aufrufe von solchen, die per `Import-Module` aufgeloest sind.
 
 ---
 
-## 4. Kleinigkeiten
+## 4. `Write-Log` bleibt fuenfmal - mit Absicht
 
-- `scripts/active-directory/token-size/Export-KerberosTokenSize.ps1` traegt
-  keine Herkunftsangabe (Versionshinweise ab 2012). Ob eigene Entwicklung
-  oder uebernommen, liess sich nicht klaeren. Es loest dieselbe Aufgabe wie
-  `third-party/Get-TokenSizeReport/`.
-- `third-party/Check-UEFISecureBootVariables/` ist ein ZIP-Download. Als
-  Git-Submodul waeren Updates nachvollziehbar - dafuer muessten Clones mit
-  `--recurse-submodules` geholt werden, was fuer eine Sammlung zum
-  Durchstoebern ein Nachteil ist. Bewusst nicht umgestellt.
-- In `scripts/applications/zammad/` definieren `Get-ZammadTicket.ps1` und
-  `ZammadApiFunctions.ps1` beide ein `Get-ZammadTickets`. Beim gleichzeitigen
-  Dot-Sourcing gewinnt die zuletzt geladene Fassung.
+Geprueft und **bewusst nicht zusammengefuehrt**. Der Grund ist nicht Aufwand,
+sondern dass es die betroffenen Skripte kaputtmachen wuerde.
+
+Es gibt drei verschiedene Verhalten, nicht fuenf Varianten desselben:
+
+| Datei                                                   | Signatur                            | Ausgabe                          |
+| ------------------------------------------------------- | ----------------------------------- | -------------------------------- |
+| `active-directory/inventory/Get-ADComputerInventory.ps1` | `-Message -Level(Info/Success/...)` | Konsole, Farbe aus interner Map  |
+| `messaging/exchange/New-SharedMailboxWorkflow.ps1`       | `-Message -Level(INFO/WARN/...) -ConsoleColor` | Konsole             |
+| `messaging/exchange/Sync-SharedMailboxPermission.ps1`    | wie oben, plus `REMOVE`, `SUMMARY`  | Konsole                          |
+| `security/secure-boot/Invoke-SecureBootCertUpdate.ps1`   | nur `-Message`                      | Datei aus `$LOG_FILE`, Format mit Rechnername |
+| `windows/shadow-copy/Enable-ShadowCopy.ps1`              | nur `-Message`                      | Datei `C:\Install\shadowcopy.log` |
+
+**Der Ausschlussgrund: zwei dieser Skripte laufen nicht dort, wo das Repo
+liegt.** `Invoke-SecureBootCertUpdate.ps1` wird laut seiner eigenen
+README als Text eingelesen und auf dem Zielrechner als Scriptblock neu
+erzeugt:
+
+```powershell
+$ScriptContent = Get-Content ".\Invoke-SecureBootCertUpdate.ps1" -Raw
+Invoke-Command -ComputerName $TargetHosts -ScriptBlock {
+    $sbi = [scriptblock]::Create($using:ScriptContent)
+    & $sbi -AutoConfirm
+}
+```
+
+Auf dem Zielrechner gibt es keine Datei, kein `$PSScriptRoot` und kein
+`modules/`. Ein `Import-Module` mit relativem Pfad ist dort unmoeglich.
+`Enable-ShadowCopy.ps1` laeuft ebenfalls auf dem Zielsystem.
+
+Der Unterschied zu `Test-ConnectionInParallel`: das lief ausschliesslich auf
+dem Verwaltungs-PC, wo das Repository ausgecheckt ist. Genau deshalb liess
+es sich zusammenfassen und `Write-Log` nicht.
+
+Fuer die drei Konsolen-Varianten waere eine gemeinsame Funktion technisch
+moeglich - eine `ValidateSet` als Vereinigungsmenge, `-ConsoleColor`
+optional. Sie brauchen aber ohnehin nur vier Zeilen, und eine Haelfte
+zusammenzufassen liesse die Duplikation bestehen und machte die Regel
+unklar. Die Selbstgenuegsamkeit dieser Skripte ist hier ein Merkmal, kein
+Mangel.
+
+Behoben wurde nur der eine echte Fehler: `Get-MailboxForwardingRules.ps1`
+rief `Write-Log` mit einem Parameter `-path` auf, den keine der fuenf
+Fassungen kennt, und mit einer nie gesetzten Variablen. Ersetzt durch
+`Write-Warning`.
 
 ---
 
-## 5. Nachweis: keine Abhaengigkeit ging bei der Umstellung verloren
+## 5. Lizenzlage des Fremdcodes
+
+Geprueft am 2026-09-21. Das Repository ist oeffentlich - Fremdcode darin
+braucht eine Erlaubnis.
+
+| Projekt                                        | Lizenz                                    | Bewertung |
+| ---------------------------------------------- | ----------------------------------------- | --------- |
+| MailStore PowerShell API Wrapper               | MIT-artig, Volltext in jeder Datei        | in Ordnung |
+| `Check-UEFISecureBootVariables` (cjee21)       | **keine LICENSE-Datei**                   | ungeklaert |
+| `Get-TokenSizeReport` (jeremyts)               | **keine LICENSE-Datei**                   | ungeklaert |
+| Dump-Ticketsize (msxfaq.de)                    | **Weiterveroeffentlichung nur mit Zustimmung** | entfernt |
+
+**Entfernt:** `Export-KerberosTokenSize.ps1` war Version 1.7 des Skripts
+`dump-ticketsize` von Frank Carius (msxfaq.de). Nachgewiesen ueber den
+CSV-Ausgabenamen `dump-ticketsize.<Zeitstempel>.result.csv` und die
+Fortschrittsanzeige mit gruenem `H` - beides auf der Quellseite so
+beschrieben; der urspruengliche Dateiname im Repo war
+`_dump-ticketsize.1.7.ps1`, die Downloaddatei dort heisst
+`dump-ticketsize.1.7.ps1.txt`. Die Nutzungsbedingungen von msxfaq.de lauten
+woertlich: *"Jede weitere Veroeffentlichung nur mit meinem vorherigen
+Einverstaendnis."* Damit hat das Skript in einem oeffentlichen Repository
+nichts zu suchen.
+
+Quelle: https://www.msxfaq.de/windows/kerberos/dumpticketsize.htm
+
+**Zu klaeren:** die beiden GitHub-Projekte ohne LICENSE-Datei. Ohne Lizenz
+gilt das gesetzliche Urheberrecht - alle Rechte beim Autor. Die
+GitHub-Nutzungsbedingungen erlauben anderen Nutzern Ansehen und Forken;
+eine Kopie in ein fremdes Repository zu legen, ist davon nicht gedeckt.
+
+Das aendert die Bewertung aus Abschnitt 6: ein **Git-Submodul** ist kein
+blosses Aufraeumen mehr, sondern die rechtlich saubere Form - es verweist
+auf das Original, statt es zu kopieren. Alternativ die Autoren fragen.
+
+**Anmerkung zur History:** `Export-KerberosTokenSize.ps1` ist aus dem
+aktuellen Stand entfernt, liegt aber weiter in alten Commits. Das ist ein
+zweiter, unabhaengiger Grund fuer die Entscheidung in
+[HISTORY-OPTIONS.md](HISTORY-OPTIONS.md).
+
+---
+
+## 6. Kleinigkeiten
+
+- `third-party/Check-UEFISecureBootVariables/` ist ein ZIP-Download. Ein
+  Git-Submodul waere nachvollziehbarer **und** lizenzrechtlich sauberer
+  (siehe Abschnitt 5); dagegen steht, dass Clones dann mit
+  `--recurse-submodules` geholt werden muessen.
+
+---
+
+## 7. Nachweis: keine Abhaengigkeit ging bei der Umstellung verloren
 
 Geprueft am 2026-09-18 durch Vergleich des Abhaengigkeitsgraphen vor der
 Umstellung (Commit `9d20efa`, ueber einen temporaeren Worktree) mit dem
@@ -137,7 +214,7 @@ Wiederholbar mit `tools/Find-ScriptDependency.ps1`.
 
 ---
 
-## 6. History enthaelt firmenspezifische Daten
+## 8. History enthaelt firmenspezifische Daten
 
 Elf Dateien in frueheren Commits enthalten interne Domaenennamen, Hostnamen,
 eine interne IP, drei Benutzernamen und eine interne Helpdesk-URL. Keine

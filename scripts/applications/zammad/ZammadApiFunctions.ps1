@@ -72,9 +72,12 @@ function Get-ZammadTickets {
         [string[]]$Statuses = @() # Array of statuses (OR condition)
     )
 
-    $DateFrom = (Get-Date).AddDays(-$DaysBack).ToString("yyyy-MM-dd")
-    $Endpoint = "tickets/search?query=created_at:>=$DateFrom&limit=$Limit&page=$Page&sort_by=created_at&order_by=$SortOrder"
-    Write-Host($Endpoint)
+    # Hier standen zwei Zeilen, die $DateFrom aus einer nicht existierenden
+    # Variablen $DaysBack berechneten - der Parameter heisst $Days.
+    # AddDays(-$null) ergibt AddDays(0), also immer das heutige Datum. Das
+    # daraus gebaute $Endpoint wurde nur per Write-Host ausgegeben und nie
+    # verwendet; die tatsaechliche Abfrage unten baut die Query aus $Days neu.
+    # Also toter Code mit irrefuehrender Ausgabe - entfernt.
 
     # Convert status array to OR condition for search query
     $statusQuery = ($Statuses | ForEach-Object { "state.name:`"$_`"" }) -join " OR "
@@ -88,7 +91,13 @@ function Get-ZammadTickets {
 
     # tickets/search?query=$([uri]::EscapeDataString($query))
     # Invoke-ZammadRequest -Method GET -Endpoint "tickets" -Token $Token -BaseUrl $BaseUrl
-    Invoke-ZammadRequest -Method GET -Endpoint "tickets/search?query=$([uri]::EscapeDataString($query))" -Token $Token -BaseUrl $BaseUrl
+    # Limit, Page und SortOrder waren bisher nur im entfernten toten Code
+    # verwendet worden - als Parameter deklariert, aber ohne jede Wirkung.
+    # Jetzt haengen sie an der tatsaechlichen Abfrage.
+    $Endpoint = "tickets/search?query=$([uri]::EscapeDataString($query))" +
+    "&limit=$Limit&page=$Page&sort_by=created_at&order_by=$SortOrder"
+
+    Invoke-ZammadRequest -Method GET -Endpoint $Endpoint -Token $Token -BaseUrl $BaseUrl
 }
 
 function Get-AllZammadTickets {

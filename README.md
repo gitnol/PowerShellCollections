@@ -19,10 +19,15 @@ Ein Skript suchen:
 grep -i "lockout" INDEX.md
 ```
 
-Den Index nach einer Aenderung neu erzeugen:
+## Pflege
+
+Drei Werkzeuge halten das Repo in Form. Details und Anlaesse stehen im
+Abschnitt "Laufende Pflege" in [CLAUDE.md](CLAUDE.md).
 
 ```powershell
-.\tools\Build-ScriptIndex.ps1
+.\tools\Build-ScriptIndex.ps1                         # INDEX.md neu erzeugen
+.\tools\Find-ScriptDependency.ps1 -CrossFolderOnly    # vor Verschieben/Loeschen
+.\tools\Repair-ScriptEncoding.ps1 -WhatIf             # BOM bei Umlauten pruefen
 ```
 
 ## Einrichtung nach dem Klonen

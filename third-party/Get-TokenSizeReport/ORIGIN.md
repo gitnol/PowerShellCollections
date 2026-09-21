@@ -22,13 +22,24 @@ Zu grosse Tokens aeussern sich als Anmeldefehler oder als HTTP 400 an
 IIS-Anwendungen, weil der Kerberos-Ticket-Header die Puffergroesse
 ueberschreitet.
 
+## Lizenzlage - ungeklaert
+
+Das Upstream-Repository enthaelt **keine LICENSE-Datei**, und im Skript selbst
+steht kein Lizenzhinweis. Damit gilt das gesetzliche Urheberrecht: alle Rechte
+beim Autor. Die GitHub-Nutzungsbedingungen erlauben anderen Nutzern das
+Ansehen und Forken eines oeffentlichen Repositorys - eine Kopie in ein
+fremdes Repository zu legen, ist davon nicht gedeckt.
+
+Sauber waere: als Git-Submodul einbinden (ein Verweis, keine Kopie) oder den
+Autor um Erlaubnis fragen. Siehe docs/BACKLOG.md.
+
 ## Abgrenzung
 
-`scripts/active-directory/token-size/Export-KerberosTokenSize.ps1` loest
-dieselbe Aufgabe, traegt aber keine Herkunftsangabe (Versionshinweise von
-2012, Release 1.1 bis 1.5). Ob es eine eigene Entwicklung oder ebenfalls
-uebernommen ist, liess sich nicht klaeren - deshalb liegt es weiter unter
-`scripts/`.
+Ein zweites Skript zur selben Aufgabe lag frueher unter
+`scripts/active-directory/token-size/Export-KerberosTokenSize.ps1`. Es
+stammt von msxfaq.de (Frank Carius), dessen Nutzungsbedingungen eine
+Weiterveroeffentlichung ohne vorherige Zustimmung ausschliessen - es wurde
+deshalb entfernt.
 
 ## Aenderungen
 

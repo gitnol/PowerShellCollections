@@ -1,105 +1,102 @@
 <#
 .SYNOPSIS
-    Holt Tickets aus Zammad, gefiltert nach Zeitraum und Status.
+    Holt zu einer Liste von Ticket-IDs die vollstaendigen Zammad-Ticketdaten
+    samt Artikeln.
 
 .DESCRIPTION
-    Get-ZammadTickets sucht ueber die Zammad-API Tickets der letzten X Tage;
-    mehrere Status werden oder-verknuepft. Get-ZammadTicketDetails holt zu
-    einer Ticket-ID die vollstaendigen Angaben nach.
-
-    Der zuletzt gepflegte der drei Zammad-Staende und auf diese eine Aufgabe
-    zugeschnitten. Die vollstaendige API-Abdeckung steht in
-    ZammadApiFunctions.ps1 im selben Ordner.
+    Baut auf ZammadApiFunctions.ps1 im selben Ordner auf: von dort kommen
+    Invoke-ZammadRequest, Get-ZammadTickets und Get-ZammadTicketArticles.
+    Diese Datei ergaenzt nur Get-ZammadTicketDetails, das Ticket und Artikel
+    zu einem Objekt je Ticket zusammenfuehrt, und zeigt am Ende die typische
+    Anwendung.
 
 .NOTES
-    Braucht Basis-URL und API-Token. Beide Dateien definieren eine Funktion
-    Get-ZammadTickets - werden beide dot-gesourct, gewinnt die zuletzt
-    geladene.
+    Die Datei definierte frueher eine eigene Get-ZammadTickets mit anderen
+    Parameternamen (-ZammadUrl/-ApiToken statt -BaseUrl/-Token). Beim
+    gleichzeitigen Dot-Sourcing beider Dateien gewann die zuletzt geladene,
+    und Aufrufe schlugen mit "Parameter nicht gefunden" fehl. Die Funktion
+    ist entfernt; es gibt sie jetzt nur noch in der Bibliothek.
+
+    Ebenfalls behoben: in Get-ZammadTicketDetails wurde die Artikel-URL
+    unmittelbar nach dem Setzen durch die Ticket-URL ueberschrieben. Die
+    Spalte Articles enthielt deshalb das Ticket statt seiner Artikel - die
+    ausgewaehlten Felder (sender, from, to, subject, body) waren leer, ohne
+    dass ein Fehler auftrat.
 #>
 
-function Get-ZammadTickets {
-    param (
-        [string]$ZammadUrl,           # Base URL of Zammad API
-        [string]$ApiToken,            # API Token for authentication
-        [int]$Days,                   # Number of days in the past
-        [string[]]$Statuses           # Array of statuses (OR condition)
-    )
-
-    $headers = @{
-        "Authorization" = "Token token=$ApiToken"
-        "Content-Type"  = "application/json"
-    }
-
-    # Convert status array to OR condition for search query
-    $statusQuery = ($Statuses | ForEach-Object { "state.name:`"$_`"" }) -join " OR "
-
-    # Build search query
-    $query = "created_at:>=now-${Days}d AND ($statusQuery)"
-
-    # Construct API URL
-    $apiUrl = "$ZammadUrl/api/v1/tickets/search?query=$([uri]::EscapeDataString($query))"
-
-    # Fetch data
-    $response = Invoke-RestMethod -Uri $apiUrl -Method Get -Headers $headers
-
-    return $response
-}
-
-
+# Bibliothek aus demselben Ordner laden - sie bringt Invoke-ZammadRequest,
+# Get-ZammadTickets und Get-ZammadTicketArticles mit.
+. (Join-Path $PSScriptRoot 'ZammadApiFunctions.ps1')
 
 function Get-ZammadTicketDetails {
-    param (
-        [string]$ZammadUrl,
-        [string]$ApiToken,
-        [int[]]$TicketIds
+    <#
+    .SYNOPSIS
+        Holt zu einer oder mehreren Ticket-IDs Stammdaten und Artikel.
+
+    .PARAMETER TicketIds
+        Eine oder mehrere Ticket-IDs.
+
+    .PARAMETER Token
+        Zammad-API-Token.
+
+    .PARAMETER BaseUrl
+        Basis-URL der Zammad-Instanz, ohne /api/v1.
+
+    .EXAMPLE
+        Get-ZammadTicketDetails -TicketIds 9680, 9679 -Token $token -BaseUrl $url
+    #>
+    [CmdletBinding()]
+    [OutputType([pscustomobject])]
+    param(
+        [Parameter(Mandatory)]
+        [int[]]$TicketIds,
+
+        [Parameter(Mandatory)]
+        [string]$Token,
+
+        [Parameter(Mandatory)]
+        [string]$BaseUrl
     )
 
-    $headers = @{
-        "Authorization" = "Token token=$ApiToken"
-        "Content-Type"  = "application/json"
-    }
-
-    $ticketDetails = @()
-
     foreach ($TicketId in $TicketIds) {
-        $apiUrl = "$ZammadUrl/api/v1/tickets/$TicketId"
-        $ticket = Invoke-RestMethod -Uri $apiUrl -Method Get -Headers $headers
+        $ticket = Invoke-ZammadRequest -Method GET -Endpoint "tickets/$TicketId" `
+            -Token $Token -BaseUrl $BaseUrl
 
-        $articlesUrl = "$ZammadUrl/api/v1/tickets/$TicketId/articles"
-        $articlesUrl = "$ZammadUrl/api/v1/tickets/$TicketId"
-        $articles = Invoke-RestMethod -Uri $articlesUrl -Method Get -Headers $headers
+        # Eigener Endpunkt - /tickets/<id> liefert das Ticket, die Artikel
+        # stehen unter /tickets/<id>/articles.
+        $articles = Get-ZammadTicketArticles -TicketId $TicketId `
+            -Token $Token -BaseUrl $BaseUrl
 
-        $ticketDetails += [PSCustomObject]@{
+        [pscustomobject]@{
             TicketID      = $ticket.id
             Title         = $ticket.title
             State         = $ticket.state
             CreatedAt     = $ticket.created_at
             UpdatedAt     = $ticket.updated_at
-            Owner         = if ($ticket.PSObject.Properties['owner'] -and $ticket.owner) { $ticket.owner.email } else { "N/A" }
+            Owner         = if ($ticket.PSObject.Properties['owner'] -and $ticket.owner) { $ticket.owner.email } else { 'N/A' }
             LastUpdatedBy = $ticket.last_contact_agent_at
             Articles      = $articles | Select-Object -Property id, type, created_at, sender, from, to, subject, body
         }
     }
-
-    return $ticketDetails
 }
 
-# Example usage:
-$ZammadUrl = "https://your-zammad-instance.com"
-$ApiToken = "your-api-token"  # allowlist secret - Platzhalter, kein echtes Token
-$TicketIds = @(9680, 9679, 9631, 9636)  # Replace with actual IDs
+<#
+Anwendungsbeispiele - bewusst in einem Kommentarblock, damit das
+Dot-Sourcing dieser Datei nichts ausfuehrt.
 
-$TicketHistory = Get-ZammadTicketDetails -ZammadUrl $ZammadUrl -ApiToken $ApiToken -TicketIds $TicketIds
-$TicketHistory | Format-List
+    $BaseUrl = 'https://zammad.example.com'
+    $Token   = Read-Host -AsSecureString -Prompt 'Zammad-API-Token' |
+        ConvertFrom-SecureString -AsPlainText
 
-# Example usage:
-$ZammadUrl = "https://your-zammad-instance.com"
-$ApiToken = "your-api-token"  # allowlist secret - Platzhalter, kein echtes Token
-$Days = 30
-$Statuses = @("open", "new", "pending close")
+    # Vollstaendige Daten zu einzelnen Tickets
+    Get-ZammadTicketDetails -TicketIds 9680, 9679 -Token $Token -BaseUrl $BaseUrl |
+        Format-List
 
-$tickets = Get-ZammadTickets -ZammadUrl $ZammadUrl -ApiToken $ApiToken -Days $Days -Statuses $Statuses
-$tickets
+    # Offene Tickets der letzten 30 Tage (aus der Bibliothek)
+    Get-ZammadTickets -Days 30 -Statuses 'open', 'new', 'pending close' `
+        -Token $Token -BaseUrl $BaseUrl
 
-(Invoke-RestMethod -Uri https://helpdesk.my-domain.local/api/v1/tickets/9680?all=true -Method Get -Headers $headers).ticket_article_ids
-Invoke-RestMethod -Uri https://helpdesk.my-domain.local/api/v1/tickets/9680?all=true -Method Get -Headers $headers
+    # Nur die Artikel-IDs eines Tickets
+    (Invoke-ZammadRequest -Method GET -Endpoint 'tickets/9680?all=true' `
+        -Token $Token -BaseUrl $BaseUrl).ticket_article_ids
+#>

@@ -89,11 +89,31 @@ dort irrefuehrend, weil die Datei selbst nichts tut.
 ### Comment-Based Help
 
 Jedes neue Skript bekommt mindestens `.SYNOPSIS`. Der Index liest sie aus.
-Nach dem Anlegen oder Umbenennen von Skripten:
+
+## Laufende Pflege
+
+Drei Werkzeuge, drei Anlaesse. Keines veraendert etwas ohne Aufforderung.
+
+| Wann                                            | Befehl                                             | Erwartetes Ergebnis            |
+| ----------------------------------------------- | -------------------------------------------------- | ------------------------------ |
+| Skript angelegt, umbenannt, geloescht           | `.\tools\Build-ScriptIndex.ps1`                    | `INDEX.md` neu geschrieben     |
+| **vor** dem Verschieben, Umbenennen, Loeschen   | `.\tools\Find-ScriptDependency.ps1 -CrossFolderOnly` | `ungedeckt: 0`                 |
+| Datei mit Umlauten angelegt oder eingefuegt     | `.\tools\Repair-ScriptEncoding.ps1 -WhatIf`        | `0 Datei(en) betroffen`         |
+
+Alle drei zusammen, als Kontrolle vor dem Push:
 
 ```powershell
 .\tools\Build-ScriptIndex.ps1
+.\tools\Find-ScriptDependency.ps1 -CrossFolderOnly
+.\tools\Repair-ScriptEncoding.ps1 -WhatIf
 ```
+
+Meldet `Repair-ScriptEncoding` betroffene Dateien, denselben Aufruf ohne
+`-WhatIf` wiederholen. Meldet `Find-ScriptDependency` etwas unter
+`UNGEDECKT`, laeuft dort ein Aufruf ins Leere - das muss vor dem Push weg.
+
+Der `pre-commit`-Hook laeuft von selbst; er prueft nur auf firmenspezifische
+Inhalte und Secrets, nicht auf das Obige.
 
 ## Keine firmenspezifischen Details
 

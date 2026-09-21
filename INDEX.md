@@ -2,7 +2,7 @@
 
 <!-- Automatisch erzeugt von tools/Build-ScriptIndex.ps1 - nicht von Hand bearbeiten. -->
 
-145 Skripte. 145 mit `.SYNOPSIS` (100%), 0 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
+144 Skripte. 144 mit `.SYNOPSIS` (100%), 0 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
 
 | Markierung | Bedeutung |
 | ---------- | --------- |
@@ -10,7 +10,7 @@
 | `def` | enthaelt ausser Funktionsdefinitionen keinen ausfuehrbaren Code, laesst sich also gefahrlos per Dot-Sourcing laden |
 | **Syntaxfehler** | die Datei parst nicht |
 
-Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
+Davon 33 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 ## `modules/PSCollections.Connectivity/`
 
@@ -96,12 +96,6 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | ------ | --- | ------------ |
 | [Set-PdcTimeSync.ps1](scripts/active-directory/time-sync/Set-PdcTimeSync.ps1) |  | Konfiguriert die Zeitsynchronisierung für den PDC-Emulationsmaster korrekt. Besser ist es jedoch, wenn eine GPO für die Zeitsynchronisierung verwendet wird. |
 
-## `scripts/active-directory/token-size/`
-
-| Skript | | Beschreibung |
-| ------ | --- | ------------ |
-| [Export-KerberosTokenSize.ps1](scripts/active-directory/token-size/Export-KerberosTokenSize.ps1) |  | Zaehlt je Domaenenbenutzer die Gruppenmitgliedschaften und exportiert die geschaetzte Kerberos-Tokengroesse. |
-
 ## `scripts/active-directory/user-photo/`
 
 | Skript | | Beschreibung |
@@ -158,7 +152,7 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-ZammadTicket.ps1](scripts/applications/zammad/Get-ZammadTicket.ps1) |  | Holt Tickets aus Zammad, gefiltert nach Zeitraum und Status. |
+| [Get-ZammadTicket.ps1](scripts/applications/zammad/Get-ZammadTicket.ps1) | `def` | Holt zu einer Liste von Ticket-IDs die vollstaendigen Zammad-Ticketdaten samt Artikeln. |
 | [ZammadApiFunctions.ps1](scripts/applications/zammad/ZammadApiFunctions.ps1) | `def` | Funktionsbibliothek fuer die Zammad-REST-API. |
 
 ## `scripts/databases/mssql/`
