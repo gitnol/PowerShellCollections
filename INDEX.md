@@ -2,7 +2,7 @@
 
 <!-- Automatisch erzeugt von tools/Build-ScriptIndex.ps1 - nicht von Hand bearbeiten. -->
 
-144 Skripte. 144 mit `.SYNOPSIS` (100%), 0 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
+145 Skripte. 145 mit `.SYNOPSIS` (100%), 0 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
 
 | Markierung | Bedeutung |
 | ---------- | --------- |
@@ -10,7 +10,7 @@
 | `def` | enthaelt ausser Funktionsdefinitionen keinen ausfuehrbaren Code, laesst sich also gefahrlos per Dot-Sourcing laden |
 | **Syntaxfehler** | die Datei parst nicht |
 
-Davon 33 nebenwirkungsfrei, 0 mit Syntaxfehlern.
+Davon 34 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 ## `modules/PSCollections.Connectivity/`
 
@@ -188,6 +188,7 @@ Davon 33 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
+| [Get-ExchangeEmailAddressInventory.ps1](scripts/messaging/exchange/Get-ExchangeEmailAddressInventory.ps1) | `def` | Listet alle E-Mail-Adressen aller Exchange-Empfänger auf - eine Zeile je Adresse statt je Empfänger. |
 | [Get-MailboxForwardingRules.ps1](scripts/messaging/exchange/Get-MailboxForwardingRules.ps1) |  | Findet Postfaecher mit eingerichteter Weiterleitung nach aussen. |
 | [New-SharedMailboxWorkflow.ps1](scripts/messaging/exchange/New-SharedMailboxWorkflow.ps1) |  | Erstellt standardisierte Shared Mailboxes und die dazugehörigen AD-Sicherheitsgruppen für Berechtigungen. |
 | [Sync-SharedMailboxPermission.ps1](scripts/messaging/exchange/Sync-SharedMailboxPermission.ps1) |  | Verwaltet vollautomatisch 'FullAccess'-Berechtigungen für Exchange 2019 SharedMailboxes basierend auf Active Directory Gruppenmitgliedschaften. |
