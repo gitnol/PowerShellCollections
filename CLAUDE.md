@@ -165,6 +165,12 @@ einen Kommentar auf derselben Zeile.
 
 Bypass nur bewusst mit `git commit --no-verify`.
 
+Der Hook ignoriert SIGPIPE. Ohne das liesse er sich unbeabsichtigt umgehen:
+leitet man die Ausgabe von `git commit` durch etwas, das die Pipe frueh
+schliesst (`| head -3`), stirbt er an SIGPIPE, bevor er `exit 1` erreicht -
+und Git committet. Genau so ist hier einmal ein Testcommit mit
+Firmenbegriff entstanden.
+
 ## Fallstricke in diesem Bestand
 
 Wer hier arbeitet, sollte das wissen - es ist nicht offensichtlich:

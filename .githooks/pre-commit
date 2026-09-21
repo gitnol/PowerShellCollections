@@ -21,6 +21,17 @@
 
 set -u
 
+# SIGPIPE ignorieren. Sonst laesst sich der Hook durch eine frueh
+# geschlossene Pipe umgehen:
+#
+#     git commit -m "..." | head -3
+#
+# head beendet sich nach drei Zeilen, die weiteren echo-Aufrufe des Hooks
+# bekommen SIGPIPE, die Shell stirbt - und `exit 1` wird nie erreicht. Git
+# wertet das nicht als Abbruch und committet. Nachgestellt und bestaetigt:
+# mit Pipe entstand der Commit, ohne Pipe nicht.
+trap '' PIPE
+
 repo_root=$(git rev-parse --show-toplevel)
 hooks_dir="$repo_root/.githooks"
 shared_patterns="$hooks_dir/forbidden-patterns.txt"
