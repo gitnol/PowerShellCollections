@@ -223,3 +223,45 @@ weiter oeffentlich auf GitHub.
 
 **Zurueckgestellt.** Optionen und Abwaegung: siehe
 [HISTORY-OPTIONS.md](HISTORY-OPTIONS.md).
+
+---
+
+## 9. window-cascade: wieder zwei Staende, absichtlich
+
+`scripts/windows/desktop/window-cascade/`
+
+Bei der Versionsbereinigung wurde die urspruengliche Fassung
+`Set-ForegroundWindows.ps1` geloescht, weil `Set-CascadedWindow_v2.ps1`
+(heute `Set-CascadedWindow.ps1`) als Nachfolger galt - siehe Abschnitt 1.
+Die Annahme "neuer = besser" traf hier nicht zu: der Nachfolger hat einen
+eigenen Fehler.
+
+Auf Wunsch des Autors ist die urspruengliche, nachweislich funktionierende
+Fassung wiederhergestellt (`git show ea42ea7:...`) und liegt wieder unter
+`Set-ForegroundWindows.ps1`. Der Nachfolger heisst jetzt
+`Set-CascadedWindow_BETA.ps1` und bleibt als Ausgangspunkt fuer die
+Fehlerbehebung erhalten - das ist eine bewusste Ausnahme von der
+"eine kanonische Datei je Aufgabe"-Regel, keine Rueckkehr zum alten Zustand.
+
+**Der Fehler in der BETA:** Menüpunkt "1" (Global) ruft in der BETA neu
+`Select-TargetMonitor` auf. Sind mehr als ein Bildschirm angeschlossen,
+oeffnet das *immer* `Out-GridView`, bevor irgendein Fenster bewegt wird -
+im Original lief Option 1 ohne jeden Dialog sofort durch. Der Menuetext
+kuendigt das nicht an, und auf einem Ein-Monitor-System (`$monitors.Count
+-le 1`) tritt der Unterschied gar nicht auf - vermutlich lief die BETA beim
+Autor deshalb unauffaellig. Auf dieser Testmaschine (2 erkannte Monitore)
+loest Option 1 nachweislich Out-GridView aus.
+
+Zusaetzlich haengt jetzt auch Option 1 an der Verfuegbarkeit von
+Out-GridView - im Original nur Option 2. Auf diesem Testrechner ist
+Out-GridView zwar vorhanden (PowerShell 7.6, nativ in
+Microsoft.PowerShell.Commands.Utility.dll), das ist aber keine Garantie:
+in fruehen PowerShell-7-Versionen (7.0-7.3) war es kein Bestandteil des
+Kerns und musste per `Microsoft.PowerShell.GraphicalTools` nachinstalliert
+werden, und ueber eine nicht-interaktive Sitzung (z.B. Invoke-Command ohne
+Desktop) faellt WPF-basierte UI grundsaetzlich aus.
+
+**Offen:** die BETA fixen (die Monitorwahl fuer Option 1 optional machen
+oder nur bei tatsaechlichem Bedarf anzeigen, den Menuetext ergaenzen), dann
+entscheiden, testen, und danach *eine* der beiden Dateien als kanonisch
+behalten.

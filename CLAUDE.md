@@ -179,7 +179,7 @@ Wer hier arbeitet, sollte das wissen - es ist nicht offensichtlich:
   wird definiert und am Dateiende gleich aufgerufen. Dot-Sourcing zum
   Erkunden ist deshalb riskant - manche Skripte greifen dabei sofort auf AD
   oder Remote-Rechner zu, eines laedt beim Laden eine Webseite des
-  Herstellers. Nur die mit `def` markierten Dateien (32 von 145) enthalten
+  Herstellers. Nur die mit `def` markierten Dateien (34 von 146) enthalten
   ausser Definitionen nichts Ausfuehrbares. Im Zweifel lesen statt laden.
 - **Generierter Code kann kaputt sein.** `Invoke-MailStoreApiScratch.ps1` hat
   lange nicht geparst - `New-MailStoreApiFunctionReference.ps1` hatte einen

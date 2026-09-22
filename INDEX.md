@@ -2,7 +2,7 @@
 
 <!-- Automatisch erzeugt von tools/Build-ScriptIndex.ps1 - nicht von Hand bearbeiten. -->
 
-145 Skripte. 145 mit `.SYNOPSIS` (100%), 0 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
+146 Skripte. 146 mit `.SYNOPSIS` (100%), 0 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
 
 | Markierung | Bedeutung |
 | ---------- | --------- |
@@ -363,7 +363,8 @@ Davon 34 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Set-CascadedWindow.ps1](scripts/windows/desktop/window-cascade/Set-CascadedWindow.ps1) |  | Skript zur Wiederherstellung der "Fenster überlappend anzeigen"-Funktion unter Windows 11. |
+| [Set-CascadedWindow_BETA.ps1](scripts/windows/desktop/window-cascade/Set-CascadedWindow_BETA.ps1) |  | Skript zur Wiederherstellung der "Fenster überlappend anzeigen"-Funktion unter Windows 11. |
+| [Set-ForegroundWindows.ps1](scripts/windows/desktop/window-cascade/Set-ForegroundWindows.ps1) |  | Skript zur Wiederherstellung der "Fenster überlappend anzeigen"-Funktion unter Windows 11. |
 
 ## `scripts/windows/elevation/`
 
