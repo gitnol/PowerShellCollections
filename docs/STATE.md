@@ -23,7 +23,7 @@ Vorher KICKOFF Phase 1 Punkt 2a (Überschneidungen mit `KNOWN_ISSUES.md` K1–K3
 
 | # | Titel | Datum | Commit |
 |---|-------|-------|--------|
-| I1 | docs_template-Baseline eingeführt (Bestand übernommen) | 2026-10-11 | Nachtrag folgt (`docs: record I1 commit hash`) |
+| I1 | docs_template-Baseline eingeführt (Bestand übernommen) | 2026-10-11 | fbff4e3 |
 
 ---
 
