@@ -1,3 +1,5 @@
+@AGENTS.md
+
 # Arbeiten in diesem Repository
 
 Sammlung von PowerShell-Skripten aus dem Windows-/AD-Betrieb. Oeffentliches
