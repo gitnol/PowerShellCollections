@@ -1,4 +1,91 @@
-# Backlog
+# Backlog – PowerShellCollections
+
+Parkplatz für Ideen, Verbesserungen und Aufgaben, die noch **nicht** für ein
+konkretes Inkrement priorisiert sind.
+
+**Abgrenzung:**
+
+- `TODO.md` = aktuelle, priorisierte Arbeit mit Definition of Done
+- `BACKLOG.md` = noch nicht eingeplant, kein DoD nötig
+- `KNOWN_ISSUES.md` = bekannte Probleme mit Workaround, nicht aktiv geplant
+
+Wenn ein Backlog-Punkt für ein Inkrement vorgesehen wird → Verschiebung von
+`BACKLOG.md` nach `TODO.md` (mit DoD ergänzen).
+
+**Aufbau dieser Datei:** Die Abschnitte bis „Verworfen" folgen der docs_template-Struktur (seit 2026-10-11).
+Darunter stehen die nummerierten Bestandsabschnitte 1–9 aus der Zeit vor der Baseline **unverändert**; andere
+Dateien verweisen auf deren Nummern (z. B. „Abschnitt 5"). Neue Punkte kommen in die Template-Abschnitte.
+
+---
+
+## Ideen / Features
+
+- Advocatus-Diaboli-Hook für Claude Code versionieren (`.claude/settings.json`, Vorlage in
+  `principles/ADVOCATUS_DIABOLI.md`) — `.claude` ist heute komplett gitignoriert; braucht eine
+  `.gitignore`-Ausnahme und die Entscheidung des Eigentümers
+- Ratchet für PSScriptAnalyzer-Warnings als Kennzahl in `STATE.md` — folgt aus `TODO.md` I4
+- `tools/Find-ScriptDependency.ps1 -CrossFolderOnly` als Pester-Test in Gate 4 aufnehmen, mit eigener erlaubter
+  und verbotener Beispielkante (`architecture/PROJECT_LAYOUT.md`) — setzt das Test-Fundament aus I4 voraus
+- Skripte signieren und auf Verwaltungs-PCs `AllSigned` erzwingen — Gegenmaßnahme zu `security/THREAT_MODEL.md`
+  Bedrohung 4; braucht ein Codesigning-Zertifikat und ändert den Arbeitsablauf aller Nutzer
+
+---
+
+## Refactoring-Kandidaten
+
+- `third-party/Check-UEFISecureBootVariables/` als Git-Submodul statt ZIP-Kopie — Details Bestandsabschnitt 6;
+  wegen Bestandsabschnitt 5 auch rechtlich die sauberere Form
+- `CLAUDE.md` auf einen Zeiger (`@AGENTS.md`) plus projektspezifische Fallstricke reduzieren, Regeln nur noch in
+  `docs/CONVENTIONS.md` — `KNOWN_ISSUES.md` K5; Entscheidung des Eigentümers
+- Feste Ablagepfade (`C:\Install\…` für Logs, Aufgaben-Logs und die OUI-Liste) als Parameter mit Default —
+  `docs/CONVENTIONS.md` §5
+
+---
+
+## Technische Schuld
+
+- PSScriptAnalyzer-Basislinie 2026-10-11: 1094 Warnings, häufigste Regeln `PSAvoidUsingWriteHost` (599),
+  `PSUseSingularNouns` (153), `PSUseApprovedVerbs` (82, überwiegend generierte MailStore-Funktionen),
+  `PSUseShouldProcessForStateChangingFunctions` (77), `PSAvoidUsingEmptyCatchBlock` (38) — wird teurer, je mehr
+  Skripte ohne Gate dazukommen (`TODO.md` I4)
+- `Get-BitLockerStatus.ps1` zeigt die BitLocker-Wiederherstellungskennwörter aus AD und von allen Clients im
+  Klartext in `Out-GridView`; besser nur „identisch ja/nein" und Kennwörter nur auf ausdrücklichen Schalter —
+  `security/THREAT_MODEL.md` Bedrohung 6
+- Lizenzlage zweier Fremdcode-Projekte ungeklärt — Bestandsabschnitt 5; Entscheidung des Eigentümers
+  (`STATE.md` Risiken)
+- Firmenspezifische Daten in der Git-History — Bestandsabschnitt 8 und `docs/HISTORY-OPTIONS.md`; Entscheidung des
+  Eigentümers (`STATE.md` Risiken)
+
+---
+
+## Template-Evolution / Stack-Lücken
+
+Hier landen Projekt-Charakteristiken, für die kein passender Stack/Overlay
+existierte. Jeder Eintrag ist eine potenzielle Template-Erweiterung — so sind
+z.B. `react-web` und die document-intelligence-Overlays entstanden.
+
+- Stack-Lücke: Sammlung vieler unabhängiger Admin-Skripte (146 Skripte, interaktive Werkzeuge, PRTG-Sensoren,
+  GUIs, Remote-Skripte) ohne gemeinsamen Einstiegspunkt, Build oder Release. `powershell-automation` beschreibt ein
+  einzelnes Automatisierungsskript/Modul mit Task Scheduler und Konfigurationsdatei; Abschnitte wie
+  `[ScriptName].ps1` + `functions/`, `config.ps1`, Release/Rollback und HATEOAS passten nicht und wurden gestrichen
+  bzw. umgeschrieben. Gewählt als nächstliegender Stack. — 2026-10-11 PowerShellCollections
+
+---
+
+## Verworfen (mit Begründung)
+
+Punkte, die geprüft und bewusst nicht weiterverfolgt wurden. Bleiben als Spur
+sichtbar, damit derselbe Punkt nicht in jeder Session erneut diskutiert wird.
+
+- ~~`Write-Log` in ein gemeinsames Modul zusammenführen~~ — 2026-09-21 zwei der Skripte laufen als Scriptblock auf
+  dem Zielrechner ohne `modules/` (Bestandsabschnitt 4)
+- ~~Template-Hooks `tools/git-hooks/` mit `.internal-terms` übernehmen~~ — 2026-10-11 der vorhandene
+  `.githooks/pre-commit` erfüllt dieselbe Aufgabe (Regex-Denylist, lokal gitignoriert, plus Secret-Muster);
+  `core.hooksPath` kann nur auf ein Verzeichnis zeigen. Fehlende Prüfungen kommen in den Projekt-Hook (`TODO.md` I5)
+
+---
+
+## Bestandsabschnitte 1–9 (vor der docs_template-Baseline, unverändert)
 
 Offene Punkte. Stand: 2026-09-21.
 
