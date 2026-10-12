@@ -7,3 +7,17 @@ graphify*
 # Bewusst NICHT versioniert - sie enthaelt genau die Begriffe, die nicht
 # ins oeffentliche Repo sollen. Vorlage: forbidden-patterns.local.txt.example
 .githooks/forbidden-patterns.local.txt
+
+# docs_template-Baseline (BOOTSTRAP.md Schritt 1, Stack powershell-automation)
+# Logs, lokale Konfiguration mit Zugangsdaten, Zwischenstaende, Schluesselmaterial
+*.log
+config.ps1
+*.tmp
+*.secret
+*.pfx
+*.pem
+*.key
+
+# Interne Umgebungsdoku (Hosts, Versionen, Pfade) - oeffentliches Repo,
+# siehe docs/CONVENTIONS_COMMON.md 3.1
+/docs/local/
