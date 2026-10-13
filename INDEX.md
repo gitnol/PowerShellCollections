@@ -233,7 +233,7 @@ Davon 34 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
 | [Get-DslsLicenseUsage.ps1](scripts/monitoring/prtg/dsls/Get-DslsLicenseUsage.ps1) |  | PRTG-Sensor: Lizenznutzung und Restlaufzeit je Komponente auf dem DSLS. |
-| [Get-DslsLogError.ps1](scripts/monitoring/prtg/dsls/Get-DslsLogError.ps1) |  | PRTG-Sensor: Anzahl der Fehlermeldungen im DSLS-Log der letzten 24 Stunden. |
+| [Get-DslsLogSummary.ps1](scripts/monitoring/prtg/dsls/Get-DslsLogSummary.ps1) |  | PRTG-Sensor: Fehler, Warnungen und abgelehnte Lizenzanfragen im DSLS-Log der letzten Stunden. |
 | [Get-DslsOfflineLicense.ps1](scripts/monitoring/prtg/dsls/Get-DslsOfflineLicense.ps1) |  | PRTG-Sensor: Anzahl der aktuell vergebenen Offline-Lizenzen (Nomad) auf dem DSLS. |
 | [PRTG.Dsls.psm1](scripts/monitoring/prtg/dsls/PRTG.Dsls.psm1) | `def` | Gemeinsame Hilfsfunktionen fuer die DSLS-Sensoren (Dassault Systemes License Server). |
 

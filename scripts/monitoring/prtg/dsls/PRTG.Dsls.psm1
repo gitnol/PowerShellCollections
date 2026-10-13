@@ -12,6 +12,13 @@
     der Import ueber $PSScriptRoot. Beim Ausrollen den kompletten Ordner nach
     "Custom Sensors\EXEXML\" kopieren, nicht nur die einzelne .ps1.
 
+    DSLicSrv.exe muss dabei NICHT auf der PRTG-Probe installiert sein:
+    Invoke-DslsAdmin fuehrt es per PowerShell-Remoting direkt auf dem
+    Lizenzserver aus und verbindet sich dort lokal ("c localhost <port>").
+    Das erfordert PSRemoting auf dem Lizenzserver und einen Sicherheitskontext
+    mit Remoting-Rechten dort - dafuer keine DSLS-Installation auf der Probe
+    und kein offenes TCP <port> von der Probe zum Lizenzserver.
+
 .NOTES
     Autor: IT-Administration
 #>
@@ -36,14 +43,20 @@ function Test-DslsServer {
 function Invoke-DslsAdmin {
     <#
     .SYNOPSIS
-        Fuehrt eine Befehlsfolge im Admin-Modus von DSLicSrv.exe aus.
+        Fuehrt eine Befehlsfolge im Admin-Modus von DSLicSrv.exe auf dem Lizenzserver aus.
+
+    .DESCRIPTION
+        Fuehrt DSLicSrv.exe per PowerShell-Remoting DIREKT auf $TargetServer aus
+        und verbindet sich dort lokal ("c localhost $Port; ...; d; quit"). $DslsExe
+        ist deshalb ein Pfad auf dem Lizenzserver, nicht auf der PRTG-Probe. Ist
+        $TargetServer die lokale Maschine, entfaellt Invoke-Command.
 
     .PARAMETER Command
-        Die Befehlsfolge ohne das fuehrende "c <server> <port>;" und ohne
+        Die Befehlsfolge ohne das fuehrende "c localhost <port>;" und ohne
         das abschliessende "d; quit" - beides wird hier ergaenzt.
 
     .EXAMPLE
-        Invoke-DslsAdmin -TargetServer 'licsrv01' -DslsExe $exe -Command 'gli; glu -all'
+        Invoke-DslsAdmin -TargetServer 'licsrv01.contoso.local' -DslsExe $exe -Command 'gli; glu -all'
     #>
     [CmdletBinding()]
     [OutputType([string[]])]
@@ -61,12 +74,25 @@ function Invoke-DslsAdmin {
         [int]$Port = 4084
     )
 
-    if (-not (Test-Path -LiteralPath $DslsExe)) {
-        throw "DSLicSrv.exe nicht gefunden unter '$DslsExe'."
+    $remoteBlock = {
+        param([string]$Exe, [int]$DsPort, [string]$Cmd)
+        if (-not (Test-Path -LiteralPath $Exe)) {
+            throw "DSLicSrv.exe nicht gefunden: $Exe"
+        }
+        & $Exe -admin -run "c localhost $DsPort; $Cmd; d; quit" 2>&1 | ForEach-Object { [string]$_ }
     }
 
-    $script = "c $TargetServer $Port; $Command; d; quit"
-    & $DslsExe -admin -run $script 2>&1 | ForEach-Object { [string]$_ }
+    $argList = @($DslsExe, $Port, $Command)
+    $isLocal = $TargetServer -in @('localhost', '.', '127.0.0.1', $env:COMPUTERNAME)
+
+    if ($isLocal) {
+        & $remoteBlock @argList
+    }
+    else {
+        $sessionOption = New-PSSessionOption -OpenTimeout 15000 -OperationTimeout 45000
+        Invoke-Command -ComputerName $TargetServer -SessionOption $sessionOption `
+            -ScriptBlock $remoteBlock -ArgumentList $argList
+    }
 }
 
 function ConvertTo-PrtgText {
