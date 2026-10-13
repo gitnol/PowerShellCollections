@@ -30,19 +30,16 @@ param (
     [ValidateRange(0, 3)]
     [int]$AccessControlType
 )
-# Gemeinsames Modul laden. Der Suchlauf nach oben macht den Import
-# unabhaengig davon, wie tief die Datei im Verzeichnisbaum liegt.
-$repoRoot = $PSScriptRoot
-while ($repoRoot -and -not (Test-Path (Join-Path $repoRoot 'modules'))) {
-    $repoRoot = Split-Path $repoRoot -Parent
-}
-Import-Module (Join-Path $repoRoot 'modules/PSCollections.Connectivity/PSCollections.Connectivity.psd1') -Force
-
-
-
 begin {
-    # Definition der Funktion für die parallele Online-Prüfung im Begin-Block
-    
+    # Gemeinsames Modul laden. Der Suchlauf nach oben macht den Import
+    # unabhaengig davon, wie tief die Datei im Verzeichnisbaum liegt.
+    # Muss hier stehen (statt davor): Code vor begin/process macht beide
+    # Blockkeywords sonst zu gewoehnlichen Befehlsaufrufen (K1).
+    $repoRoot = $PSScriptRoot
+    while ($repoRoot -and -not (Test-Path (Join-Path $repoRoot 'modules'))) {
+        $repoRoot = Split-Path $repoRoot -Parent
+    }
+    Import-Module (Join-Path $repoRoot 'modules/PSCollections.Connectivity/PSCollections.Connectivity.psd1') -Force
 }
 
 process {

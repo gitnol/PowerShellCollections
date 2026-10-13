@@ -13,6 +13,55 @@ Abschnitt 1.
 
 ---
 
+## 2026-10-13 I2 – Defekte Bestandsdateien reparieren
+
+Behebt K1–K3 aus `docs/KNOWN_ISSUES.md` (gefunden beim Init von I1).
+
+### Added
+- `tests/applications/teamviewer/Set-TeamViewerAccess.Tests.ps1`: erster Pester-Test im Repo (Regressionstest
+  für K1); formale Pester-Harness folgt in I4
+
+### Changed
+- `docs/architecture/DEPENDENCIES.md`, `docs/TODO.md`, `docs/STATE.md`, `docs/KNOWN_ISSUES.md`,
+  `docs/LESSONS_LEARNED.md`, `CLAUDE.md`: Zahlen (`34 von 146` → `32 von 147` `def`-Dateien) und Roadmap an den
+  neuen Stand angepasst
+- `INDEX.md` neu erzeugt
+
+### Fixed
+- `scripts/applications/teamviewer/Set-TeamViewerAccess.ps1` (K1): Modulimport in den `begin`-Block verschoben;
+  `begin`/`process` sind wieder echte Namensbloecke statt Befehlsaufrufe an nicht existierende Befehle
+- `.gitattributes` (K2): `binary`-Ausnahme für `MS.PS.Lib.psd1` auf den aktuellen Pfad korrigiert
+  (`third-party/MailStore-PowerShell-API-Wrapper/api-wrapper/`); UTF-16-Aufgaben-XML in
+  `scripts/windows/shadow-copy/` ebenfalls als `binary` geführt. Arbeitskopien aller drei betroffenen Dateien
+  waren bereits byte-identisch mit dem Blob (`git show HEAD:<pfad>` vs. Arbeitskopie, `cmp` nach Re-Checkout) -
+  der Schaden aus K2 war auf diesem Klon nicht (mehr) sichtbar, die Attribut-Korrektur verhindert ihn für
+  künftige Klone/Checkouts
+- `tools/Build-ScriptIndex.ps1` (K3): orphane `begin`/`process`/`end`/`dynamicparam`-Bloecke werden jetzt als
+  Syntaxfehler erkannt (AST-Musterabgleich statt `Invoke-ScriptAnalyzer` pro Datei, siehe Lessons Learned L1).
+  Dabei gefunden und mitbehoben: die Nebenwirkungsprüfung las nur `EndBlock.Statements` und markierte
+  `Get-SqlServerVersion.ps1` und `Get-ExchangeEmailAddressInventory.ps1` (beide mit `Invoke-Command` in einem
+  echten `process`-Block) fälschlich als `def` (Lessons Learned L4)
+
+### Confidence / Ungeprüft
+- (a) Nicht getestet: `Set-TeamViewerAccess.ps1` wurde nicht gegen echte Rechner ausgeführt, nur statisch
+  geprüft (PSScriptAnalyzer, AST, zwei Pester-Assertions). Dass ein frischer `git clone` die beiden
+  UTF-16-XML-Dateien jetzt tatsächlich unbeschädigt auscheckt, ist nicht an einem zweiten Klon verifiziert -
+  nur über `git check-attr` und Byte-Vergleich nach Re-Checkout auf diesem Klon.
+- (b) Annahme: Die in K2 beschriebene Beschädigung trat auf diesem Klon nicht (mehr) auf (Dateien bereits
+  byte-identisch vor der Korrektur) - vermutlich weil der Checkout vor der fehlerhaften `.gitattributes`-Version
+  erfolgte und Git bestehende Dateien ohne `git add --renormalize` nicht automatisch neu schreibt.
+- (c) Keine Datei wurde geändert, ohne sie vollständig gelesen zu haben.
+
+### Lessons Learned
+- `Invoke-ScriptAnalyzer -Severity ParseError` liefert in 1.25.0 immer 0 Treffer, auch bei echten
+  ParseError-Diagnosen - der Filter muss manuell per `Where-Object Severity -eq 'ParseError'` erfolgen
+  (`docs/LESSONS_LEARNED.md` L3). Betrifft die Zusatz-DoD-Formulierung in `TODO.md` I2/I4 direkt.
+- Eine AST-basierte Nebenwirkungsprüfung muss `DynamicParamBlock`, `BeginBlock`, `ProcessBlock` **und**
+  `EndBlock` lesen - ein Skript mit korrekten Namensbloecken hat ggf. leeres `EndBlock.Statements`
+  (`docs/LESSONS_LEARNED.md` L4).
+
+---
+
 ## 2026-10-11 I1 – docs_template-Baseline eingeführt (Bestand übernommen)
 
 Template-Stand: docs_template v27@5ce0f84, Stack `powershell-automation`, keine Overlays. Vorgehen nach

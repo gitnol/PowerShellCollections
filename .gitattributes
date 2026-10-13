@@ -41,7 +41,13 @@
 
 # MS.PS.Lib.psd1 liegt als UTF-16 LE vor. Git wuerde die Datei sonst als Text
 # behandeln, die Zeilenenden umschreiben und sie damit unbrauchbar machen.
-scripts/messaging/mailstore/api-wrapper/MS.PS.Lib.psd1 binary
+third-party/MailStore-PowerShell-API-Wrapper/api-wrapper/MS.PS.Lib.psd1 binary
+
+# Aufgabenplanungs-XML (Windows-Export) liegt als UTF-16 LE mit BOM vor; die
+# allgemeine *.xml-Regel oben wuerde sie auf CRLF umschreiben und damit
+# beschaedigen (K2).
+scripts/windows/shadow-copy/Snapshot_C_Täglich.xml binary
+scripts/windows/shadow-copy/Wiederherstellungspunkt_C_Täglich.xml binary
 
 # --- GitHub-Statistik -------------------------------------------------------
 # Fremdcode nicht in die Sprachstatistik des Repos einrechnen

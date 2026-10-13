@@ -2,7 +2,7 @@
 
 <!-- Automatisch erzeugt von tools/Build-ScriptIndex.ps1 - nicht von Hand bearbeiten. -->
 
-146 Skripte. 146 mit `.SYNOPSIS` (100%), 0 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
+147 Skripte. 147 mit `.SYNOPSIS` (100%), 0 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
 
 | Markierung | Bedeutung |
 | ---------- | --------- |
@@ -10,7 +10,7 @@
 | `def` | enthaelt ausser Funktionsdefinitionen keinen ausfuehrbaren Code, laesst sich also gefahrlos per Dot-Sourcing laden |
 | **Syntaxfehler** | die Datei parst nicht |
 
-Davon 34 nebenwirkungsfrei, 0 mit Syntaxfehlern.
+Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 ## `modules/PSCollections.Connectivity/`
 
@@ -159,7 +159,7 @@ Davon 34 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-SqlServerVersion.ps1](scripts/databases/mssql/Get-SqlServerVersion.ps1) | `def` | Ermittelt die Versionen von SQL Server Instanzen auf remote Servern. |
+| [Get-SqlServerVersion.ps1](scripts/databases/mssql/Get-SqlServerVersion.ps1) |  | Ermittelt die Versionen von SQL Server Instanzen auf remote Servern. |
 | [Test-DbConnection.ps1](scripts/databases/mssql/Test-DbConnection.ps1) |  | Prüft eine OLE DB Datenbankverbindung mit interaktiver Passwortabfrage. |
 
 ## `scripts/filesystem/`
@@ -188,7 +188,7 @@ Davon 34 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Get-ExchangeEmailAddressInventory.ps1](scripts/messaging/exchange/Get-ExchangeEmailAddressInventory.ps1) | `def` | Listet alle E-Mail-Adressen aller Exchange-Empfänger auf - eine Zeile je Adresse statt je Empfänger. |
+| [Get-ExchangeEmailAddressInventory.ps1](scripts/messaging/exchange/Get-ExchangeEmailAddressInventory.ps1) |  | Listet alle E-Mail-Adressen aller Exchange-Empfänger auf - eine Zeile je Adresse statt je Empfänger. |
 | [Get-MailboxForwardingRules.ps1](scripts/messaging/exchange/Get-MailboxForwardingRules.ps1) |  | Findet Postfaecher mit eingerichteter Weiterleitung nach aussen. |
 | [New-SharedMailboxWorkflow.ps1](scripts/messaging/exchange/New-SharedMailboxWorkflow.ps1) |  | Erstellt standardisierte Shared Mailboxes und die dazugehörigen AD-Sicherheitsgruppen für Berechtigungen. |
 | [Sync-SharedMailboxPermission.ps1](scripts/messaging/exchange/Sync-SharedMailboxPermission.ps1) |  | Verwaltet vollautomatisch 'FullAccess'-Berechtigungen für Exchange 2019 SharedMailboxes basierend auf Active Directory Gruppenmitgliedschaften. |
@@ -474,6 +474,12 @@ Davon 34 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | ------ | --- | ------------ |
 | [Invoke-BreadthFirstSearch.ps1](snippets/graph-traversal/Invoke-BreadthFirstSearch.ps1) | `def` | Kuerzeste Wege in einem JSON-beschriebenen Graphen per Breitensuche, gerichtet und ungerichtet. |
 | [Invoke-GraphTraversal.ps1](snippets/graph-traversal/Invoke-GraphTraversal.ps1) | `def` | Funktionen zur Wegsuche in einem als JSON beschriebenen gerichteten Graphen. |
+
+## `tests/applications/teamviewer/`
+
+| Skript | | Beschreibung |
+| ------ | --- | ------------ |
+| [Set-TeamViewerAccess.Tests.ps1](tests/applications/teamviewer/Set-TeamViewerAccess.Tests.ps1) |  | Regressionstest fuer K1 (docs/KNOWN_ISSUES.md): Modulimport vor begin/process macht beide Bloecke zu gewoehnlichen Befehlsaufruefen, der Skriptrumpf laeuft nie. |
 
 ## `tools/`
 

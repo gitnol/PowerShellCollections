@@ -37,6 +37,39 @@ Besser Muster je Dateityp/Encoding statt Einzelpfade, und nach jedem Umzug `git 
 
 ---
 
+## L3: `Invoke-ScriptAnalyzer -Severity ParseError` ist wirkungslos
+- Inkrement: I2
+- Scope: generisch-stack
+- Backport-Ziel: `stacks/powershell-automation/CONVENTIONS.md` (§9, Gate-Befehle)
+- Status: offen
+
+`Invoke-ScriptAnalyzer -Severity ParseError` liefert in Version 1.25.0 immer 0 Treffer, auch wenn echte
+ParseError-Diagnosen (z. B. `InvalidSyntaxAroundProcessBlock`) vorliegen - der `-Severity`-Filter greift fuer
+diese Kategorie nicht, waehrend sie im ungefilterten Output korrekt mit `Severity = ParseError` erscheint.
+Verlaesslich nur: ungefiltert aufrufen und selbst filtern
+(`Invoke-ScriptAnalyzer -Path ... | Where-Object Severity -eq 'ParseError'`). Ein Gate, das sich auf den
+dokumentierten Parameter verlaesst, meldet immer "0 ParseError" - auch bei echten Fehlern. Betrifft `TODO.md`
+I2/I4 und jede kuenftige CI-Gate-Formulierung mit diesem Parameter.
+
+---
+
+## L4: AST-Nebenwirkungspruefung muss alle vier Namensbloecke lesen, nicht nur `EndBlock`
+- Inkrement: I2
+- Scope: projekt-spezifisch
+- Backport-Ziel: keiner
+- Status: projekt-intern
+
+Ein Skript mit korrekt verwendeten `begin`/`process`-Namensbloecken landet im AST unter `$ast.BeginBlock` bzw.
+`$ast.ProcessBlock`, nicht unter `$ast.EndBlock.Statements`. Die Nebenwirkungspruefung in
+`tools/Build-ScriptIndex.ps1` las bisher nur `EndBlock.Statements` und markierte zwei produktive Skripte
+(`Get-SqlServerVersion.ps1`, `Get-ExchangeEmailAddressInventory.ps1` - beide mit `Invoke-Command` im
+`process`-Block) faelschlich als `def` (angeblich gefahrlos per Dot-Sourcing ladbar). Gefunden beim Testen der
+K3-Erweiterung (Set-TeamViewerAccess.ps1 bekam nach dem K1-Fix durch denselben Effekt ebenfalls `DefinitionsOnly
+= $true`), nicht beim eigentlichen K1/K3-Fix. Fix: alle vier moeglichen Bloecke (`DynamicParamBlock`,
+`BeginBlock`, `ProcessBlock`, `EndBlock`) einbeziehen.
+
+---
+
 ## Pflege
 
 - Neuer „Lessons Learned"-Block im `CHANGELOG.md` → Eintrag `## L<N>:` hier anlegen.

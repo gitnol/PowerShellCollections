@@ -12,7 +12,13 @@
       erste Kommentarzeile, gekennzeichnet mit "(aus Kommentar)"
     - ob die Datei ausser Funktionsdefinitionen nichts ausfuehrt und damit
       gefahrlos per Dot-Sourcing geladen werden kann
-    - Syntaxfehler
+    - Syntaxfehler, einschliesslich der PSScriptAnalyzer-Regel
+      InvalidSyntaxAroundProcessBlock (begin/process/end/dynamicparam werden zu
+      gewoehnlichen Befehlsaufrufen, wenn ihnen andere Anweisungen vorausgehen -
+      das meldet der reine Sprach-Parser nicht als Fehler, siehe K1/K3 in
+      docs/KNOWN_ISSUES.md). Wird hier als AST-Muster nachgebildet statt per
+      Invoke-ScriptAnalyzer, weil Letzteres den Index bei 146 Dateien deutlich
+      verlangsamen wuerde.
 
     Der Parser wird bewusst statt Get-Help benutzt: Get-Help wuerde das Skript
     in die Session laden (Dot-Sourcing, Modul-Importe, Code auf oberster
@@ -162,12 +168,18 @@ function Get-ScriptFacts {
     }
 
     # --- Nebenwirkungsfrei? ---
-    $topLevel = @()
-    if ($ast.EndBlock -and $ast.EndBlock.Statements) {
-        $topLevel = $ast.EndBlock.Statements | Where-Object {
-            $_ -isnot [System.Management.Automation.Language.FunctionDefinitionAst]
+    # Alle vier moeglichen Bloecke einbeziehen, nicht nur EndBlock: ein Skript
+    # mit echten begin/process-Namensbloecken (korrekte Syntax, kein K1-Fall)
+    # haette sonst leeres EndBlock.Statements und gaelte faelschlich als `def`,
+    # obwohl process z. B. Invoke-Command ausfuehrt.
+    $topLevel = foreach ($block in @($ast.DynamicParamBlock, $ast.BeginBlock, $ast.ProcessBlock, $ast.EndBlock)) {
+        if ($block -and $block.Statements) {
+            $block.Statements | Where-Object {
+                $_ -isnot [System.Management.Automation.Language.FunctionDefinitionAst]
+            }
         }
     }
+    $topLevel = @($topLevel)
 
     $realCommands = foreach ($statement in $topLevel) {
         $found = $statement.FindAll(
@@ -178,11 +190,29 @@ function Get-ScriptFacts {
         }
     }
 
+    # --- Orphane begin/process/end/dynamicparam-Bloecke (K1/K3) ---
+    # Stehen vor einem dieser Bloecke andere Anweisungen, faellt der Parser auf
+    # eine flache Anweisungsliste zurueck: "begin { ... }" erscheint dann als
+    # gewoehnlicher Befehlsaufruf (CommandAst "begin" mit einem Skriptblock als
+    # einzigem Argument) statt als NamedBlockAst - und der eigentliche Rumpf
+    # laeuft nie. $errors bleibt dabei leer, PSScriptAnalyzer flaggt es trotzdem
+    # als ParseError (Regel InvalidSyntaxAroundProcessBlock).
+    $namedBlockKeywords = @('begin', 'process', 'end', 'dynamicparam')
+    $orphanedNamedBlocks = @($topLevel | Where-Object {
+            $_ -is [System.Management.Automation.Language.PipelineAst] -and
+            $_.PipelineElements.Count -eq 1 -and
+            $_.PipelineElements[0] -is [System.Management.Automation.Language.CommandAst] -and
+            $_.PipelineElements[0].CommandElements.Count -eq 2 -and
+            $_.PipelineElements[0].CommandElements[0] -is [System.Management.Automation.Language.StringConstantExpressionAst] -and
+            $namedBlockKeywords -contains $_.PipelineElements[0].CommandElements[0].Value -and
+            $_.PipelineElements[0].CommandElements[1] -is [System.Management.Automation.Language.ScriptBlockExpressionAst]
+        })
+
     [pscustomobject]@{
         Synopsis        = $synopsis
         CommentHint     = $commentHint
         DefinitionsOnly = -not @($realCommands).Count
-        ParseErrors     = @($errors).Count
+        ParseErrors     = @($errors).Count + $orphanedNamedBlocks.Count
     }
 }
 

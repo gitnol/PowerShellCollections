@@ -35,28 +35,6 @@ Repo-Eigentümer treffen kann (History-Bereinigung, Lizenzlage Fremdcode, `CLAUD
 
 ## Aktuell (Hohe Priorität)
 
-### I2: Defekte Bestandsdateien reparieren
-
-Drei belegte Defekte mit eindeutigem Fix (`KNOWN_ISSUES.md` K1–K3). Kein Zugriff auf echte Systeme nötig.
-
-**Aufgaben:**
-
-- [ ] `scripts/applications/teamviewer/Set-TeamViewerAccess.ps1`: Modulimport (Suchlauf nach `modules/`) in den
-      `begin`-Block verschieben, damit `begin`/`process` wieder Skriptblöcke sind (K1)
-- [ ] `.gitattributes`: `binary`-Ausnahme für `MS.PS.Lib.psd1` auf den heutigen Pfad
-      `third-party/MailStore-PowerShell-API-Wrapper/api-wrapper/MS.PS.Lib.psd1` setzen; die UTF-16-Aufgaben-XML unter
-      `scripts/windows/shadow-copy/` ebenfalls als `binary` führen (Regel aus `CONVENTIONS.md` §3) (K2)
-- [ ] Nach der Attribut-Korrektur die drei Dateien neu auschecken und Byte-Gleichheit mit dem Blob prüfen
-      (`git show HEAD:<pfad>` gegen Arbeitskopie)
-- [ ] `tools/Build-ScriptIndex.ps1`: Syntaxprüfung um PSScriptAnalyzer-`ParseError` ergänzen (oder
-      `InvalidSyntaxAroundProcessBlock` nachbilden), damit `INDEX.md` solche Dateien als **Syntaxfehler** markiert (K3)
-
-**Zusätzliche DoD** (nur, was über die Standard-DoD hinausgeht):
-
-- [ ] `Invoke-ScriptAnalyzer` meldet für das ganze Repo 0 `ParseError`
-- [ ] Regressionstest (Pester) für K1: Datei ohne Strukturfehler, belegt durch behaviorales Rot vor dem Fix
-- [ ] `INDEX.md` neu erzeugt; vor dem Fix zeigt der Index die TeamViewer-Datei als Syntaxfehler (Nachweis der neuen Prüfung)
-
 ### I3: Zugangsdaten nur geprüft verschlüsselt übertragen
 
 Drei Stellen schicken Zugangsdaten ohne Zertifikatsprüfung bzw. als Klartext-String (`security/THREAT_MODEL.md`
@@ -90,7 +68,8 @@ nicht das Abarbeiten aller 1107 Altbefunde.
 
 - [ ] `PSScriptAnalyzerSettings.psd1` im Repo-Root: Severity Error + ParseError als Gate; Warnings vorerst nur als
       Ratchet (Anzahl darf nicht steigen)
-- [ ] `tests/` anlegen; Pester 5.7.1 pinnen (`tests/RequiredModules.psd1`, `testing/UNIT_TESTS.md`)
+- [ ] `tests/` existiert bereits seit I2 (ein Regressionstest für K1); `RequiredModules.psd1` ergänzen und
+      Pester 5.7.1 formal pinnen (`testing/UNIT_TESTS.md`)
 - [ ] Erste Unit-Tests für `modules/PSCollections.Connectivity` (Pipeline-Eingabe: drei Eingaben → drei Ergebnisse;
       eigene Hintergrundjobs des Aufrufers bleiben unberührt) — beides Fehler, die `docs/BACKLOG.md` Abschnitt 3
       als behoben beschreibt
@@ -157,3 +136,4 @@ vorhandene Projekt-Hook (`.githooks/pre-commit`) prüft nur neu hinzukommenden D
 ## Abgeschlossen
 
 - I1 docs_template-Baseline eingeführt (Bestand übernommen) — [ABGESCHLOSSEN 2026-10-11]
+- I2 Defekte Bestandsdateien reparieren (TeamViewer-Skript, `.gitattributes`, Index-Syntaxprüfung) — [ABGESCHLOSSEN 2026-10-13]
