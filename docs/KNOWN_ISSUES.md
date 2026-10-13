@@ -32,9 +32,9 @@ Lessons Learned). Danach archivieren oder löschen.
 
 | # | Beschreibung | Behoben in | Commit |
 |---|---|---|---|
-| K1 | `Set-TeamViewerAccess.ps1`: Modulimport in den `begin`-Block verschoben, damit `begin`/`process` wieder Namensbloecke sind statt Befehlsaufrufe | I2 | folgt |
-| K2 | `.gitattributes`: `binary`-Ausnahme fuer `MS.PS.Lib.psd1` auf den aktuellen Pfad korrigiert, UTF-16-Aufgaben-XML in `scripts/windows/shadow-copy/` ebenfalls als `binary` gefuehrt | I2 | folgt |
-| K3 | `tools/Build-ScriptIndex.ps1`: Orphane `begin`/`process`/`end`/`dynamicparam`-Bloecke werden jetzt als Syntaxfehler erkannt (AST-Muster statt teurem Invoke-ScriptAnalyzer pro Datei); dabei auch eine verwandte Luecke gefunden und mitbehoben - die Nebenwirkungspruefung las nur `EndBlock.Statements` und markierte zwei Skripte mit echten `begin`/`process`-Bloecken faelschlich als `def` (`LESSONS_LEARNED.md` L4) | I2 | folgt |
+| K1 | `Set-TeamViewerAccess.ps1`: Modulimport in den `begin`-Block verschoben, damit `begin`/`process` wieder Namensbloecke sind statt Befehlsaufrufe | I2 | 6dfc771 |
+| K2 | `.gitattributes`: `binary`-Ausnahme fuer `MS.PS.Lib.psd1` auf den aktuellen Pfad korrigiert, UTF-16-Aufgaben-XML in `scripts/windows/shadow-copy/` ebenfalls als `binary` gefuehrt | I2 | 6dfc771 |
+| K3 | `tools/Build-ScriptIndex.ps1`: Orphane `begin`/`process`/`end`/`dynamicparam`-Bloecke werden jetzt als Syntaxfehler erkannt (AST-Muster statt teurem Invoke-ScriptAnalyzer pro Datei); dabei auch eine verwandte Luecke gefunden und mitbehoben - die Nebenwirkungspruefung las nur `EndBlock.Statements` und markierte zwei Skripte mit echten `begin`/`process`-Bloecken faelschlich als `def` (`LESSONS_LEARNED.md` L4) | I2 | 6dfc771 |
 
 ---
 

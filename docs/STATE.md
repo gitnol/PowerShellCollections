@@ -23,7 +23,7 @@ Login nimmt `[PSCredential]` statt `-User`/`-Pass`-Strings.
 | # | Titel | Datum | Commit |
 |---|-------|-------|--------|
 | I1 | docs_template-Baseline eingeführt (Bestand übernommen) | 2026-10-11 | fbff4e3 |
-| I2 | Defekte Bestandsdateien reparieren (TeamViewer-Skript, `.gitattributes`, Index-Syntaxprüfung) | 2026-10-13 | folgt |
+| I2 | Defekte Bestandsdateien reparieren (TeamViewer-Skript, `.gitattributes`, Index-Syntaxprüfung) | 2026-10-13 | 6dfc771 |
 
 ---
 
