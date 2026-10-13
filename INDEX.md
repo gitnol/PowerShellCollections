@@ -29,7 +29,7 @@ Davon 34 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Find-DNSDuplicates.ps1](scripts/active-directory/dns/Find-DNSDuplicates.ps1) |  | Findet und entfernt doppelte DNS-A-Einträge zonenübergreifend. |
+| [Find-DNSDuplicates.ps1](scripts/active-directory/dns/Find-DNSDuplicates.ps1) |  | Bereinigt veraltete und doppelte dynamische DNS-Einträge (A und optional PTR) im IP-Pool der FortiGate-IPsec-VPN-Clients. |
 
 ## `scripts/active-directory/gpo/`
 

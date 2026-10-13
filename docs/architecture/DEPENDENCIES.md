@@ -85,7 +85,8 @@ Hosts sind in diesem öffentlichen Repo immer Parameter oder Platzhalter; konkre
 | OpenScape Business WSI | `https://<anlage>:8802/cgi-bin/gadgetapi` | Telefonie-Funktionen (`OSBiz.psm1`) — Zertifikatsprüfung aus, Zugangsdaten in der URL (`TODO.md` I3) | Exception |
 | LANCOM Public Spot | REST auf Router/WLC (Basic Auth) | Gastbenutzer anlegen (`scripts/network/lancom/`) | Fehler je Benutzer |
 | Aruba-Switches | REST über `PowerArubaSW` | MAC-Tabellen | Switch übersprungen |
-| Dassault License Server (DSLS) | lokal/remote Kommandozeile `DSLicSrv.exe` | PRTG-Sensoren Lizenznutzung | `<error>` an PRTG |
+| Dassault License Server (DSLS) | PowerShell-Remoting auf den Lizenzserver, dort lokal `DSLicSrv.exe -admin` | PRTG-Sensoren Lizenznutzung (`scripts/monitoring/prtg/dsls/`) | `<error>` an PRTG |
+| FortiGate (Dialup-VPN) | REST `https://<fortigate>:8443/api/v2/monitor/vpn/ipsec` (Bearer-Token aus Datei) | Aktive VPN-Client-IPs zur Erkennung verwaister DNS-Einträge (`Find-DNSDuplicates.ps1`, optional über `-FortiGateUrl`) | Ohne den Parameter: nur Duplikat-Erkennung, keine Verwaist-Prüfung einzelner Einträge |
 | SMTP-Server | Port 587 mit TLS | Benachrichtigung des Ping-Monitors | Meldung im Log |
 | Wireshark `manuf.json` | `https://www.wireshark.org/json/manuf.json` (manueller Download) | OUI-Herstellerliste für `Get-ArubaMacTable.ps1` | Herstellerauflösung fehlt |
 | Beliebige Webseiten | Liste in `urls.txt` | Änderungsüberwachung (`Test-WebChange.ps1`) | Eintrag als Fehler im Ergebnis |
