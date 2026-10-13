@@ -63,7 +63,7 @@ function Get-ZammadTicketDetails {
             -Token $Token -BaseUrl $BaseUrl
 
         # Eigener Endpunkt - /tickets/<id> liefert das Ticket, die Artikel
-        # stehen unter /tickets/<id>/articles.
+        # stehen unter /ticket_articles/by_ticket/<id>.
         $articles = Get-ZammadTicketArticles -TicketId $TicketId `
             -Token $Token -BaseUrl $BaseUrl
 

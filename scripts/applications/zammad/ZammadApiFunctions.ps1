@@ -220,5 +220,8 @@ function Get-ZammadTicketArticles {
         [Parameter(Mandatory)] [string]$BaseUrl
     )
     
-    Invoke-ZammadRequest -Method GET -Endpoint "tickets/$TicketId/articles" -Token $Token -BaseUrl $BaseUrl
+    # Offizieller Endpunkt laut API-Doku. "tickets/<id>/articles" gibt es nicht
+    # (HTTP 404) - Invoke-ZammadRequest schluckt den Fehler, die Funktion lieferte
+    # deshalb stillschweigend nichts.
+    Invoke-ZammadRequest -Method GET -Endpoint "ticket_articles/by_ticket/$TicketId" -Token $Token -BaseUrl $BaseUrl
 }
