@@ -357,7 +357,7 @@ Davon 34 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
 | [Clear-OldTempFiles.ps1](scripts/windows/cleanup/Clear-OldTempFiles.ps1) |  | Ultimate Windows Cleanup Tool v4.0 (Fixed) - Stabile Version |
-| [Remove-OldUserProfile.ps1](scripts/windows/cleanup/Remove-OldUserProfile.ps1) |  | Findet verwaiste und alte Windows-Benutzerprofile und loescht sie. |
+| [Profile-Cleanup.ps1](scripts/windows/cleanup/Profile-Cleanup.ps1) |  | Findet verwaiste und alte Windows-Benutzerprofile anhand des letzten Logins und loescht sie (mit WhatIf/Confirm). |
 
 ## `scripts/windows/desktop/window-cascade/`
 
