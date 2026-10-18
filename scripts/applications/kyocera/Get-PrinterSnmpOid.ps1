@@ -1,0 +1,44 @@
+<#
+.SYNOPSIS
+    Fragt einen einzelnen SNMP-Wert von einem Netzwerkdrucker ab.
+
+.DESCRIPTION
+    Liest ueber SNMP die angegebene OID von einem Geraet. Gedacht fuer
+    Kyocera-Geraete, funktioniert aber mit jedem SNMP-faehigen Drucker -
+    typischerweise fuer Toner- und Zaehlerstaende.
+
+.NOTES
+    Eine Sammlung brauchbarer Kyocera-OIDs findet sich hier:
+    https://github.com/fusioninventory/fusioninventory-agent/issues/638
+
+    Auf dem Geraet muss SNMP aktiviert sein und die Community-Zeichenfolge
+    passen. Viele Geraete liefern per Vorgabe nur lesend und nur ueber v1/v2c.
+#>
+
+# See also here for some kyocera OIDs 
+# https://github.com/fusioninventory/fusioninventory-agent/issues/638
+
+function Get-SnmpOID {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)][string]$IP,
+        [Parameter(Mandatory = $true)][string]$OID
+    )
+    
+    begin {
+        Import-Module SNMP
+    }
+    
+    process {
+        $Result = Get-SnmpData -IP $IP -OID $StatusOID | Select-Object -ExpandProperty Data
+        return $Result
+    }
+    
+    end {
+        
+    }
+}
+
+
+$StatusOID = ".1.3.6.1.4.1.1347.43.18.2.1.2.1.2"
+Get-SnmpOID -IP 10.20.30.40 -OID $StatusOID

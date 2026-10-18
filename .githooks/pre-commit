@@ -1,0 +1,145 @@
+#!/bin/sh
+#
+# pre-commit: verhindert, dass firmenspezifische Details oder Secrets
+#             ins oeffentliche Repo committet werden.
+#
+# Geprueft werden die gestageten Text-Dateien gegen zwei Regex-Listen:
+#
+#   .githooks/forbidden-patterns.txt         versioniert, generische Muster
+#   .githooks/forbidden-patterns.local.txt   lokal (gitignored), Firmenbegriffe
+#
+# Die lokale Datei ist bewusst NICHT versioniert - sonst stuenden genau die
+# Begriffe im Klartext im oeffentlichen Repo, die der Hook schuetzen soll.
+#
+# Aktivierung (einmalig pro Clone):
+#     git config core.hooksPath .githooks
+#     cp .githooks/forbidden-patterns.local.txt.example \
+#        .githooks/forbidden-patterns.local.txt
+#
+# Notfall-Bypass (bewusst nutzen!):
+#     git commit --no-verify
+
+set -u
+
+# SIGPIPE ignorieren. Sonst laesst sich der Hook durch eine frueh
+# geschlossene Pipe umgehen:
+#
+#     git commit -m "..." | head -3
+#
+# head beendet sich nach drei Zeilen, die weiteren echo-Aufrufe des Hooks
+# bekommen SIGPIPE, die Shell stirbt - und `exit 1` wird nie erreicht. Git
+# wertet das nicht als Abbruch und committet. Nachgestellt und bestaetigt:
+# mit Pipe entstand der Commit, ohne Pipe nicht.
+trap '' PIPE
+
+repo_root=$(git rev-parse --show-toplevel)
+hooks_dir="$repo_root/.githooks"
+shared_patterns="$hooks_dir/forbidden-patterns.txt"
+local_patterns="$hooks_dir/forbidden-patterns.local.txt"
+
+# Fehlende lokale Liste ist kein Abbruchgrund, aber sie darf nicht still
+# uebergangen werden - sonst wiegt man sich in einem frischen Clone in
+# falscher Sicherheit.
+if [ ! -f "$local_patterns" ]; then
+    echo ""
+    echo "HINWEIS (pre-commit): $local_patterns fehlt."
+    echo "  Firmenspezifische Begriffe werden daher NICHT geprueft."
+    echo "  Anlegen mit:"
+    echo "      cp .githooks/forbidden-patterns.local.txt.example \\"
+    echo "         .githooks/forbidden-patterns.local.txt"
+    echo ""
+fi
+
+# Beide Listen zusammenfuehren: Kommentare/Leerzeilen raus, CR entfernen,
+# Rest mit '|' zu einer einzigen ERE verketten.
+pattern=$(cat "$shared_patterns" "$local_patterns" 2>/dev/null \
+    | tr -d '\r' \
+    | grep -v -e '^[[:space:]]*#' -e '^[[:space:]]*$' \
+    | paste -sd '|' -)
+
+[ -n "$pattern" ] || exit 0
+
+known=$(mktemp)
+candidates=$(mktemp)
+report=$(mktemp)
+trap 'rm -f "$known" "$candidates" "$report"' EXIT
+
+# Alle Blob-Hashes aus dem letzten Commit. Inhalt, der dort schon steckt, kann
+# dieser Hook nicht mehr verhindern - er ist bereits veroeffentlicht. Wird eine
+# Datei nur verschoben oder umbenannt, entsteht kein neuer Inhalt; ein Treffer
+# darin waere reines Rauschen und wuerde jedes `git mv` blockieren.
+# Altbestand bereinigt man getrennt, nicht ueber einen Commit-Hook.
+git ls-tree -r HEAD 2>/dev/null | awk '{print $3}' | sort -u > "$known"
+
+# Kandidaten bestimmen: gestagete Dateien, deren Blob noch nicht im letzten
+# Commit vorkommt. --raw liefert Ziel-Blob und Pfad in einem Aufruf, und die
+# Bekanntheitspruefung laeuft in demselben awk. Eine Shell-Schleife mit einem
+# `grep` pro Datei kostet bei hundert Dateien unter Windows zweistellige
+# Sekunden - Prozessstart ist hier die teuerste Operation.
+#
+# --raw-Format:  :100644 100644 <src-blob> <dst-blob> M<TAB>pfad
+#
+# --abbrev=40 ist zwingend: `git diff --raw` kuerzt Objekt-Hashes auf sieben
+# Zeichen, `git ls-tree` gibt sie voll aus. Ohne die Option vergleicht man
+# "72dea93" mit "72dea9389323...", der Abgleich trifft nie zu, und der Hook
+# prueft bei jeder Umbenennung stillschweigend wieder den kompletten
+# Altbestand - ohne dass das auffaellt, solange nichts gefunden wird.
+git diff --cached --raw --abbrev=40 --no-renames --diff-filter=ACM \
+    | awk -v knownfile="$known" '
+        BEGIN {
+            while ((getline line < knownfile) > 0) { known[line] = 1 }
+        }
+        {
+            blob = $4
+            path = substr($0, index($0, "\t") + 1)
+            if (path ~ /^\.githooks\//) next
+            if (blob in known) next
+            print path
+        }' > "$candidates"
+
+[ -s "$candidates" ] || exit 0
+
+# Ein einziger `git grep` ueber alle Kandidaten statt zwei Prozesse pro Datei.
+# Bei einer Umstrukturierung mit hundert Dateien ist das der Unterschied
+# zwischen einer Sekunde und ueber einer Minute.
+#   --cached  durchsucht den Index, nicht das Arbeitsverzeichnis
+#   -I        laesst Binaerdateien aus
+# Zeilen mit dem Marker 'allowlist secret' sind bewusst freigegeben - fuer
+# Platzhalter in Beispielcode, die sich per Regex nicht von echten Secrets
+# unterscheiden lassen.
+# GIT_LITERAL_PATHSPECS verhindert, dass Klammern oder Sternchen im Dateinamen
+# als Muster gelesen werden. xargs -0 uebergibt
+# die Pfade nullterminiert und kommt damit auch mit Leerzeichen zurecht.
+tr '\n' '\0' < "$candidates" \
+    | GIT_LITERAL_PATHSPECS=1 xargs -0 git grep --cached -I -n -i -E "$pattern" -- 2>/dev/null \
+    | grep -v -i 'allowlist secret' \
+    | awk -F: '{
+        file = $1
+        line = $2
+        sub(/^[^:]*:[^:]*:/, "")
+        printf "  %s:%s\n      %s\n", file, line, $0
+      }' \
+    > "$report"
+
+if [ -s "$report" ]; then
+    echo ""
+    echo "COMMIT ABGEBROCHEN - schuetzenswerte Inhalte gefunden:"
+    echo ""
+    cat "$report"
+    echo ""
+    echo "  Bitte durch neutrale Beispielwerte ersetzen, z.B.:"
+    echo "      Domaene   -> contoso.local / example.com"
+    echo "      Server    -> DC01, SRV01, FS01"
+    echo "      Benutzer  -> m.mustermann, m.mueller"
+    echo "      IP        -> 192.0.2.10 (RFC 5737)"
+    echo ""
+    echo "  Muster pflegen in:"
+    echo "      .githooks/forbidden-patterns.txt        (generisch, versioniert)"
+    echo "      .githooks/forbidden-patterns.local.txt  (firmenspezifisch, lokal)"
+    echo "  Einzelne Zeile freigeben: 'allowlist secret' in einen Kommentar"
+    echo "  Bewusster Bypass: git commit --no-verify"
+    echo ""
+    exit 1
+fi
+
+exit 0

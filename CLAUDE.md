@@ -1,0 +1,203 @@
+@AGENTS.md
+
+# Arbeiten in diesem Repository
+
+Sammlung von PowerShell-Skripten aus dem Windows-/AD-Betrieb. Oeffentliches
+Repository, ueber Jahre gewachsen, ein Autor.
+
+## Zuerst lesen
+
+| Frage                                  | Antwort steht in                         |
+| -------------------------------------- | ---------------------------------------- |
+| Welches Skript macht was?              | [INDEX.md](INDEX.md) - generiert          |
+| Wohin gehoert eine neue Datei?         | [docs/STRUCTURE.md](docs/STRUCTURE.md)    |
+| Wie ist ein Thema zugeschnitten?       | [scripts/monitoring/prtg/](scripts/monitoring/prtg/) als Referenz |
+
+`INDEX.md` ist der schnellste Einstieg: eine Zeile pro Skript mit Pfad und
+Kurzbeschreibung. `grep -i "lockout" INDEX.md` beantwortet die meisten
+Suchfragen, ohne Dateien zu oeffnen.
+
+## Ablage
+
+> **Ein Skript liegt unter dem System, gegen das es laeuft.**
+>
+> Existiert es nur wegen des Ausgabe-Vertrags einer Plattform (PRTG-XML,
+> Nagios-Exitcode), ist **die Plattform** das System - nicht das abgefragte
+> Produkt.
+
+Ein Skript, das per `Get-ADComputer` nur die Rechnerliste holt, gehoert nicht
+unter `active-directory/` - AD ist dort die Bezugsquelle, nicht das Thema.
+
+Nie gefunden, wohin damit? Nach `_inbox/`, nicht irgendwohin. Dort gilt die
+30-Tage-Regel.
+
+## Konventionen
+
+### Kodierung - wichtig
+
+Enthaelt eine `.ps1`/`.psm1` Nicht-ASCII-Zeichen (Umlaute), **muss** sie ein
+UTF-8-BOM haben. Windows PowerShell 5.1 liest sonst in der ANSI-Codepage:
+aus `Prüfe` wird `PrÃ¼fe`, und regulaere Ausdruecke mit Umlauten matchen
+nicht mehr - ohne Fehlermeldung. Mehrere Skripte hier werten
+deutschsprachige Eventlog- und Programmausgaben aus und waeren davon
+betroffen. Im Repo liegen Skripte mit `#Requires -Version 5.1`, die Annahme
+"alles laeuft unter PS7" traegt also nicht.
+
+```powershell
+# Pruefen und reparieren
+.\tools\Repair-ScriptEncoding.ps1 -WhatIf
+.\tools\Repair-ScriptEncoding.ps1
+```
+
+Reine ASCII-Dateien brauchen kein BOM.
+`third-party/MailStore-PowerShell-API-Wrapper/api-wrapper/MS.PS.Lib.psd1`
+liegt als UTF-16 LE vor und ist in `.gitattributes` als `binary` markiert -
+nicht konvertieren.
+
+### Zeilenenden
+
+Festgelegt in [.gitattributes](.gitattributes): im Repository LF, im
+Arbeitsverzeichnis CRLF fuer `.ps1`/`.psm1`/`.psd1`/`.bat`/`.cmd`/`.xml`,
+LF fuer `.sh` und `.githooks/*` (ein Hook mit CRLF scheitert an
+`bad interpreter`). Nicht von Hand umstellen.
+
+### Namensgebung
+
+| Regel                   | Ja                         | Nein                             |
+| ----------------------- | -------------------------- | -------------------------------- |
+| Verb-Noun               | `Get-ADUserLastLogon.ps1`  | `check-for-bad-passwords.ps1` (alt) |
+| Freigegebene Verben     | `Get-`, `Set-`, `Test-`    | `Check-`, `Create-`, `Manage-`   |
+| Englisch                | `Set-FolderPermission.ps1` | `Fileserver-Einzelberechtigungen-fuer-User.ps1` (alt) |
+| ASCII in Pfaden         | `temporary/`               | `Temporäre-.../`                 |
+| Ordner kebab-case       | `active-directory/`        | `Server-Client-Helper-Stuff/`    |
+
+`Get-Verb` listet die zulaessigen Verben. `Check-` gibt es nicht - das heisst
+`Test-`.
+
+Die mit "(alt)" markierten Beispiele sind Namen, die es hier tatsaechlich gab -
+sie sind inzwischen umbenannt. Versionssuffixe wie `_v2` oder `_old` gibt es
+nicht mehr: je Aufgabe existiert genau eine Datei.
+
+Verb-Noun gilt fuer **ausfuehrbare Skripte**. Ausgenommen sind:
+
+| Art                   | Benennung       | Beispiele                                               |
+| --------------------- | --------------- | ------------------------------------------------------- |
+| Module                | nach dem Modul  | `OSBiz.psm1`, `PRTG.Dsls.psm1`, `PSCollections.Connectivity.psm1` |
+| Funktionsbibliotheken | nach dem Inhalt | `MailStoreApiFunctions.ps1`, `UserSessionFunctions.ps1` |
+
+Eine Bibliothek definiert nur Funktionen und wird dot-gesourct; ein Verb waere
+dort irrefuehrend, weil die Datei selbst nichts tut.
+
+### Comment-Based Help
+
+Jedes neue Skript bekommt mindestens `.SYNOPSIS`. Der Index liest sie aus.
+
+## Laufende Pflege
+
+Drei Werkzeuge, drei Anlaesse. Keines veraendert etwas ohne Aufforderung.
+
+| Wann                                            | Befehl                                             | Erwartetes Ergebnis            |
+| ----------------------------------------------- | -------------------------------------------------- | ------------------------------ |
+| Skript angelegt, umbenannt, geloescht           | `.\tools\Build-ScriptIndex.ps1`                    | `INDEX.md` neu geschrieben     |
+| **vor** dem Verschieben, Umbenennen, Loeschen   | `.\tools\Find-ScriptDependency.ps1 -CrossFolderOnly` | `ungedeckt: 0`                 |
+| Datei mit Umlauten angelegt oder eingefuegt     | `.\tools\Repair-ScriptEncoding.ps1 -WhatIf`        | `0 Datei(en) betroffen`         |
+
+Alle drei zusammen, als Kontrolle vor dem Push:
+
+```powershell
+.\tools\Build-ScriptIndex.ps1
+.\tools\Find-ScriptDependency.ps1 -CrossFolderOnly
+.\tools\Repair-ScriptEncoding.ps1 -WhatIf
+```
+
+Meldet `Repair-ScriptEncoding` betroffene Dateien, denselben Aufruf ohne
+`-WhatIf` wiederholen. Meldet `Find-ScriptDependency` etwas unter
+`UNGEDECKT`, laeuft dort ein Aufruf ins Leere - das muss vor dem Push weg.
+
+Der `pre-commit`-Hook laeuft von selbst; er prueft nur auf firmenspezifische
+Inhalte und Secrets, nicht auf das Obige.
+
+## Keine firmenspezifischen Details
+
+Das Repository ist oeffentlich. Verboten sind:
+
+- Firmen- und Standortnamen, interne AD-/DNS-Domaenen
+- echte Benutzernamen, E-Mail-Adressen, Personennamen
+- echte Server-/Host-Namen, interne IP-Adressen, UNC-Pfade
+- Passwoerter, API-Keys, Tokens, private Schluessel
+
+Platzhalter stattdessen:
+
+| Typ      | Wert                                                   |
+| -------- | ------------------------------------------------------ |
+| Domaene  | `contoso.local`, `example.com`                         |
+| Server   | `DC01`, `DC02`, `SRV01`, `FS01`                        |
+| Benutzer | `m.mustermann`, `m.mueller`, `j.doe`                   |
+| E-Mail   | `max.mustermann@example.com`                           |
+| IP       | `192.0.2.10`, `198.51.100.5`, `203.0.113.7` (RFC 5737) |
+
+### Durchsetzung
+
+`.githooks/pre-commit` prueft das bei jedem Commit.
+
+| Datei                                            | Versioniert | Inhalt                          |
+| ------------------------------------------------ | ----------- | ------------------------------- |
+| `.githooks/pre-commit`                           | ja          | der Hook                        |
+| `.githooks/forbidden-patterns.txt`               | ja          | generische Muster (Secrets)     |
+| `.githooks/forbidden-patterns.local.txt`         | **nein**    | die konkreten Namen             |
+| `.githooks/forbidden-patterns.local.txt.example` | ja          | Vorlage                         |
+
+Die lokale Liste ist bewusst per `.gitignore` ausgeschlossen: waere sie
+versioniert, stuenden genau die zu schuetzenden Begriffe im oeffentlichen
+Repo - der Schutz waere selbst das Leck.
+
+Einrichtung pro Clone:
+
+```sh
+git config core.hooksPath .githooks
+cp .githooks/forbidden-patterns.local.txt.example \
+   .githooks/forbidden-patterns.local.txt
+```
+
+Der Hook prueft nur Inhalt, der neu ins Repository kommt - eine reine
+Verschiebung loest ihn nicht aus. Altbestand bereinigt man getrennt, nicht
+ueber einen Commit-Hook. Platzhalter in Beispielcode, die sich per Regex
+nicht von echten Secrets trennen lassen, bekommen `allowlist secret` in
+einen Kommentar auf derselben Zeile.
+
+Bypass nur bewusst mit `git commit --no-verify`.
+
+Der Hook ignoriert SIGPIPE. Ohne das liesse er sich unbeabsichtigt umgehen:
+leitet man die Ausgabe von `git commit` durch etwas, das die Pipe frueh
+schliesst (`| head -3`), stirbt er an SIGPIPE, bevor er `exit 1` erreicht -
+und Git committet. Genau so ist hier einmal ein Testcommit mit
+Firmenbegriff entstanden.
+
+## Fallstricke in diesem Bestand
+
+Wer hier arbeitet, sollte das wissen - es ist nicht offensichtlich:
+
+- **Die meisten Dateien fuehren beim Laden Code aus.** Typisch: eine Funktion
+  wird definiert und am Dateiende gleich aufgerufen. Dot-Sourcing zum
+  Erkunden ist deshalb riskant - manche Skripte greifen dabei sofort auf AD
+  oder Remote-Rechner zu, eines laedt beim Laden eine Webseite des
+  Herstellers. Nur die mit `def` markierten Dateien (32 von 147) enthalten
+  ausser Definitionen nichts Ausfuehrbares. Im Zweifel lesen statt laden.
+- **Generierter Code kann kaputt sein.** `Invoke-MailStoreApiScratch.ps1` hat
+  lange nicht geparst - `New-MailStoreApiFunctionReference.ps1` hatte einen
+  leeren Parameter erzeugt. Beides ist behoben, der Generator prueft seine
+  Ausgabe jetzt selbst. Der Index markiert Dateien mit Syntaxfehlern.
+- **Ein paar Skripte brauchen einander.** Meist sind sie eigenstaendig; wo
+  nicht, laden sie das Modul ausdruecklich per `Import-Module`. Genau diese
+  Unterscheidung trifft das Werkzeug. Vor jedem Verschieben, Umbenennen oder
+  Loeschen:
+
+  ```powershell
+  .\tools\Find-ScriptDependency.ps1 -CrossFolderOnly
+  ```
+
+  Ausgabe `ungedeckt: 0` heisst: kein Aufruf laeuft ins Leere.
+
+- **`third-party/` nicht anfassen.** Fremdcode, unveraendert. Aenderungen
+  gehoeren upstream oder in einen eigenen Wrapper.
+- **`_inbox/` ist kein Ablageort**, sondern eine Durchgangsstation.
