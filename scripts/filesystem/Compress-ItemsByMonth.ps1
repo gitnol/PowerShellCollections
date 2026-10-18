@@ -17,7 +17,7 @@
     Der Lauf ist wiederholbar (7z u aktualisiert nur). Ein zweiter, gleichzeitiger Lauf wird verhindert.
     Mit -WhatIf wird nichts gepackt oder geloescht, nur protokolliert.
 .PARAMETER SourcePath
-    Quellordner. Standard: D:\STAPELDRUCK_DATEIEN
+    Quellordner (Pflichtparameter), z. B. D:\Data\Export
 .PARAMETER ArchivePath
     Zielordner der Archive. Standard: <SourcePath>\gepackt
 .PARAMETER LogPath
@@ -35,7 +35,7 @@
     Regulaerer Ausdruck mit den benannten Gruppen y, m, d (nur bei -GroupBy NameDate).
     Standard: ^(?<y>\d{4})\.(?<m>\d{2})\.(?<d>\d{2})(\s|$)   (Alias: FolderPattern)
 .PARAMETER ExcludeFolders
-    Ordnernamen, die nie angefasst werden (nur bei -ItemType Folder). Standard: _BARCODE_MERGE, gepackt
+    Ordnernamen, die nie angefasst werden (nur bei -ItemType Folder). Standard: gepackt
 .PARAMETER MonthFormat
     Format des Archivnamens, nur y, M, Punkt, Bindestrich, Unterstrich. Standard: yyyy.MM
 .PARAMETER MinAgeDays
@@ -50,9 +50,9 @@
 .PARAMETER RemoveSource
     Quellen nach erfolgreichem Packen, Testen UND Inhaltsvergleich loeschen.
 .EXAMPLE
-    .\Compress-ItemsByMonth.ps1 -WhatIf
+    .\Compress-ItemsByMonth.ps1 -SourcePath D:\Data\Export -WhatIf
 .EXAMPLE
-    .\Compress-ItemsByMonth.ps1 -RemoveSource
+    .\Compress-ItemsByMonth.ps1 -SourcePath D:\Data\Export -RemoveSource
 .EXAMPLE
     .\Compress-ItemsByMonth.ps1 -SourcePath D:\XML -ArchivePath D:\XML\gepackt -ItemType File -Filter '*.bak' -RemoveSource
 .NOTES
@@ -70,7 +70,7 @@
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(
-    [string]$SourcePath = 'D:\STAPELDRUCK_DATEIEN',
+    [Parameter(Mandatory)][string]$SourcePath,
     [string]$ArchivePath = (Join-Path -Path $SourcePath -ChildPath 'gepackt'),
     [string]$LogPath = (Join-Path -Path $ArchivePath -ChildPath 'Compress-ItemsByMonth.log'),
     [string]$SevenZipPath,
@@ -78,7 +78,7 @@ param(
     [ValidateSet('NameDate', 'LastWriteTime')][string]$GroupBy,
     [string]$Filter = '*',
     [Alias('FolderPattern')][string]$NamePattern = '^(?<y>\d{4})\.(?<m>\d{2})\.(?<d>\d{2})(\s|$)',
-    [string[]]$ExcludeFolders = @('_BARCODE_MERGE', 'gepackt'),
+    [string[]]$ExcludeFolders = @('gepackt'),
     [ValidatePattern('^[yM\.\-_]+$')][string]$MonthFormat = 'yyyy.MM',
     [ValidateRange(0, 3650)][int]$MinAgeDays = 1,
     [ValidateRange(0, 9)][int]$CompressionLevel = 5,
