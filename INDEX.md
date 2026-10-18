@@ -20,7 +20,7 @@ Davon 35 nebenwirkungsfrei, 289 mit Syntaxfehlern.
 | [.gitignore](.gitignore) |  | _(aus Kommentar)_ Windows reserved device names (created by shell redirects) |
 | [AGENTS.md](AGENTS.md) |  | **Syntaxfehler (4)** - _(aus Kommentar)_ AGENTS.md â€“ PowerShellCollections |
 | [CLAUDE.md](CLAUDE.md) |  | **Syntaxfehler (372)** - _(aus Kommentar)_ Arbeiten in diesem Repository |
-| [INDEX.md](INDEX.md) |  | **Syntaxfehler (1509)** - _(aus Kommentar)_ Skript-Index |
+| [INDEX.md](INDEX.md) |  | **Syntaxfehler (473)** - _(aus Kommentar)_ Skript-Index |
 | [LICENSE](LICENSE) |  | **Syntaxfehler (2)** - _keine Beschreibung_ |
 | [README.md](README.md) |  | **Syntaxfehler (202)** - _(aus Kommentar)_ PowerShellCollections |
 
@@ -542,6 +542,7 @@ Davon 35 nebenwirkungsfrei, 289 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
+| [Compress-ItemsByMonth.ps1](scripts/filesystem/Compress-ItemsByMonth.ps1) |  | Packt Ordner oder Dateien in monatliche 7z-Archive (z. B. 2025.10.7z) und loescht die Quellen optional erst, nachdem der Archivinhalt automatisch gegen die Quelle verglichen wurde. |
 | [Get-DllVersion.ps1](scripts/filesystem/Get-DllVersion.ps1) | `def` | Liest die Dateiversion einer DLL oder EXE aus. |
 | [Resolve-Links.ps1](scripts/filesystem/Resolve-Links.ps1) |  | Findet Symlinks, Junctions und Hardlinks in einem Verzeichnisbaum und loest ihre Ziele auf. |
 
@@ -893,10 +894,4 @@ Davon 35 nebenwirkungsfrei, 289 mit Syntaxfehlern.
 | [Build-ScriptIndex.ps1](tools/Build-ScriptIndex.ps1) |  | Erzeugt INDEX.md - eine durchsuchbare Uebersicht aller Skripte im Repo. |
 | [Find-ScriptDependency.ps1](tools/Find-ScriptDependency.ps1) |  | Findet Funktionsaufrufe, die ueber Dateigrenzen hinweg gehen. |
 | [Repair-ScriptEncoding.ps1](tools/Repair-ScriptEncoding.ps1) |  | Ergaenzt fehlende UTF-8-BOMs in Skripten, die Nicht-ASCII-Zeichen enthalten. |
-
-## `unsorted-stuff/`
-
-| Skript | | Beschreibung |
-| ------ | --- | ------------ |
-| [Compress-ItemsByMonth.ps1](unsorted-stuff/Compress-ItemsByMonth.ps1) |  | Packt Ordner oder Dateien in monatliche 7z-Archive (z. B. 2025.10.7z) und loescht die Quellen optional erst, nachdem der Archivinhalt automatisch gegen die Quelle verglichen wurde. |
 
