@@ -166,7 +166,7 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
-| [Compress-FilesByMonth.ps1](scripts/filesystem/Compress-FilesByMonth.ps1) |  | Packt Dateien nach Entstehungsmonat in je ein ZIP-Archiv. |
+| [Compress-ItemsByMonth.ps1](scripts/filesystem/Compress-ItemsByMonth.ps1) |  | Packt Ordner oder Dateien in monatliche 7z-Archive (z. B. 2025.10.7z) und loescht die Quellen optional erst, nachdem der Archivinhalt automatisch gegen die Quelle verglichen wurde. |
 | [Get-DllVersion.ps1](scripts/filesystem/Get-DllVersion.ps1) | `def` | Liest die Dateiversion einer DLL oder EXE aus. |
 | [Resolve-Links.ps1](scripts/filesystem/Resolve-Links.ps1) |  | Findet Symlinks, Junctions und Hardlinks in einem Verzeichnisbaum und loest ihre Ziele auf. |
 
