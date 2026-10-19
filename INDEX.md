@@ -2,7 +2,7 @@
 
 <!-- Automatisch erzeugt von tools/Build-ScriptIndex.ps1 - nicht von Hand bearbeiten. -->
 
-147 Skripte. 147 mit `.SYNOPSIS` (100%), 0 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
+148 Skripte. 148 mit `.SYNOPSIS` (100%), 0 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
 
 | Markierung | Bedeutung |
 | ---------- | --------- |
@@ -176,6 +176,7 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | ------ | --- | ------------ |
 | [Get-FileserverUserPermission.ps1](scripts/filesystem/permissions/Get-FileserverUserPermission.ps1) |  | Findet auf einem Dateiserver Ordner, auf denen einzelne Benutzer statt Gruppen berechtigt sind. |
 | [Get-FolderPermissions.ps1](scripts/filesystem/permissions/Get-FolderPermissions.ps1) | `def` | Listet rekursiv die Ordner auf, die nicht vererbte Einzelberechtigungen tragen. |
+| [Get-ReadAccessGroups.ps1](scripts/filesystem/permissions/Get-ReadAccessGroups.ps1) |  | Ermittelt AD-Gruppen, die auf ALLEN Objekten unterhalb eines Basisverzeichnisses Lesezugriff haben. |
 
 ## `scripts/filesystem/search/`
 
