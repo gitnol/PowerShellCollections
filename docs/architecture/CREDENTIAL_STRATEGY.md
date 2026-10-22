@@ -90,13 +90,13 @@ Layer-Wechsel pro Boot.
 
 ```powershell
 # Verboten: Klartext-Passwort im Skript
-$password = "Geheim123"   # allowlist secret (Anti-Beispiel)
+$password = "<klartext-passwort>"   # allowlist secret (Anti-Beispiel)
 
 # Verboten: Klartext in config.ps1, das in git landet
-$cred = @{ Username = "svc-app"; Password = "Geheim123" }   # allowlist secret (Anti-Beispiel)
+$cred = @{ Username = "svc-app"; Password = "<klartext-passwort>" }   # allowlist secret (Anti-Beispiel)
 
 # Verboten: Credential als Plain-String an Cmdlets weiterreichen
-Invoke-RestMethod -Headers @{ Authorization = "Bearer Geheim123" }
+Invoke-RestMethod -Headers @{ Authorization = "Bearer <klartext-token>" }
 ```
 
 ---

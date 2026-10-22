@@ -31,12 +31,25 @@ Commit-Pflicht pro Inkrement: `docs/KICKOFF.md` Phase 3b. Stack-spezifisch nur:
 
 ## 2. PowerShell Code-Richtlinien
 
-- **CmdletBinding + Param:** Jede Funktion und jedes neue Skript mit `[CmdletBinding()]` und `param()` Block.
+- **CmdletBinding + Param:** Jede Funktion und jedes neue Skript mit `[CmdletBinding()]` und `param()` Block. Ohne
+  `[CmdletBinding()]` landen unbekannte Parameter still in `$args` — ein Tippfehler oder ein noch nicht gebauter
+  Schalter wirkt dann wie ein erfolgreicher Aufruf (Gegenstück im Test: `testing/UNIT_TESTS.md` 7.11).
 - **Approved Verbs:** Nur [genehmigte PowerShell-Verben](https://docs.microsoft.com/powershell/scripting/developer/cmdlet/approved-verbs-for-windows-powershell-commands) für Funktions- und Skriptnamen (`Get-Verb`). `Check-` heißt `Test-`, `Create-` heißt `New-`, `Manage-` heißt `Set-`/`Update-` (§12).
 - **Fehlerbehandlung:** Abbruchfehler gezielt behandeln, nicht verschlucken. Kein leeres `catch {}` ohne Logging
   (Altbestand: 38 Fundstellen). Skripte, die viele Zielrechner abarbeiten, brechen beim Ausfall **eines** Ziels
   nicht ab, sondern melden das Ziel als Ergebnis mit Status — `$ErrorActionPreference = 'Stop'` nur dort, wo ein
   Fehler den ganzen Lauf ungültig macht.
+- **Strict Mode:** `Set-StrictMode -Version 3.0` am Skriptbeginn bzw. am Anfang der `.psm1` (gilt dann im
+  Modul-Scope, nicht beim Aufrufer). Ohne Strict Mode liefern nicht initialisierte Variablen, Tippfehler in
+  Eigenschaftsnamen und Indizes außerhalb des Arrays still `$null`. Feste Version statt `Latest`: `Latest` wird mit
+  neuen PowerShell-Versionen strenger, ein Skript bricht dann ohne eigene Änderung (Altbestand:
+  `modules/PSCollections.Connectivity` setzt noch `Latest`, `TODO.md` I7). Optionale Eigenschaften (z. B. bei
+  CIM/WMI-Objekten) gezielt prüfen (`$obj.PSObject.Properties['Name']`), nicht den Strict Mode abschalten.
+- **Typisierte Parameter und Rückgaben:** Jeder Parameter trägt einen Typ (`[string]`, `[int]`, `[datetime]`,
+  `[System.IO.FileInfo]`, eigene Klasse); `[object]` oder untypisiert nur mit Kommentar, warum. Funktionen mit
+  Rückgabewert deklarieren `[OutputType([Typ])]` — PowerShell prüft das nicht zur Laufzeit, es ist der Vertrag für
+  Leser, Tab-Vervollständigung und PSScriptAnalyzer (`PSUseOutputTypeCorrectly`). Strukturierte Rückgaben als
+  `[pscustomobject]` mit festen Feldern oder als Klasse, nicht als Hashtable mit wechselnden Schlüsseln.
 - **Eingabevalidierung:** `[ValidateNotNullOrEmpty()]`, `[ValidateRange()]`, `[ValidateSet()]` in `param()` Blöcken. Fail-Fast vor Business-Logik.
 - **Keine Konfiguration im Skriptkopf als Variable**, die man vor dem Lauf „von Hand anpasst" (Altbestand, z. B.
   `Test-ADUserWeakPassword.ps1`): Werte als Parameter mit Default; Konstanten als `$script:CONSTANT_NAME = ...`.
@@ -49,6 +62,12 @@ Commit-Pflicht pro Inkrement: `docs/KICKOFF.md` Phase 3b. Stack-spezifisch nur:
   # ✗ Falsch – bricht bei Sonderzeichen in $value
   $body = '{"Field":"' + $value + '"}'
   ```
+- **Body-Format ist endpunkt-spezifisch — nicht raten, probieren:** Derselbe Dienst kann an einem POST JSON
+  verlangen und am nächsten XML (polymorphe Typen haben in JSON oft keinen Typ-Diskriminator, in XML ist der
+  Elementname der Diskriminator); selbst erlaubte Operationen werden teils pro Feldtyp serverseitig geprüft.
+  Lesende POSTs (Suche, Zählung) gefahrlos live durchprobieren. Für JSON-Bodies ist die Form maßgeblich, die die
+  API selbst in Antworten liefert, nicht die Struktur aus dem XML-Schema — z. B. eine Liste als Array statt in
+  einer `{"Item": [...]}`-Hülle; die Hüllenform lehnte der Server mit HTTP 400 ab.
 - **Ausgabe:** Daten als Objekte in die Pipeline (`[PSCustomObject]`), nicht als formatierter Text. `Write-Host`
   nur für interaktive Konsolenhinweise und Fortschritt; Debug-Ausgabe über `Write-Verbose`. Die Sammlung besteht
   überwiegend aus interaktiven Admin-Werkzeugen — `Write-Host` ist dort üblich (599 Altbefunde
@@ -72,6 +91,10 @@ Commit-Pflicht pro Inkrement: `docs/KICKOFF.md` Phase 3b. Stack-spezifisch nur:
   benannten Blöcken, sind `begin {}`/`process {}` keine Blöcke mehr, sondern Befehlsaufrufe (`process {…}` wird zu
   `Get-Process`). Der PowerShell-Parser meldet das nicht, nur PSScriptAnalyzer (`InvalidSyntaxAroundProcessBlock`).
   Modulimporte gehören in den `begin`-Block (`KNOWN_ISSUES.md` K1).
+- **Änderungserkennung auf Text ordinal vergleichen:** `-eq`/`-ne` auf Strings vergleichen linguistisch
+  (kulturabhängig) — `'…' -ne '...'` kann `$false` liefern, obwohl sich der Text geändert hat. Ein Skript, das nur
+  geänderte Dateien zurückschreibt, übersprang so still einen Teil der Dateien, ohne Fehlermeldung. Für „hat sich
+  der Inhalt geändert?" `[string]::Equals($a, $b, [System.StringComparison]::Ordinal)` verwenden.
 
 ## 3. Dateiorganisation
 
@@ -83,6 +106,7 @@ Commit-Pflicht pro Inkrement: `docs/KICKOFF.md` Phase 3b. Stack-spezifisch nur:
 - **Skripte sind eigenständig.** Eine Funktion wird erst dann zum Modul unter `modules/`, wenn dieselbe Funktion in
   **drei** Fachdomänen kopiert wurde (Herleitung: `docs/STRUCTURE.md` „Module liegen bei ihrer Fachdomaene").
   Module mit klarer Fachdomäne liegen bei ihr (z. B. `scripts/monitoring/prtg/dsls/PRTG.Dsls.psm1`).
+  Aufbau, Manifest, Modultests und Verteilung des gemeinsamen Moduls: `architecture/MODULE.md`.
 - **Modulimport aus `modules/`** nur über den Suchlauf nach oben (Muster in `docs/STRUCTURE.md`), nie über
   einen festen relativen Pfad. Skripte, die als Scriptblock auf dem Zielrechner laufen, dürfen **kein**
   `modules/` voraussetzen.
@@ -95,6 +119,10 @@ Commit-Pflicht pro Inkrement: `docs/KICKOFF.md` Phase 3b. Stack-spezifisch nur:
   ist. Sonst werden private Helfer automatisch öffentliche API —
   inklusive Funktionen, die globalen State (TLS, Registry, Env) mutieren.
   (`modules/PSCollections.Connectivity/PSCollections.Connectivity.psd1` hält das ein.)
+  Die Liste steht **nur im Manifest** — kein zweites `Export-ModuleMember` mit eigener Liste in der `.psm1`: Wirksam
+  ist die Schnittmenge beider, ein Name, der nur im Manifest steht, fehlt nach dem Import ohne Fehlermeldung
+  (gemessen mit PowerShell 7.6). Altbestand: `PSCollections.Connectivity.psm1` führt die Liste noch doppelt
+  (`TODO.md` I7).
 - **Fremdcode** liegt unverändert unter `third-party/<projekt>/` mit `ORIGIN.md` (Quelle, Stand, Lizenz);
   eigene Ergänzungen als Wrapper unter `scripts/`.
 - **Encoding-Ausnahmen** (Vorrang vor `CONVENTIONS_COMMON.md` §2, sonst gilt UTF-8 ohne BOM):
@@ -122,7 +150,11 @@ ein logischer „Logout"/`Disconnect`/Skript-Ende den Zustand **nicht** automati
 zurücksetzt:
 
 - `[System.Net.ServicePointManager]::CertificatePolicy` / `SecurityProtocol`
-  (TLS-Vertrauen und Protokoll-Set — wirken auf **jede** HTTPS-Verbindung der Session)
+  (TLS-Vertrauen und Protokoll-Set — wirken auf **jede** HTTPS-Verbindung der Session). **PowerShell 7:**
+  `SecurityProtocol` wirkt nicht auf `Invoke-WebRequest`/`Invoke-RestMethod` (HttpClient; TLS-Version bei Bedarf
+  per `-SslProtocol` am Aufruf), nur auf `WebClient`/`HttpWebRequest`, und der Prozess startet mit
+  `SystemDefault`. Ein Modul für PS 7 setzt die Eigenschaft deshalb gar nicht — Setzen überschreibt nur die
+  Einstellung anderer Skripte der Sitzung. Unter Windows PowerShell 5.1 wirkt sie: dort Save/Restore.
 - `$env:*` und `[Environment]::SetEnvironmentVariable(... 'Process')`
 - `Set-Location` (CWD) ohne `Push-Location`/`Pop-Location`
 - Registry (`HKCU:`, `HKLM:`)

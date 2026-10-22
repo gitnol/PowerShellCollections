@@ -79,6 +79,7 @@ anzuwenden — der Fehler tritt erst zur Laufzeit auf, nicht bei der Syntaxprüf
 # Fehler je Ziel als Ergebnisobjekt zurückgeben, statt den ganzen Lauf abzubrechen
 $results = Invoke-Command -ComputerName $TargetHosts -ThrottleLimit 20 -ScriptBlock {
     $ErrorActionPreference = 'Stop'
+    Set-StrictMode -Version 3.0     # die Remote-Sitzung erbt beides nicht vom Aufrufer
     try {
         # ... Aktion ...
         [PSCustomObject]@{ ComputerName = $env:COMPUTERNAME; Status = 'OK'; Fehler = $null }
@@ -156,7 +157,8 @@ finally {
 
 - [ ] Alle `Invoke-Command`-Blöcke: lokale Variablen nur via `$using:` referenziert
 - [ ] Lokale Funktionen (WriteLog, Helpers) nicht direkt in remote Blöcken aufgerufen
-- [ ] `$ErrorActionPreference = 'Stop'` am Anfang jedes remote ScriptBlocks, Fehler als Ergebnisobjekt zurück
+- [ ] `$ErrorActionPreference = 'Stop'` und `Set-StrictMode -Version 3.0` am Anfang jedes remote ScriptBlocks, Fehler als
+      Ergebnisobjekt zurück
 - [ ] Remote-Code setzt keine Repo-Dateien voraus (`modules/`, `$PSScriptRoot`)
 - [ ] Erreichbarkeit vor dem Lauf geprüft; `-ThrottleLimit` gesetzt
 - [ ] Zustandsändernde Remote-Aktionen mit `-WhatIf`/`SupportsShouldProcess`
