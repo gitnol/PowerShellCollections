@@ -135,6 +135,7 @@ sparen. Ein-Befehl-Variante: `<Template-Root>/scripts/validate_project_docs.sh d
 | Neues Skript / neue öffentliche Funktion in einem Modul | `INDEX.md` per `tools/Build-ScriptIndex.ps1` (nie von Hand) + README des Themenordners + ggf. `docs/features/` |
 | Skript verschoben, umbenannt oder gelöscht | **vorher** `tools/Find-ScriptDependency.ps1 -CrossFolderOnly` (`ungedeckt: 0`), danach `INDEX.md` neu; neuer Ablageort → `docs/STRUCTURE.md` |
 | Versions-Bump (`ModuleVersion` in einer `.psd1`) | `docs/CHANGELOG.md` + Modul-Manifest |
+| Öffentliche Funktion in `modules/` hinzugefügt oder entfernt, neuer Aufrufer, Installationsweg geändert | `docs/architecture/MODULE.md` + Modul-Manifest |
 | Datenfluss oder Systemarchitektur geändert | `docs/architecture/OVERVIEW.md` → Mermaid `flowchart TD` aktualisieren |
 | Auth-Flow oder Session-Handling geändert | `docs/architecture/OVERVIEW.md` + `docs/security/AUTHENTICATION.md` |
 | Neues Paket / externe Bibliothek / Binary | `docs/architecture/DEPENDENCIES.md` |

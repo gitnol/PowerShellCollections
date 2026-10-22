@@ -122,7 +122,8 @@ baut auf dem vorigen auf:
 6. `architecture/ADR/` — historische Architekturentscheidungen (noch keine; Bestandsentscheidungen stehen in
    `docs/STRUCTURE.md` und `docs/BACKLOG.md`).
 7. **Stack-spezifische Architektur-Docs:** `architecture/REMOTE_EXECUTION.md` (WinRM/CIM),
-   `architecture/CREDENTIAL_STRATEGY.md`, `architecture/DEPENDENCIES.md`.
+   `architecture/CREDENTIAL_STRATEGY.md`, `architecture/DEPENDENCIES.md`, `architecture/MODULE.md` (Aufbau,
+   Manifest und Tests von `modules/PSCollections.Connectivity`).
 8. **Bestand, Entscheidungen und offene Punkte:** `docs/BACKLOG.md` (Bestandsabschnitte 1–9),
    `docs/HISTORY-OPTIONS.md` (Entscheidungsvorlage zur History-Bereinigung).
 9. **Skript-Übersicht:** `INDEX.md` (generiert) und die READMEs der Themenordner, z. B.
