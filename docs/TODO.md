@@ -131,6 +131,26 @@ vorhandene Projekt-Hook (`.githooks/pre-commit`) prüft nur neu hinzukommenden D
 - [ ] Exchange-Skripte: wirkungslose `-SkipCACheck`/`-SkipCNCheck`-Optionen bei `http://`-Kerberos-Verbindung entfernen
       (`security/THREAT_MODEL.md` Bedrohung 3)
 
+### I7: Modulvertrag von PSCollections.Connectivity an architecture/MODULE.md angleichen
+
+Beim Template-Update auf v28 aufgefallen (`docs/architecture/MODULE.md`, Stellen „offen (I7)"); der Code weicht von
+den neuen Regeln in `CONVENTIONS.md` §2/§3 ab, ohne dass heute ein Fehler sichtbar ist.
+
+**Aufgaben:**
+
+- [ ] `PSCollections.Connectivity.psm1`: `Set-StrictMode -Version 3.0` statt `Latest`
+- [ ] `PSCollections.Connectivity.psm1`: `Export-ModuleMember` entfernen — Exportliste nur im Manifest
+- [ ] `PSCollections.Connectivity.psd1`: `CompatiblePSEditions = @('Desktop', 'Core')` und
+      `PrivateData.PSData.ReleaseNotes` (Verweis auf `docs/CHANGELOG.md`) ergänzen; Patch-Version anheben
+- [ ] Modultest `tests/modules/PSCollections.Connectivity/PSCollections.Connectivity.Module.Tests.ps1` nach
+      `architecture/MODULE.md` „Modultests" (sinnvoll zusammen mit I4, das die ersten Verhaltenstests bringt)
+
+**Zusätzliche DoD** (nur, was über die Standard-DoD hinausgeht):
+
+- [ ] Alle vier Aufrufer (`architecture/MODULE.md` „Aufbau") laden das Modul nach der Änderung weiterhin; Modultest
+      rot, wenn eine Funktion aus `FunctionsToExport` entfernt wird (Mutationsnachweis)
+- [ ] Markierungen „offen (I7)" in `architecture/MODULE.md` und `CONVENTIONS.md` §2/§3 entfernt
+
 ---
 
 ## Abgeschlossen
