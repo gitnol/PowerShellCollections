@@ -2,7 +2,7 @@
 
 <!-- Automatisch erzeugt von tools/Build-ScriptIndex.ps1 - nicht von Hand bearbeiten. -->
 
-148 Skripte. 148 mit `.SYNOPSIS` (100%), 0 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
+149 Skripte. 149 mit `.SYNOPSIS` (100%), 0 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
 
 | Markierung | Bedeutung |
 | ---------- | --------- |
@@ -145,6 +145,7 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
 | [ConvertFrom-TeamViewerLog.ps1](scripts/applications/teamviewer/ConvertFrom-TeamViewerLog.ps1) |  | Wertet TeamViewer-Logdateien forensisch aus - wer war wann mit wem verbunden. |
+| [Remove-TeamViewerComplete.ps1](scripts/applications/teamviewer/Remove-TeamViewerComplete.ps1) |  | Entfernt TeamViewer restlos von einem lokalen Windows-Rechner. |
 | [Set-TeamViewerAccess.ps1](scripts/applications/teamviewer/Set-TeamViewerAccess.ps1) |  | Setzt die TeamViewer-Zugriffssteuerung auf mehreren Rechnern gleichzeitig. |
 | [Start-TeamViewer.ps1](scripts/applications/teamviewer/Start-TeamViewer.ps1) |  | Startet TeamViewer mit verschiedenen Konfigurationsoptionen und Verbindungsparametern. |
 
