@@ -2,7 +2,7 @@
 
 <!-- Automatisch erzeugt von tools/Build-ScriptIndex.ps1 - nicht von Hand bearbeiten. -->
 
-149 Skripte. 149 mit `.SYNOPSIS` (100%), 0 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
+152 Skripte. 152 mit `.SYNOPSIS` (100%), 0 weitere mit einer Kurzbeschreibung aus dem ersten Kommentar.
 
 | Markierung | Bedeutung |
 | ---------- | --------- |
@@ -133,6 +133,13 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | Skript | | Beschreibung |
 | ------ | --- | ------------ |
 | [OSBiz.psm1](scripts/applications/openscape-business/OSBiz.psm1) | `def` | Meldet sich an der OSBiz API an und gibt die Session-ID zurück. |
+
+## `scripts/applications/solidworks-pdm/`
+
+| Skript | | Beschreibung |
+| ------ | --- | ------------ |
+| [Get-PdmLicenseType.ps1](scripts/applications/solidworks-pdm/Get-PdmLicenseType.ps1) |  | Liest den SOLIDWORKS PDM Client-Lizenztyp (Editor, Contributor, Viewer) aus der Registry. |
+| [Set-PdmLicenseType.ps1](scripts/applications/solidworks-pdm/Set-PdmLicenseType.ps1) |  | Setzt den SOLIDWORKS PDM Client-Lizenztyp (Editor, Contributor, Viewer) ueber die Registry. |
 
 ## `scripts/applications/teams/`
 
