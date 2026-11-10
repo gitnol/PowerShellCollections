@@ -20,7 +20,9 @@
     Computernamen oder DNSHostNames, auch per Pipeline.
 
 .PARAMETER AccessControlType
-    Der TeamViewer AccessControlType (0 bis 3, siehe oben).
+    Der TeamViewer AccessControlType, per TAB waehlbar: Vollzugriff (0),
+    Bestaetigung (1), NurAnsicht (2), Benutzerdefiniert (3). Englisch geht
+    auch (FullAccess, Confirm, ViewOnly, Custom), ebenso die Zahl 0 bis 3.
 
 .PARAMETER Credential
     Anderes Konto fuer das Remoting, z. B. ein Admin-Konto. Ohne Angabe laeuft
@@ -62,9 +64,20 @@ param (
     [Alias('ComputerName')]
     [string[]]$ComputerNames,
 
-    [Parameter(Mandatory = $true, HelpMessage = "Der TeamViewer AccessControlType (0 = Vollzugriff, 1 = Bestätigung, 2 = Nur Ansicht, 3 = Custom).")]
-    [ValidateRange(0, 3)]
-    [int]$AccessControlType,
+    [Parameter(Mandatory = $true, HelpMessage = "Der TeamViewer AccessControlType: Name (per TAB waehlbar) oder Zahl 0 bis 3.")]
+    [ArgumentCompleter({
+            param($cmd, $param, $word)
+            'Vollzugriff', 'Bestaetigung', 'NurAnsicht', 'Benutzerdefiniert',
+            'FullAccess', 'Confirm', 'ViewOnly', 'Custom' |
+                Where-Object { $_ -like "$word*" } |
+                ForEach-Object { [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_) }
+        })]
+    [ValidateScript({
+            if ($_ -in '0', '1', '2', '3', 'Vollzugriff', 'Bestaetigung', 'NurAnsicht', 'Benutzerdefiniert',
+                'FullAccess', 'Confirm', 'ViewOnly', 'Custom') { $true }
+            else { throw "Ungueltig: '$_'. Erlaubt: 0-3, Vollzugriff, Bestaetigung, NurAnsicht, Benutzerdefiniert (oder FullAccess, Confirm, ViewOnly, Custom)." }
+        })]
+    [string]$AccessControlType,
 
     [Parameter(HelpMessage = "Konto für das Remoting, z. B. ein Admin-Konto.")]
     [System.Management.Automation.PSCredential]
@@ -87,6 +100,15 @@ begin {
     Import-Module (Join-Path $repoRoot 'modules/PSCollections.Connectivity/PSCollections.Connectivity.psd1') -Force
 
     $allNames = [System.Collections.Generic.List[string]]::new()
+
+    # Name oder Zahl -> numerischer AccessControlType
+    $acMap = @{
+        'vollzugriff' = 0; 'fullaccess' = 0
+        'bestaetigung' = 1; 'confirm' = 1
+        'nuransicht' = 2; 'viewonly' = 2
+        'benutzerdefiniert' = 3; 'custom' = 3
+    }
+    $acValue = if ($AccessControlType -match '^[0-3]$') { [int]$AccessControlType } else { $acMap[$AccessControlType.ToLowerInvariant()] }
 }
 
 process {
@@ -125,7 +147,7 @@ end {
 
     # -WhatIf/-Confirm je Rechner
     $targetHosts = @($targetHosts | Where-Object {
-            $PSCmdlet.ShouldProcess($_, "AccessControlType auf $AccessControlType setzen")
+            $PSCmdlet.ShouldProcess($_, "AccessControlType auf $acValue ($AccessControlType) setzen")
         })
 
     # ─────────────────────────────────────────────────────────────────────────
@@ -147,7 +169,7 @@ end {
         }
 
         $remoteResults = Invoke-Command @invokeParams -ScriptBlock {
-            $Value = $using:AccessControlType
+            $Value = $using:acValue
             $Restart = -not $using:noRestart
             $RegPath = "HKLM:\SOFTWARE\TeamViewer\AccessControl"
             $KeyName = "AC_Server_AccessControlType"
