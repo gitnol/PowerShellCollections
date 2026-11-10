@@ -334,6 +334,12 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | [Test-MultipleHostsSecureBoot.ps1](scripts/security/secure-boot/Test-MultipleHostsSecureBoot.ps1) |  | Prueft auf vielen Rechnern parallel den Secure-Boot-Status und das Zertifikat 'Windows UEFI CA 2023'. |
 | [Test-SecureBootCert2023.ps1](scripts/security/secure-boot/Test-SecureBootCert2023.ps1) |  | Prüft den Secure Boot Status und das Vorhandensein des Windows UEFI CA 2023 Zertifikats. |
 
+## `scripts/security/signatures/`
+
+| Skript | | Beschreibung |
+| ------ | --- | ------------ |
+| [Test-FileSignature.ps1](scripts/security/signatures/Test-FileSignature.ps1) |  | Prueft eine heruntergeladene Datei anhand ihrer Signatur (GPG/OpenPGP und Authenticode). |
+
 ## `scripts/virtualization/vmware/`
 
 | Skript | | Beschreibung |
@@ -437,7 +443,7 @@ Davon 32 nebenwirkungsfrei, 0 mit Syntaxfehlern.
 | [Get-LoggedInUsersCim.ps1](scripts/windows/sessions/Get-LoggedInUsersCim.ps1) | `def` | Ermittelt die angemeldeten Benutzer mehrerer Rechner ueber CIM-Sessions und unterscheidet Konsole von RDP. |
 | [Get-LoggedInUsersInvokeCommand.ps1](scripts/windows/sessions/Get-LoggedInUsersInvokeCommand.ps1) |  | Ermittelt die angemeldeten Benutzer mehrerer Rechner per Invoke-Command und unterscheidet Konsole von RDP. |
 | [Get-UserIdleTime.ps1](scripts/windows/sessions/Get-UserIdleTime.ps1) |  | Ermittelt, wie lange der angemeldete Benutzer keine Eingabe mehr gemacht hat. |
-| [Get-WorkstationUnlockEvents.ps1](scripts/windows/sessions/Get-WorkstationUnlockEvents.ps1) |  | Sammelt Sperr- und Entsperrvorgaenge von Arbeitsplaetzen aus dem Sicherheitsprotokoll. |
+| [Get-WorkstationUnlockEvents.ps1](scripts/windows/sessions/Get-WorkstationUnlockEvents.ps1) |  | Sammelt Sperr- und Entsperrvorgaenge sowie An- und Abmeldungen eines Rechners aus dem Sicherheits- und Systemprotokoll. |
 | [Test-IdleSession.ps1](scripts/windows/sessions/Test-IdleSession.ps1) |  | Stellt fest, ob auf einem Rechner alle Sitzungen im Leerlauf sind - ohne GetLastInputInfo. |
 | [UserSessionFunctions.ps1](scripts/windows/sessions/UserSessionFunctions.ps1) |  | Funktionsbibliothek zum Auflisten und Abmelden von Remote-Sitzungen. |
 
