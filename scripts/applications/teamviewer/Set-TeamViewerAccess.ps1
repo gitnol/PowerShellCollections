@@ -16,6 +16,11 @@
     NichtErreichbar (pingbar, aber WinRM-Fehler). Kein Rechner verschwindet
     stillschweigend aus dem Ergebnis.
 
+    Warnung heisst auch: Auf dem Rechner ist eine TeamViewer-Richtlinie aus der
+    Management Console aktiv (Gerät verwaltet). Sie uebersteuert den
+    Registry-Wert, die Einstellung ist dann in der Oberflaeche ausgegraut und
+    muss in der Richtlinie geaendert werden. Der Wert wird trotzdem gesetzt.
+
 .PARAMETER ComputerNames
     Computernamen oder DNSHostNames, auch per Pipeline.
 
@@ -195,17 +200,29 @@ end {
                 }
                 $Result.Details = "Registry-Key auf $Value gesetzt."
 
+                # Verwaltete Geraete (Management Console) bekommen eine Richtlinie, die
+                # den lokalen Wert uebersteuert: Oberflaeche ausgegraut, Wert wirkungslos.
+                $TvKey = 'HKLM:\SOFTWARE\TeamViewer'
+                $TvProps = Get-ItemProperty -Path $TvKey -ErrorAction SilentlyContinue
+                $HasPolicy = [bool]$TvProps.ManagedDeviceV2AssignmentId -or
+                [bool]$TvProps.Remote_Settings_TVClientSetting_Policy -or
+                (Test-Path -Path 'HKLM:\SOFTWARE\Policies\TeamViewer')
+                $OkStatus = if ($HasPolicy) { "Warnung" } else { "Erfolgreich" }
+                $PolicyHint = if ($HasPolicy) {
+                    " ACHTUNG: TeamViewer-Richtlinie aktiv, sie ueberstimmt den Registry-Wert. Aenderung in der Management Console vornehmen."
+                } else { "" }
+
                 if (-not $Restart) {
-                    $Result.Status = "Erfolgreich"
-                    $Result.Details += " Dienst nicht neu gestartet (wirkt erst nach Dienststart)."
+                    $Result.Status = $OkStatus
+                    $Result.Details += " Dienst nicht neu gestartet (wirkt erst nach Dienststart)." + $PolicyHint
                     return $Result
                 }
 
                 $TvService = @(Get-Service -Name "*teamviewer*" -ErrorAction SilentlyContinue)
                 if ($TvService) {
                     $TvService | Restart-Service -Force -ErrorAction Stop
-                    $Result.Status = "Erfolgreich"
-                    $Result.Details += " Dienst ($($TvService.Name -join ', ')) neu gestartet."
+                    $Result.Status = $OkStatus
+                    $Result.Details += " Dienst ($($TvService.Name -join ', ')) neu gestartet." + $PolicyHint
                 }
                 else {
                     $Result.Status = "Warnung"
